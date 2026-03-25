@@ -1,0 +1,16 @@
+{
+  "name": "amort",
+  "version": "1.0.0",
+  "description": "AMORT! - Ortakli gider takibi ve borc yonetimi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

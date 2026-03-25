@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>AMØRT!</title>
+  <link rel="manifest" href="/manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#6366f1', light: '#818cf8', dark: '#4f46e5' },
+            surface: { DEFAULT: '#1e293b', light: '#334155', dark: '#0f172a' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .ring-container { position: relative; width: 240px; height: 240px; }
+    .ring-donut {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      transition: background 0.6s ease;
+    }
+    .ring-hole {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: #0f172a;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    .ring-slash {
+      position: absolute; top: 50%; left: 50%;
+      width: 3px; height: 260px;
+      background: #0f172a;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      z-index: 2;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .nav-item.active { color: #818cf8; }
+    .nav-item.active svg { stroke: #818cf8; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 40; display: none; align-items: flex-end; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-sheet {
+      background: #1e293b; border-radius: 1.5rem 1.5rem 0 0;
+      width: 100%; max-width: 480px; max-height: 90vh;
+      padding: 1.5rem; overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .modal-backdrop.open .modal-sheet { transform: translateY(0); }
+    .fab {
+      position: fixed; bottom: 5.5rem; right: 1.5rem;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: #6366f1; color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem; font-weight: 700;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.5);
+      z-index: 30; cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .fab:active { transform: scale(0.9); }
+    .transfer-card {
+      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.05));
+      border: 1px solid rgba(99,102,241,0.2);
+    }
+  </style>
+</head>
+<body class="bg-surface-dark text-gray-100 min-h-screen pb-20 select-none">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-20 bg-surface-dark/90 backdrop-blur-md border-b border-white/5 px-4 py-3">
+    <div class="max-w-lg mx-auto flex items-center justify-between">
+      <h1 class="text-2xl font-black tracking-tight">AM<span class="text-brand-light">Ø</span>RT!</h1>
+      <button id="btn-theme" class="p-2 rounded-lg hover:bg-surface-light/50 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 pt-4">
+
+    <!-- ==================== ANA SAYFA ==================== -->
+    <section id="page-home" class="page active">
+
+      <!-- Ø Halkası -->
+      <div class="flex flex-col items-center mb-6">
+        <div class="ring-container">
+          <div id="ring-donut" class="ring-donut" style="background: conic-gradient(#334155 0% 100%)"></div>
+          <div class="ring-slash"></div>
+          <div class="ring-hole">
+            <span class="text-3xl font-black">Ø</span>
+            <span id="ring-total" class="text-sm text-gray-400 mt-1">0 ₺</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ortak Kartları -->
+      <div id="partner-cards" class="grid grid-cols-2 gap-3 mb-6"></div>
+
+      <!-- Borç Özeti -->
+      <div id="debt-section" class="mb-6 hidden">
+        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Önerilen Transferler</h2>
+        <div id="debt-transfers" class="space-y-2"></div>
+      </div>
+
+      <!-- Boş Durum -->
+      <div id="empty-state" class="text-center py-12">
+        <div class="text-6xl mb-4 opacity-30">Ø</div>
+        <p class="text-gray-400 text-sm">Henüz ortak veya işlem yok.</p>
+        <p class="text-gray-500 text-xs mt-1">Alt menüden ortak ekleyerek başlayın.</p>
+      </div>
+    </section>
+
+    <!-- ==================== İŞLEMLER ==================== -->
+    <section id="page-transactions" class="page">
+      <h2 class="text-lg font-bold mb-4">İşlemler</h2>
+      <div id="tx-list" class="space-y-2"></div>
+      <div id="tx-empty" class="text-center py-12 text-gray-500 text-sm">Henüz işlem yok.</div>
+    </section>
+
+    <!-- ==================== ORTAKLAR ==================== -->
+    <section id="page-partners" class="page">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Ortaklar</h2>
+        <button id="btn-add-partner" class="px-4 py-2 bg-brand rounded-xl text-sm font-semibold hover:bg-brand-dark transition">
+          + Ekle
+        </button>
+      </div>
+      <div id="partner-list" class="space-y-2"></div>
+      <div id="partner-empty" class="text-center py-12 text-gray-500 text-sm">Henüz ortak yok.</div>
+    </section>
+
+    <!-- ==================== AYARLAR ==================== -->
+    <section id="page-settings" class="page">
+      <h2 class="text-lg font-bold mb-4">Ayarlar</h2>
+      <div class="space-y-3">
+        <div class="bg-surface rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p class="font-medium">Koyu Tema</p>
+            <p class="text-xs text-gray-400">Varsayılan tema</p>
+          </div>
+          <button id="toggle-dark" class="w-12 h-7 bg-brand rounded-full relative transition">
+            <span id="toggle-knob" class="absolute top-0.5 left-5.5 w-6 h-6 bg-white rounded-full shadow transition-all"></span>
+          </button>
+        </div>
+        <div class="bg-surface rounded-xl p-4">
+          <p class="font-medium mb-1">Hakkında</p>
+          <p class="text-xs text-gray-400">AMØRT! v1.0 – Ortaklı gider takibi ve borç yönetimi.</p>
+          <p class="text-xs text-gray-500 mt-1">Node.js + Tailwind + Supabase</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FAB: Hızlı Ekle -->
+  <button id="fab" class="fab" title="Hızlı Ekle">+</button>
+
+  <!-- ==================== MODAL: İşlem Ekle ==================== -->
+  <div id="modal-tx" class="modal-backdrop">
+    <div class="modal-sheet">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold">Yeni İşlem</h3>
+        <button id="modal-tx-close" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+      </div>
+
+      <!-- Tab: Harcama / Transfer -->
+      <div class="flex bg-surface-dark rounded-xl p-1 mb-4">
+        <button data-type="harcama" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition">Harcama</button>
+        <button data-type="transfer" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition">Transfer</button>
+      </div>
+
+      <form id="form-tx" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Tutar (₺)</label>
+          <input id="tx-amount" type="number" step="0.01" min="0.01" required
+            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-brand"
+            placeholder="0.00" inputmode="decimal">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Ödeyen</label>
+          <select id="tx-payer" required
+            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand">
+          </select>
+        </div>
+        <div id="tx-receiver-group" class="hidden">
+          <label class="text-xs text-gray-400 block mb-1">Alan Kişi</label>
+          <select id="tx-receiver"
+            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand">
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Not (opsiyonel)</label>
+          <input id="tx-desc" type="text"
+            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
+            placeholder="Açıklama...">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Tarih</label>
+          <input id="tx-date" type="date"
+            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand">
+        </div>
+        <button type="submit"
+          class="w-full py-3 bg-brand rounded-xl font-bold text-lg hover:bg-brand-dark transition">
+          Kaydet
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: Ortak Ekle ==================== -->
+  <div id="modal-partner" class="modal-backdrop">
+    <div class="modal-sheet">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="partner-modal-title" class="text-lg font-bold">Yeni Ortak</h3>
+        <button id="modal-partner-close" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+      </div>
+      <form id="form-partner" class="space-y-3">
+        <input type="hidden" id="partner-edit-id">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">İsim</label>
+          <input id="partner-name" type="text" required
+            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
+            placeholder="Ortak adı">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Renk</label>
+          <div class="flex items-center gap-3">
+            <input id="partner-color" type="color" value="#6366f1"
+              class="w-12 h-12 rounded-xl border-0 cursor-pointer bg-transparent">
+            <span id="partner-color-label" class="text-sm text-gray-400">#6366f1</span>
+          </div>
+        </div>
+        <button type="submit"
+          class="w-full py-3 bg-brand rounded-xl font-bold text-lg hover:bg-brand-dark transition">
+          Kaydet
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== BOTTOM NAV ==================== -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-white/5 z-30 safe-bottom">
+    <div class="max-w-lg mx-auto flex justify-around py-2">
+      <button class="nav-item active flex flex-col items-center gap-0.5 px-3 py-1" data-page="home">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+        <span class="text-[10px] font-medium">Ana Sayfa</span>
+      </button>
+      <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="transactions">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="text-[10px] font-medium">İşlemler</span>
+      </button>
+      <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="partners">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-[10px] font-medium">Ortaklar</span>
+      </button>
+      <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="settings">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-[10px] font-medium">Ayarlar</span>
+      </button>
+    </div>
+  </nav>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ring.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</body>
+</html>
