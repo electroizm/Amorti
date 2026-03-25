@@ -1,5 +1,6 @@
 /**
- * AMØRT! Ana Uygulama Mantığı (Türkçe alan adları)
+ * AMØRT! Ana Uygulama Mantığı
+ * Toast bildirimleri, vibrasyon, animasyonlar
  */
 const App = {
   mevcutSayfa: 'home',
@@ -16,6 +17,21 @@ const App = {
     this.bindTema();
     this.varsayilanTarih();
     await this.yenile();
+  },
+
+  // ─── Toast Bildirimi ───
+  toast(mesaj, tip = 'basari') {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = `toast toast-${tip}`;
+    el.textContent = mesaj;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+  },
+
+  // ─── Vibrasyon ───
+  titresim(ms = 50) {
+    if (navigator.vibrate) navigator.vibrate(ms);
   },
 
   // ─── Navigasyon ───
@@ -89,7 +105,7 @@ const App = {
     }).join('');
   },
 
-  // ─── Ana Sayfa: Borç Önerileri ───
+  // ─── Ana Sayfa: Borç Önerileri (animasyonlu ok) ───
   borcBolumuGoster(ozet) {
     const section = document.getElementById('debt-section');
     const container = document.getElementById('debt-transfers');
@@ -111,7 +127,9 @@ const App = {
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full" style="background: ${kimden.renk}"></div>
             <span class="font-medium text-sm">${this.esc(kimden.isim)}</span>
-            <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            <div class="transfer-arrow w-6 h-5 flex items-center justify-center">
+              <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </div>
             <div class="w-3 h-3 rounded-full" style="background: ${kime.renk}"></div>
             <span class="font-medium text-sm">${this.esc(kime.isim)}</span>
           </div>
@@ -135,7 +153,8 @@ const App = {
   bindFAB() {
     document.getElementById('fab').addEventListener('click', () => {
       if (this.ortaklar.length < 1) {
-        alert('Önce en az bir ortak ekleyin!');
+        this.toast('Önce en az bir ortak ekleyin!', 'hata');
+        this.titresim(100);
         this.navigate('partners');
         return;
       }
@@ -175,19 +194,23 @@ const App = {
       if (this.islemTuru === 'transfer') {
         data.alan_id = document.getElementById('tx-receiver').value;
         if (data.odeyen_id === data.alan_id) {
-          alert('Ödeyen ve alan aynı kişi olamaz!');
+          this.toast('Ödeyen ve alan aynı kişi olamaz!', 'hata');
+          this.titresim(100);
           return;
         }
       }
 
       try {
         await API.addIslem(data);
+        this.titresim();
         this.modalKapat('modal-tx');
         document.getElementById('form-tx').reset();
         this.varsayilanTarih();
+        this.toast(this.islemTuru === 'transfer' ? 'Transfer kaydedildi' : 'Harcama eklendi', 'basari');
         await this.yenile();
       } catch (err) {
-        alert('Hata: ' + err.message);
+        this.toast('Hata: ' + err.message, 'hata');
+        this.titresim(100);
       }
     });
   },
@@ -222,14 +245,18 @@ const App = {
       try {
         if (this.duzenlenenOrtakId) {
           await API.updateOrtak(this.duzenlenenOrtakId, data);
+          this.toast('Ortak güncellendi', 'basari');
         } else {
           await API.addOrtak(data);
+          this.toast(`${data.isim} eklendi`, 'basari');
         }
+        this.titresim();
         this.modalKapat('modal-partner');
         await this.yenile();
         this.ortakListesiGoster();
       } catch (err) {
-        alert('Hata: ' + err.message);
+        this.toast('Hata: ' + err.message, 'hata');
+        this.titresim(100);
       }
     });
   },
@@ -290,10 +317,12 @@ const App = {
 
     try {
       await API.deleteOrtak(id);
+      this.titresim();
+      this.toast(`${ortak.isim} silindi`, 'bilgi');
       await this.yenile();
       this.ortakListesiGoster();
     } catch (err) {
-      alert('Hata: ' + err.message);
+      this.toast('Hata: ' + err.message, 'hata');
     }
   },
 
@@ -357,10 +386,12 @@ const App = {
     if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
     try {
       await API.deleteIslem(id);
+      this.titresim();
+      this.toast('İşlem silindi', 'bilgi');
       await this.yenile();
       this.islemListesiGoster();
     } catch (err) {
-      alert('Hata: ' + err.message);
+      this.toast('Hata: ' + err.message, 'hata');
     }
   },
 

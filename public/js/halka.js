@@ -1,10 +1,12 @@
 /**
  * Ø Halkası (Donut Chart) Bileşeni
- * CSS conic-gradient ile animasyonlu donut chart
+ * CSS conic-gradient + Number Counter Animation
  */
 const Ring = {
   el: null,
   toplamEl: null,
+  mevcutToplam: 0,
+  animasyonId: null,
 
   init() {
     this.el = document.getElementById('ring-donut');
@@ -20,7 +22,8 @@ const Ring = {
   update(ortaklar, harcamalar, toplamHarcama) {
     if (!this.el) this.init();
 
-    this.toplamEl.textContent = this.formatPara(toplamHarcama) + ' ₺';
+    // Number Counter Animation
+    this.sayacAnimasyonu(toplamHarcama);
 
     if (ortaklar.length === 0 || toplamHarcama === 0) {
       this.el.style.background = 'conic-gradient(#334155 0% 100%)';
@@ -43,6 +46,43 @@ const Ring = {
     }
 
     this.el.style.background = `conic-gradient(${segments.join(', ')})`;
+  },
+
+  /**
+   * Sayaç animasyonu - eski değerden yeniye yumuşak geçiş
+   */
+  sayacAnimasyonu(hedef) {
+    if (this.animasyonId) cancelAnimationFrame(this.animasyonId);
+
+    const baslangic = this.mevcutToplam;
+    const fark = hedef - baslangic;
+    if (Math.abs(fark) < 0.01) {
+      this.toplamEl.textContent = this.formatPara(hedef) + ' ₺';
+      this.mevcutToplam = hedef;
+      return;
+    }
+
+    const sure = 600; // ms
+    const baslamaZamani = performance.now();
+
+    const adim = (simdi) => {
+      const gecen = simdi - baslamaZamani;
+      const ilerleme = Math.min(gecen / sure, 1);
+      // easeOutCubic
+      const ease = 1 - Math.pow(1 - ilerleme, 3);
+      const deger = baslangic + fark * ease;
+
+      this.toplamEl.textContent = this.formatPara(deger) + ' ₺';
+
+      if (ilerleme < 1) {
+        this.animasyonId = requestAnimationFrame(adim);
+      } else {
+        this.mevcutToplam = hedef;
+        this.animasyonId = null;
+      }
+    };
+
+    this.animasyonId = requestAnimationFrame(adim);
   },
 
   formatPara(n) {
