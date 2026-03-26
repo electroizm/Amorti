@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const { borclariSadelestir } = require('./src/services/borc');
 const { authGerekli, sirketBaglami } = require('./src/middleware/auth');
+const { turkceHata } = require('./src/services/hata');
 
 // Route'lar
 const authRouter = require('./src/routes/auth');
@@ -78,7 +79,7 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
       rol: req.uye.rol
     });
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 

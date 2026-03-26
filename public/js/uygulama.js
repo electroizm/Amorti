@@ -94,11 +94,17 @@ const App = {
       const btn = formKayit.querySelector('button[type="submit"]');
       btn.disabled = true;
       try {
-        await API.kayit(
+        const sonuc = await API.kayit(
           document.getElementById('kayit-isim').value,
           document.getElementById('kayit-eposta').value,
           document.getElementById('kayit-sifre').value
         );
+        if (sonuc.dogrulama_gerekli) {
+          this.toast(sonuc.mesaj, 'bilgi');
+          // Giris tabina gec
+          tabGiris.click();
+          return;
+        }
         this.toast('Hesap olusturuldu', 'basari');
         this.ekranGoster('sirket');
         this.bindSirketSecici();

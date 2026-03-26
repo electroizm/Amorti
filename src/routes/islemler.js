@@ -4,6 +4,7 @@
  */
 const { Router } = require('express');
 const { authGerekli, sirketBaglami, rolGerekli } = require('../middleware/auth');
+const { turkceHata } = require('../services/hata');
 const { formatla } = require('../services/metin');
 
 const router = Router();
@@ -23,7 +24,7 @@ router.get('/', async (req, res) => {
     if (error) throw error;
     res.json(data.map(mapIslem));
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -75,7 +76,7 @@ router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
     if (error) throw error;
     res.status(201).json(mapIslem(data));
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -94,7 +95,7 @@ router.delete('/:id', rolGerekli('yonetici', 'uye'), async (req, res) => {
     if (!data) return res.status(404).json({ hata: 'Islem bulunamadi' });
     res.json(mapIslem(data));
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 

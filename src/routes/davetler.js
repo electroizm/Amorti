@@ -4,6 +4,7 @@
  */
 const { Router } = require('express');
 const { authGerekli, sirketBaglami, rolGerekli } = require('../middleware/auth');
+const { turkceHata } = require('../services/hata');
 
 const router = Router();
 
@@ -21,7 +22,7 @@ router.get('/', sirketBaglami, async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -38,7 +39,7 @@ router.get('/bekleyen', async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -89,7 +90,7 @@ router.post('/', sirketBaglami, rolGerekli('yonetici'), async (req, res) => {
     if (error) throw error;
     res.status(201).json(data);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -135,7 +136,7 @@ router.post('/:id/kabul', async (req, res) => {
 
     res.json({ tamam: true, mesaj: 'Davet kabul edildi' });
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -162,7 +163,7 @@ router.post('/:id/red', async (req, res) => {
     if (error) throw error;
     res.json({ tamam: true, mesaj: 'Davet reddedildi' });
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 

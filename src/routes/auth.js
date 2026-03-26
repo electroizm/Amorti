@@ -4,6 +4,7 @@
  */
 const { Router } = require('express');
 const { createClient } = require('@supabase/supabase-js');
+const { turkceHata } = require('../services/hata');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -16,65 +17,85 @@ const router = Router();
 router.post('/kayit', async (req, res) => {
   const { isim, eposta, sifre } = req.body;
   if (!isim || !eposta || !sifre) {
-    return res.status(400).json({ hata: 'isim, eposta ve sifre zorunludur' });
+    return res.status(400).json({ hata: 'Isim, e-posta ve sifre zorunludur' });
   }
   if (sifre.length < 6) {
     return res.status(400).json({ hata: 'Sifre en az 6 karakter olmalidir' });
   }
 
-  const { data, error } = await supabase.auth.signUp({
-    email: eposta,
-    password: sifre,
-    options: { data: { isim } }
-  });
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: eposta,
+      password: sifre,
+      options: { data: { isim } }
+    });
 
-  if (error) {
-    return res.status(400).json({ hata: error.message });
+    if (error) {
+      return res.status(400).json({ hata: turkceHata(error.message) });
+    }
+
+    // Supabase email onay gerektiriyorsa session null olabilir
+    if (!data.session) {
+      return res.status(201).json({
+        mesaj: 'Hesabiniz olusturuldu. Lutfen e-postanizi kontrol edip hesabinizi dogrulayin.',
+        dogrulama_gerekli: true
+      });
+    }
+
+    res.status(201).json({
+      kullanici: {
+        id: data.user.id,
+        eposta: data.user.email,
+        isim: data.user.user_metadata?.isim
+      },
+      oturum: data.session
+    });
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
-
-  res.status(201).json({
-    kullanici: {
-      id: data.user.id,
-      eposta: data.user.email,
-      isim: data.user.user_metadata?.isim
-    },
-    oturum: data.session
-  });
 });
 
 // POST /api/auth/giris
 router.post('/giris', async (req, res) => {
   const { eposta, sifre } = req.body;
   if (!eposta || !sifre) {
-    return res.status(400).json({ hata: 'eposta ve sifre zorunludur' });
+    return res.status(400).json({ hata: 'E-posta ve sifre zorunludur' });
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: eposta,
-    password: sifre
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: eposta,
+      password: sifre
+    });
 
-  if (error) {
-    return res.status(401).json({ hata: 'Gecersiz eposta veya sifre' });
+    if (error) {
+      return res.status(401).json({ hata: turkceHata(error.message) });
+    }
+
+    res.json({
+      kullanici: {
+        id: data.user.id,
+        eposta: data.user.email,
+        isim: data.user.user_metadata?.isim
+      },
+      oturum: data.session
+    });
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
-
-  res.json({
-    kullanici: {
-      id: data.user.id,
-      eposta: data.user.email,
-      isim: data.user.user_metadata?.isim
-    },
-    oturum: data.session
-  });
 });
 
 // POST /api/auth/cikis
 router.post('/cikis', async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    await supabase.auth.signOut();
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      await supabase.auth.signOut();
+    }
+    res.json({ tamam: true });
+  } catch (err) {
+    res.json({ tamam: true });
   }
-  res.json({ tamam: true });
 });
 
 // GET /api/auth/ben
@@ -84,18 +105,22 @@ router.get('/ben', async (req, res) => {
     return res.status(401).json({ hata: 'Giris yapmaniz gerekiyor' });
   }
 
-  const token = authHeader.split(' ')[1];
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  try {
+    const token = authHeader.split(' ')[1];
+    const { data: { user }, error } = await supabase.auth.getUser(token);
 
-  if (error || !user) {
-    return res.status(401).json({ hata: 'Gecersiz token' });
+    if (error || !user) {
+      return res.status(401).json({ hata: turkceHata(error?.message || 'Gecersiz token') });
+    }
+
+    res.json({
+      id: user.id,
+      eposta: user.email,
+      isim: user.user_metadata?.isim
+    });
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
-
-  res.json({
-    id: user.id,
-    eposta: user.email,
-    isim: user.user_metadata?.isim
-  });
 });
 
 module.exports = router;

@@ -4,6 +4,7 @@
  */
 const { Router } = require('express');
 const { authGerekli, sirketBaglami, rolGerekli } = require('../middleware/auth');
+const { turkceHata } = require('../services/hata');
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.get('/', async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -50,7 +51,7 @@ router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
     if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -79,7 +80,7 @@ router.patch('/:id/rol', rolGerekli('yonetici'), async (req, res) => {
     if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -103,7 +104,7 @@ router.delete('/:id', rolGerekli('yonetici'), async (req, res) => {
     if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
     res.json({ tamam: true });
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 

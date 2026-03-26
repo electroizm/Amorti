@@ -4,6 +4,7 @@
  */
 const { Router } = require('express');
 const { authGerekli } = require('../middleware/auth');
+const { turkceHata } = require('../services/hata');
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.get('/', async (req, res) => {
 
     res.json(sirketler);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -62,7 +63,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({ ...sirket, rol: 'yonetici' });
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -94,7 +95,7 @@ router.patch('/:id', async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
@@ -119,7 +120,7 @@ router.delete('/:id', async (req, res) => {
     if (error) throw error;
     res.json({ tamam: true });
   } catch (err) {
-    res.status(500).json({ hata: err.message });
+    res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
 
