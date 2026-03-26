@@ -161,6 +161,7 @@ const App = {
 
       this.ortakKartlariGoster(ozet);
       this.borcBolumuGoster(ozet);
+      this.oRingGuncelle(ozet);
       this.selectGuncelle();
 
       // Kullanıcı bilgisi
@@ -222,6 +223,49 @@ const App = {
         GercekZaman.baslat(config.supabaseUrl, config.supabaseKey, token, sirketId);
       }
     } catch (err) { console.warn('Realtime baslatilamadi:', err); }
+  },
+
+  // ─── Ø Ring ───
+  oRingGuncelle(ozet) {
+    const svg = document.getElementById('o-ring');
+    // Eski arc'ları temizle (circle ve text kalsın)
+    svg.querySelectorAll('.o-arc').forEach(el => el.remove());
+
+    const toplam = ozet.toplamHarcama || 0;
+    if (toplam <= 0) return;
+
+    const R = 50, C = 2 * Math.PI * R;
+    let offset = 0;
+
+    // Üye harcamaları
+    const parcalar = [];
+    ozet.uyeler.forEach(u => {
+      const tutar = ozet.harcamalar[u.id] || 0;
+      if (tutar > 0) parcalar.push({ renk: u.renk, tutar });
+    });
+    // Kasa harcaması
+    if (ozet.kasaHarcama > 0) {
+      parcalar.push({ renk: '#6366f1', tutar: ozet.kasaHarcama });
+    }
+
+    const text = svg.querySelector('text');
+    parcalar.forEach(p => {
+      const oran = p.tutar / toplam;
+      const dash = oran * C;
+      const arc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      arc.setAttribute('class', 'o-arc');
+      arc.setAttribute('cx', '60');
+      arc.setAttribute('cy', '60');
+      arc.setAttribute('r', String(R));
+      arc.setAttribute('fill', 'none');
+      arc.setAttribute('stroke', p.renk);
+      arc.setAttribute('stroke-width', '12');
+      arc.setAttribute('stroke-dasharray', `${dash} ${C - dash}`);
+      arc.setAttribute('stroke-dashoffset', String(-offset));
+      arc.setAttribute('transform', 'rotate(-90 60 60)');
+      svg.insertBefore(arc, text);
+      offset += dash;
+    });
   },
 
   // ─── Yardımcılar ───

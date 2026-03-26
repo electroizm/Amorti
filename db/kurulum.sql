@@ -146,6 +146,7 @@ ALTER TABLE sirketler ENABLE ROW LEVEL SECURITY;
 CREATE POLICY sirketler_select ON sirketler FOR SELECT USING (
   id IN (SELECT kullanici_sirket_idleri(auth.uid()))
   OR sahip_id = auth.uid()
+  OR id IN (SELECT sirket_id FROM davetler WHERE eposta = (auth.jwt()->>'email') AND durum = 'bekliyor')
 );
 
 CREATE POLICY sirketler_insert ON sirketler FOR INSERT WITH CHECK (

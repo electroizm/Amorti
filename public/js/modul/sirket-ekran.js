@@ -31,11 +31,15 @@ Object.assign(App, {
 
   async sirketleriYukle() {
     try {
-      const sirketler = await API.getSirketler();
+      const [sirketler, davetler] = await Promise.all([
+        API.getSirketler(),
+        API.bekleyenDavetler()
+      ]);
       App.sirketSayisi = sirketler.length;
       const container = document.getElementById('sirket-listesi');
 
-      if (sirketler.length === 1) {
+      // Tek şirket + bekleyen davet yoksa direkt gir
+      if (sirketler.length === 1 && davetler.length === 0) {
         API.setSirketId(sirketler[0].id);
         App.ekranGoster('app');
         App.bindApp();
@@ -65,9 +69,6 @@ Object.assign(App, {
           });
         }
       }
-
-      // Bekleyen davetler
-      const davetler = await API.bekleyenDavetler();
       const davetContainer = document.getElementById('bekleyen-davetler');
       const davetListesi = document.getElementById('davet-listesi-bekleyen');
 

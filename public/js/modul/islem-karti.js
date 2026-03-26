@@ -5,6 +5,7 @@
 Object.assign(App, {
   bindFAB() {
     document.getElementById('fab').addEventListener('click', () => {
+      if (App.rol === 'izleyici') return;
       if (App.uyeler.length < 1) {
         App.toast(t('islem.henuzUyeYok'), 'hata');
         App.titresim(100);
@@ -39,6 +40,7 @@ Object.assign(App, {
 
     document.getElementById('form-tx').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (App.rol === 'izleyici') return;
       const payerVal = document.getElementById('tx-payer').value;
       const kasaMi = payerVal === '__kasa__';
 
