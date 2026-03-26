@@ -67,6 +67,15 @@ Object.assign(App, {
       toggleBtn.addEventListener('click', () => {
         formDiv.classList.toggle('hidden');
         toggleBtn.classList.add('hidden');
+        // Kalan pay'ı placeholder'a yaz
+        const mevcutOrtaklar = App.ortaklar || [];
+        const toplamPay = mevcutOrtaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+        const payInput = document.getElementById('ortak-pay');
+        if (toplamPay > 0 && toplamPay < 100) {
+          payInput.placeholder = `Kalan: %${Math.round((100 - toplamPay) * 100) / 100}`;
+        } else {
+          payInput.placeholder = t('ortak.payPlaceholder');
+        }
       });
     }
 
@@ -75,7 +84,21 @@ Object.assign(App, {
       const isim = document.getElementById('ortak-isim').value.trim();
       const renk = document.getElementById('ortak-renk').value;
       const payVal = document.getElementById('ortak-pay').value;
-      const pay = payVal ? parseFloat(payVal) : null;
+      let pay = payVal ? parseFloat(payVal) : null;
+
+      // Boş bırakıldıysa kalan yüzdeyi hesapla
+      if (pay === null) {
+        const mevcutOrtaklar = App.ortaklar || [];
+        const toplamPay = mevcutOrtaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+        if (toplamPay > 0 && toplamPay < 100) {
+          pay = Math.round((100 - toplamPay) * 100) / 100;
+        }
+      }
+
+      if (pay != null && pay <= 0) {
+        App.toast('Kalan pay %0, yeni ortak eklenemez', 'hata');
+        return;
+      }
 
       try {
         await API.ortakEkle({ isim, renk, pay });

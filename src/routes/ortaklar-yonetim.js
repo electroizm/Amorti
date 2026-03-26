@@ -34,11 +34,26 @@ router.post('/', rolGerekli('yonetici'), async (req, res) => {
   }
 
   try {
+    let hesaplananPay = pay != null ? parseFloat(pay) : null;
+
+    // Pay boşsa ve mevcut ortakların yüzde toplamı varsa kalanı ata
+    if (hesaplananPay === null) {
+      const { data: mevcutOrtaklar } = await req.supabase
+        .from('ortaklar')
+        .select('pay')
+        .eq('sirket_id', req.sirketId);
+
+      const toplamPay = (mevcutOrtaklar || []).reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+      if (toplamPay > 0 && toplamPay < 100) {
+        hesaplananPay = Math.round((100 - toplamPay) * 100) / 100;
+      }
+    }
+
     const row = {
       sirket_id: req.sirketId,
       isim: isim.trim(),
       renk: renk || '#6366f1',
-      pay: pay != null ? parseFloat(pay) : null
+      pay: hesaplananPay
     };
 
     const { data, error } = await req.supabase
