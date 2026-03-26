@@ -22,7 +22,7 @@ window.AMORT_DIL.en = {
     hesabinizYokMu: "Don't have an account?",
     zadenHesabVar: 'Already have an account?',
     dogrulamaBilgi: 'Check your email',
-    dogrulamaDetay: 'Click the link sent to your email to verify your account. (Valid for 7 minutes)'
+    dogrulamaDetay: 'Click the link sent to your email to verify your account. (Valid for 27 minutes)'
   },
 
   sirket: {

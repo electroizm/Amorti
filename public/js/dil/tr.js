@@ -24,7 +24,7 @@ window.AMORT_DIL.tr = {
     hesabinizYokMu: 'Hesabınız yok mu?',
     zadenHesabVar: 'Zaten hesabınız var mı?',
     dogrulamaBilgi: 'E-postanızı kontrol edin',
-    dogrulamaDetay: 'Hesabınızı doğrulamak için gönderilen bağlantıya tıklayın. (7 dakika geçerli)'
+    dogrulamaDetay: 'Hesabınızı doğrulamak için gönderilen bağlantıya tıklayın. (27 dakika geçerli)'
   },
 
   // Şirket seçici
