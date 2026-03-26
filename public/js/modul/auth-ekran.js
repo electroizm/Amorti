@@ -78,17 +78,11 @@ Object.assign(App, {
       const btn = formKayit.querySelector('button[type="submit"]');
       btn.disabled = true;
       try {
-        const sonuc = await API.kayit(
+        await API.kayit(
           document.getElementById('kayit-isim').value,
           document.getElementById('kayit-eposta').value,
           document.getElementById('kayit-sifre').value
         );
-        if (sonuc.dogrulama_gerekli) {
-          // Doğrulama mesajını göster
-          formKayit.classList.add('hidden');
-          dogrulamaMesaji.classList.remove('hidden');
-          return;
-        }
         App.toast(t('auth.hesapOlusturuldu'), 'basari');
         App.ekranGoster('sirket');
         App.bindSirketSecici();
