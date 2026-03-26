@@ -99,6 +99,42 @@ router.delete('/:id', rolGerekli('yonetici', 'uye'), async (req, res) => {
   }
 });
 
+// GET /api/islemler/cop — silinmis islemler (yonetici)
+router.get('/cop', rolGerekli('yonetici'), async (req, res) => {
+  try {
+    const { data, error } = await req.supabase
+      .from('islemler')
+      .select('*')
+      .eq('sirket_id', req.sirketId)
+      .eq('silinmis', true)
+      .order('olusturma_tarihi', { ascending: false });
+
+    if (error) throw error;
+    res.json(data.map(mapIslem));
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// PATCH /api/islemler/:id/geriAl — restore (yonetici)
+router.patch('/:id/geriAl', rolGerekli('yonetici'), async (req, res) => {
+  try {
+    const { data, error } = await req.supabase
+      .from('islemler')
+      .update({ silinmis: false })
+      .eq('id', parseInt(req.params.id))
+      .eq('sirket_id', req.sirketId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ hata: 'İşlem bulunamadı' });
+    res.json(mapIslem(data));
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
 function mapIslem(row) {
   return {
     id: row.id,

@@ -51,11 +51,16 @@ const API = {
     const sirketId = this.getSirketId();
     if (sirketId) headers['X-Sirket-Id'] = sirketId;
 
-    const res = await fetch(this.base + path, {
-      headers,
-      ...options,
-      body: options.body ? JSON.stringify(options.body) : undefined
-    });
+    let res;
+    try {
+      res = await fetch(this.base + path, {
+        headers,
+        ...options,
+        body: options.body ? JSON.stringify(options.body) : undefined
+      });
+    } catch (fetchErr) {
+      throw new Error(window.HataSanitize ? HataSanitize.cevir(fetchErr.message) : fetchErr.message);
+    }
 
     if (res.status === 401) {
       this.temizleOturum();
@@ -120,11 +125,25 @@ const API = {
   uyeGuncelle(id, data) { return this.request(`/uyeler/${id}`, { method: 'PATCH', body: data }); },
   uyeRolDegistir(id, rol) { return this.request(`/uyeler/${id}/rol`, { method: 'PATCH', body: { rol } }); },
   uyeSil(id) { return this.request(`/uyeler/${id}`, { method: 'DELETE' }); },
+  silinmisUyeler() { return this.request('/uyeler/cop'); },
+  uyeGeriAl(id) { return this.request(`/uyeler/${id}/geriAl`, { method: 'PATCH' }); },
 
   // --- Islemler ---
   getIslemler() { return this.request('/islemler'); },
-  addIslem(data) { return this.request('/islemler', { method: 'POST', body: data }); },
+  async addIslem(data) {
+    if (!navigator.onLine && window.CevrimdisiKuyruk) {
+      CevrimdisiKuyruk.ekle('/islemler', { method: 'POST', body: data });
+      return { kuyrukta: true };
+    }
+    return this.request('/islemler', { method: 'POST', body: data });
+  },
   deleteIslem(id) { return this.request(`/islemler/${id}`, { method: 'DELETE' }); },
+  silinmisIslemler() { return this.request('/islemler/cop'); },
+  islemGeriAl(id) { return this.request(`/islemler/${id}/geriAl`, { method: 'PATCH' }); },
+
+  // --- Ayarlar ---
+  getAyarlar() { return this.request('/ayarlar'); },
+  ayarlarGuncelle(data) { return this.request('/ayarlar', { method: 'PATCH', body: data }); },
 
   // --- Ozet ---
   getOzet() { return this.request('/ozet'); }

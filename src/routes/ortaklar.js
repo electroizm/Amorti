@@ -108,4 +108,40 @@ router.delete('/:id', rolGerekli('yonetici'), async (req, res) => {
   }
 });
 
+// GET /api/uyeler/cop — silinmis uyeler (yonetici)
+router.get('/cop', rolGerekli('yonetici'), async (req, res) => {
+  try {
+    const { data, error } = await req.supabase
+      .from('uyeler')
+      .select('*')
+      .eq('sirket_id', req.sirketId)
+      .eq('silinmis', true)
+      .order('olusturma_tarihi', { ascending: false });
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// PATCH /api/uyeler/:id/geriAl — restore (yonetici)
+router.patch('/:id/geriAl', rolGerekli('yonetici'), async (req, res) => {
+  try {
+    const { data, error } = await req.supabase
+      .from('uyeler')
+      .update({ silinmis: false })
+      .eq('id', req.params.id)
+      .eq('sirket_id', req.sirketId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ hata: 'Üye bulunamadı' });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
 module.exports = router;

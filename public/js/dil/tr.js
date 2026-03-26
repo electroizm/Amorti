@@ -155,14 +155,43 @@ window.AMORT_DIL.tr = {
     cikisBtn: 'Çıkış Yap',
     rol: 'Rol: {rol}',
     dil: 'Dil',
-    dilSecimi: 'Dil seçimi'
+    dilSecimi: 'Dil seçimi',
+    metinAyarlari: 'Metin Ayarları',
+    harfBicimi: 'Harf Biçimi',
+    harfBuyuk: 'BÜYÜK HARF',
+    harfKucuk: 'küçük harf',
+    harfOlduguGibi: 'Olduğu gibi',
+    trTemizle: 'Türkçe karakterleri kaldır',
+    trTemizleAciklama: 'ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u',
+    ayarKaydedildi: 'Ayarlar kaydedildi'
   },
 
   // Hatalar
+  cop: {
+    baslik: 'Çöp Kutusu',
+    islemler: 'Silinmiş İşlemler',
+    uyeler: 'Çıkarılmış Üyeler',
+    geriAlBtn: 'Geri Al',
+    geriAlindi: 'Başarıyla geri alındı',
+    bos: 'Çöp kutusu boş.'
+  },
+
+  cevrimdisi: {
+    cevrimdisi: 'İnternet bağlantınız kesildi. İşlemler kuyruğa alınacak.',
+    tekrarBagli: 'İnternet bağlantısı yeniden sağlandı!',
+    senkronEdildi: '{sayi} bekleyen işlem senkronize edildi.',
+    senkronHatasi: '{sayi} işlem senkronize edilemedi.',
+    kuyrugaEklendi: 'Çevrimdışısınız, işlem kuyruğa alındı.'
+  },
+
   hata: {
     oturumDoldu: 'Oturum süresi doldu',
     genelHata: 'Bir hata oluştu',
     veriYuklenemedi: 'Veriler yüklenemedi: {mesaj}',
-    hataOneki: 'Hata: {mesaj}'
+    hataOneki: 'Hata: {mesaj}',
+    agHatasi: 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.',
+    cevrimdisi: 'İnternet bağlantınız yok. Çevrimiçi olduğunuzda tekrar deneyin.',
+    istekIptal: 'İstek iptal edildi.',
+    zamanAsimi: 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.'
   }
 };

@@ -12,6 +12,7 @@ const sirketlerRouter = require('./src/routes/sirketler');
 const davetlerRouter = require('./src/routes/davetler');
 const islemlerRouter = require('./src/routes/islemler');
 const ortaklarRouter = require('./src/routes/ortaklar');
+const ayarlarRouter = require('./src/routes/ayarlar');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,15 @@ app.use('/api/sirketler', sirketlerRouter);
 app.use('/api/davetler', davetlerRouter);
 app.use('/api/uyeler', ortaklarRouter);
 app.use('/api/islemler', islemlerRouter);
+app.use('/api/ayarlar', ayarlarRouter);
+
+// Config: frontend icin Supabase ayarlari (public key, guvenli)
+app.get('/api/config', (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseKey: process.env.SUPABASE_ANON_KEY
+  });
+});
 
 // Ozet endpoint: sirket bazli bakiyeler + sadelestirilmis borclar
 app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {

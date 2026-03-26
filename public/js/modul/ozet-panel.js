@@ -1,0 +1,59 @@
+/**
+ * AMØRT! Özet Panel Modülü
+ * Ortak kartları ve borç önerileri render
+ */
+Object.assign(App, {
+  ortakKartlariGoster(ozet) {
+    const container = document.getElementById('partner-cards');
+    if (ozet.uyeler.length === 0) { container.innerHTML = ''; return; }
+
+    container.innerHTML = ozet.uyeler.map(u => {
+      const harcanan = ozet.harcamalar[u.id] || 0;
+      const bakiye = ozet.bakiyeler[u.id] || 0;
+      const bakiyeClass = bakiye > 0 ? 'text-emerald-600' : bakiye < 0 ? 'text-red-500' : 'text-gray-400';
+      const bakiyeLabel = bakiye > 0 ? t('bakiye.alacakli') : bakiye < 0 ? t('bakiye.borclu') : t('bakiye.esit');
+
+      return `
+        <div class="bg-white rounded-xl p-4 border-l-4 shadow-sm" style="border-color: ${u.renk}">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-3 h-3 rounded-full" style="background: ${u.renk}"></div>
+            <span class="font-semibold text-sm text-gray-900">${App.esc(u.isim)}</span>
+          </div>
+          <p class="text-lg font-bold text-gray-900">${App.formatPara(harcanan)} ₺</p>
+          <p class="text-xs ${bakiyeClass}">${bakiye > 0 ? '+' : ''}${App.formatPara(bakiye)} ₺ ${bakiyeLabel}</p>
+        </div>
+      `;
+    }).join('');
+  },
+
+  borcBolumuGoster(ozet) {
+    const section = document.getElementById('debt-section');
+    const container = document.getElementById('debt-transfers');
+
+    if (ozet.onerilen_transferler.length === 0) { section.classList.add('hidden'); return; }
+    section.classList.remove('hidden');
+
+    const uyeMap = {};
+    ozet.uyeler.forEach(u => { uyeMap[u.id] = u; });
+
+    container.innerHTML = ozet.onerilen_transferler.map(tr => {
+      const kimden = uyeMap[tr.kimden];
+      const kime = uyeMap[tr.kime];
+      if (!kimden || !kime) return '';
+      return `
+        <div class="transfer-card rounded-xl p-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full" style="background: ${kimden.renk}"></div>
+            <span class="font-medium text-sm text-gray-700">${App.esc(kimden.isim)}</span>
+            <div class="transfer-arrow w-6 h-5 flex items-center justify-center">
+              <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </div>
+            <div class="w-3 h-3 rounded-full" style="background: ${kime.renk}"></div>
+            <span class="font-medium text-sm text-gray-700">${App.esc(kime.isim)}</span>
+          </div>
+          <span class="font-bold text-brand">${App.formatPara(tr.tutar)} ₺</span>
+        </div>
+      `;
+    }).join('');
+  }
+});

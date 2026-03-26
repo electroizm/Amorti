@@ -139,13 +139,42 @@ window.AMORT_DIL.en = {
     cikisBtn: 'Log Out',
     rol: 'Role: {rol}',
     dil: 'Language',
-    dilSecimi: 'Language selection'
+    dilSecimi: 'Language selection',
+    metinAyarlari: 'Text Settings',
+    harfBicimi: 'Letter Case',
+    harfBuyuk: 'UPPERCASE',
+    harfKucuk: 'lowercase',
+    harfOlduguGibi: 'As is',
+    trTemizle: 'Remove Turkish characters',
+    trTemizleAciklama: 'ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u',
+    ayarKaydedildi: 'Settings saved'
+  },
+
+  cop: {
+    baslik: 'Trash',
+    islemler: 'Deleted Transactions',
+    uyeler: 'Removed Members',
+    geriAlBtn: 'Restore',
+    geriAlindi: 'Successfully restored',
+    bos: 'Trash is empty.'
+  },
+
+  cevrimdisi: {
+    cevrimdisi: 'You are offline. Actions will be queued.',
+    tekrarBagli: 'Back online!',
+    senkronEdildi: '{sayi} pending action(s) synced.',
+    senkronHatasi: '{sayi} action(s) failed to sync.',
+    kuyrugaEklendi: 'You are offline, action queued.'
   },
 
   hata: {
     oturumDoldu: 'Session expired',
     genelHata: 'An error occurred',
     veriYuklenemedi: 'Failed to load data: {mesaj}',
-    hataOneki: 'Error: {mesaj}'
+    hataOneki: 'Error: {mesaj}',
+    agHatasi: 'Cannot connect to server. Check your internet connection.',
+    cevrimdisi: 'You are offline. Try again when connected.',
+    istekIptal: 'Request cancelled.',
+    zamanAsimi: 'Request timed out. Please try again.'
   }
 };
