@@ -1,25 +1,34 @@
 /**
- * AMØRT! Ana Uygulama Mantığı
- * Toast bildirimleri, vibrasyon, animasyonlar
+ * AMORT! Ana Uygulama Mantigi
+ * Auth akisi, sirket secimi, harcama/transfer, davet, rol kontrolu
  */
 const App = {
   mevcutSayfa: 'home',
   islemTuru: 'harcama',
-  ortaklar: [],
-  duzenlenenOrtakId: null,
+  uyeler: [],
+  rol: null, // kullanicinin bu sirketteki rolu
 
   async init() {
-    Ring.init();
-    this.bindNavigation();
-    this.bindFAB();
-    this.bindIslemModal();
-    this.bindOrtakModal();
-    this.bindTema();
-    this.varsayilanTarih();
-    await this.yenile();
+    if (API.girisYapildiMi() && API.getSirketId()) {
+      this.ekranGoster('app');
+      this.bindApp();
+      await this.yenile();
+    } else if (API.girisYapildiMi()) {
+      this.ekranGoster('sirket');
+      this.bindSirketSecici();
+    } else {
+      this.ekranGoster('auth');
+      this.bindAuth();
+    }
   },
 
-  // ─── Toast Bildirimi ───
+  // ─── Ekran Yonetimi ───
+  ekranGoster(ekran) {
+    document.querySelectorAll('.ekran').forEach(e => e.classList.remove('active'));
+    document.getElementById(`ekran-${ekran}`).classList.add('active');
+  },
+
+  // ─── Toast ───
   toast(mesaj, tip = 'basari') {
     const container = document.getElementById('toast-container');
     const el = document.createElement('div');
@@ -29,17 +38,219 @@ const App = {
     setTimeout(() => el.remove(), 2600);
   },
 
-  // ─── Vibrasyon ───
   titresim(ms = 50) {
     if (navigator.vibrate) navigator.vibrate(ms);
+  },
+
+  // ═══════════════════════════════════════
+  // AUTH
+  // ═══════════════════════════════════════
+  bindAuth() {
+    const tabGiris = document.getElementById('auth-tab-giris');
+    const tabKayit = document.getElementById('auth-tab-kayit');
+    const formGiris = document.getElementById('form-giris');
+    const formKayit = document.getElementById('form-kayit');
+
+    tabGiris.addEventListener('click', () => {
+      tabGiris.classList.add('bg-brand', 'text-white');
+      tabGiris.classList.remove('text-gray-500');
+      tabKayit.classList.remove('bg-brand', 'text-white');
+      tabKayit.classList.add('text-gray-500');
+      formGiris.classList.remove('hidden');
+      formKayit.classList.add('hidden');
+    });
+
+    tabKayit.addEventListener('click', () => {
+      tabKayit.classList.add('bg-brand', 'text-white');
+      tabKayit.classList.remove('text-gray-500');
+      tabGiris.classList.remove('bg-brand', 'text-white');
+      tabGiris.classList.add('text-gray-500');
+      formKayit.classList.remove('hidden');
+      formGiris.classList.add('hidden');
+    });
+
+    formGiris.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = formGiris.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      try {
+        await API.giris(
+          document.getElementById('giris-eposta').value,
+          document.getElementById('giris-sifre').value
+        );
+        this.toast('Giris basarili', 'basari');
+        this.ekranGoster('sirket');
+        this.bindSirketSecici();
+      } catch (err) {
+        this.toast(err.message, 'hata');
+        this.titresim(100);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    formKayit.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = formKayit.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      try {
+        await API.kayit(
+          document.getElementById('kayit-isim').value,
+          document.getElementById('kayit-eposta').value,
+          document.getElementById('kayit-sifre').value
+        );
+        this.toast('Hesap olusturuldu', 'basari');
+        this.ekranGoster('sirket');
+        this.bindSirketSecici();
+      } catch (err) {
+        this.toast(err.message, 'hata');
+        this.titresim(100);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  },
+
+  // ═══════════════════════════════════════
+  // SIRKET SECICI
+  // ═══════════════════════════════════════
+  bindSirketSecici() {
+    this.sirketleriYukle();
+
+    document.getElementById('form-sirket').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const isim = document.getElementById('sirket-isim').value.trim();
+      if (!isim) return;
+      try {
+        const sirket = await API.sirketOlustur(isim);
+        this.toast(`${isim} olusturuldu`, 'basari');
+        document.getElementById('sirket-isim').value = '';
+        API.setSirketId(sirket.id);
+        this.ekranGoster('app');
+        this.bindApp();
+        await this.yenile();
+      } catch (err) {
+        this.toast(err.message, 'hata');
+      }
+    });
+
+    document.getElementById('btn-cikis-sirket').addEventListener('click', async () => {
+      await API.cikis();
+      window.location.reload();
+    });
+  },
+
+  async sirketleriYukle() {
+    try {
+      // Sirketler
+      const sirketler = await API.getSirketler();
+      const container = document.getElementById('sirket-listesi');
+
+      if (sirketler.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">Henuz sirketiniz yok.</p>';
+      } else {
+        container.innerHTML = sirketler.map(s => `
+          <button class="sirket-sec w-full bg-white rounded-xl p-4 text-left shadow-sm border border-gray-100 hover:border-brand transition" data-id="${s.id}">
+            <p class="font-semibold text-gray-900">${this.esc(s.isim)}</p>
+            <p class="text-xs text-gray-400 mt-0.5">Rol: ${s.rol}</p>
+          </button>
+        `).join('');
+
+        container.querySelectorAll('.sirket-sec').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            API.setSirketId(btn.dataset.id);
+            this.ekranGoster('app');
+            this.bindApp();
+            await this.yenile();
+          });
+        });
+      }
+
+      // Bekleyen davetler
+      const davetler = await API.bekleyenDavetler();
+      const davetContainer = document.getElementById('bekleyen-davetler');
+      const davetListesi = document.getElementById('davet-listesi-bekleyen');
+
+      if (davetler.length > 0) {
+        davetContainer.classList.remove('hidden');
+        davetListesi.innerHTML = davetler.map(d => `
+          <div class="bg-white rounded-xl p-3 shadow-sm border border-brand/20 flex items-center justify-between">
+            <div>
+              <p class="font-medium text-sm text-gray-900">${this.esc(d.sirketler?.isim || '?')}</p>
+              <p class="text-xs text-gray-400">Rol: ${d.rol}</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="davet-kabul px-3 py-1.5 bg-brand text-white text-xs rounded-lg font-semibold" data-id="${d.id}">Kabul</button>
+              <button class="davet-red px-3 py-1.5 bg-gray-100 text-gray-500 text-xs rounded-lg font-semibold" data-id="${d.id}">Red</button>
+            </div>
+          </div>
+        `).join('');
+
+        davetListesi.querySelectorAll('.davet-kabul').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              await API.davetKabul(btn.dataset.id);
+              this.toast('Davet kabul edildi', 'basari');
+              this.sirketleriYukle();
+            } catch (err) { this.toast(err.message, 'hata'); }
+          });
+        });
+
+        davetListesi.querySelectorAll('.davet-red').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              await API.davetRed(btn.dataset.id);
+              this.toast('Davet reddedildi', 'bilgi');
+              this.sirketleriYukle();
+            } catch (err) { this.toast(err.message, 'hata'); }
+          });
+        });
+      } else {
+        davetContainer.classList.add('hidden');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
+  // ═══════════════════════════════════════
+  // ANA UYGULAMA
+  // ═══════════════════════════════════════
+  _appBound: false,
+
+  bindApp() {
+    if (this._appBound) return;
+    this._appBound = true;
+
+    this.bindNavigation();
+    this.bindFAB();
+    this.bindIslemModal();
+    this.bindDavetModal();
+    this.varsayilanTarih();
+
+    // Sirket degistir
+    document.getElementById('btn-sirket-degistir').addEventListener('click', () => {
+      API.setSirketId(null);
+      this._appBound = false;
+      this.ekranGoster('sirket');
+      this.bindSirketSecici();
+    });
+
+    // Profil / Cikis
+    document.getElementById('btn-profil').addEventListener('click', () => {
+      this.navigate('settings');
+    });
+
+    document.getElementById('btn-cikis').addEventListener('click', async () => {
+      await API.cikis();
+      window.location.reload();
+    });
   },
 
   // ─── Navigasyon ───
   bindNavigation() {
     document.querySelectorAll('.nav-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.navigate(btn.dataset.page);
-      });
+      btn.addEventListener('click', () => this.navigate(btn.dataset.page));
     });
   },
 
@@ -51,9 +262,10 @@ const App = {
     document.querySelector(`.nav-item[data-page="${sayfa}"]`).classList.add('active');
 
     const fab = document.getElementById('fab');
-    fab.style.display = (sayfa === 'home' || sayfa === 'transactions') ? 'flex' : 'none';
+    const izleyici = this.rol === 'izleyici';
+    fab.style.display = (!izleyici && (sayfa === 'home' || sayfa === 'transactions')) ? 'flex' : 'none';
 
-    if (sayfa === 'partners') this.ortakListesiGoster();
+    if (sayfa === 'partners') this.uyeListesiGoster();
     if (sayfa === 'transactions') this.islemListesiGoster();
   },
 
@@ -61,108 +273,150 @@ const App = {
   async yenile() {
     try {
       const ozet = await API.getOzet();
-      this.ortaklar = ozet.ortaklar;
-      Ring.update(ozet.ortaklar, ozet.harcamalar, ozet.toplamHarcama);
+      this.uyeler = ozet.uyeler;
+      this.rol = ozet.rol;
+
+      // Header'da sirket ismi
+      // Sirket ismini sirketler listesinden cekmek yerine basit gosterim
+      document.getElementById('btn-sirket-degistir').textContent = '↔ Degistir';
+
+      // Ozet karti
+      document.getElementById('ozet-toplam').textContent = this.formatPara(ozet.toplamHarcama) + ' ₺';
+
+      const kasaBadge = document.getElementById('ozet-kasa-badge');
+      if (ozet.kasaHarcama > 0) {
+        kasaBadge.classList.remove('hidden');
+        kasaBadge.textContent = `Kasa: ${this.formatPara(ozet.kasaHarcama)} ₺`;
+      } else {
+        kasaBadge.classList.add('hidden');
+      }
+
+      const kisisel = ozet.toplamHarcama - (ozet.kasaHarcama || 0);
+      document.getElementById('ozet-alt').textContent = `${ozet.uyeler.length} uye • Kisisel: ${this.formatPara(kisisel)} ₺`;
+
+      // Kartlar & borc
       this.ortakKartlariGoster(ozet);
       this.borcBolumuGoster(ozet);
       this.selectGuncelle();
 
+      // Ayarlar sayfasi
+      const kullanici = API.getKullanici();
+      document.getElementById('ayar-kullanici').textContent = kullanici ? `${kullanici.isim} (${kullanici.eposta})` : '';
+      document.getElementById('ayar-rol').textContent = `Rol: ${this.rol}`;
+
+      // Bos durum
       const bos = document.getElementById('empty-state');
-      if (ozet.ortaklar.length === 0) {
-        bos.classList.remove('hidden');
-      } else {
-        bos.classList.add('hidden');
-      }
+      bos.classList.toggle('hidden', ozet.uyeler.length > 0 && ozet.toplamHarcama > 0);
+
+      // FAB: izleyici icin gizle
+      const fab = document.getElementById('fab');
+      const izleyici = this.rol === 'izleyici';
+      fab.style.display = (!izleyici && (this.mevcutSayfa === 'home' || this.mevcutSayfa === 'transactions')) ? 'flex' : 'none';
+
+      // Davet butonu: sadece yonetici
+      const btnDavet = document.getElementById('btn-davet-gonder');
+      btnDavet.classList.toggle('hidden', this.rol !== 'yonetici');
+
     } catch (err) {
-      console.error('Veri yükleme hatası:', err);
+      console.error('Veri yukleme hatasi:', err);
+      if (err.message.includes('erisim')) {
+        API.setSirketId(null);
+        this.ekranGoster('sirket');
+        this.bindSirketSecici();
+      }
     }
   },
 
-  // ─── Ana Sayfa: Ortak Kartları ───
+  // ─── Ortak Kartlari ───
   ortakKartlariGoster(ozet) {
     const container = document.getElementById('partner-cards');
-    if (ozet.ortaklar.length === 0) {
-      container.innerHTML = '';
-      return;
-    }
+    if (ozet.uyeler.length === 0) { container.innerHTML = ''; return; }
 
-    container.innerHTML = ozet.ortaklar.map(o => {
-      const harcanan = ozet.harcamalar[o.id] || 0;
-      const bakiye = ozet.bakiyeler[o.id] || 0;
-      const bakiyeClass = bakiye > 0 ? 'text-emerald-400' : bakiye < 0 ? 'text-red-400' : 'text-gray-400';
-      const bakiyeLabel = bakiye > 0 ? 'alacaklı' : bakiye < 0 ? 'borçlu' : 'eşit';
+    container.innerHTML = ozet.uyeler.map(u => {
+      const harcanan = ozet.harcamalar[u.id] || 0;
+      const bakiye = ozet.bakiyeler[u.id] || 0;
+      const bakiyeClass = bakiye > 0 ? 'text-emerald-600' : bakiye < 0 ? 'text-red-500' : 'text-gray-400';
+      const bakiyeLabel = bakiye > 0 ? 'alacakli' : bakiye < 0 ? 'borclu' : 'esit';
 
       return `
-        <div class="bg-surface rounded-xl p-4 border-l-4" style="border-color: ${o.renk}">
+        <div class="bg-white rounded-xl p-4 border-l-4 shadow-sm" style="border-color: ${u.renk}">
           <div class="flex items-center gap-2 mb-2">
-            <div class="w-3 h-3 rounded-full" style="background: ${o.renk}"></div>
-            <span class="font-semibold text-sm">${this.esc(o.isim)}</span>
+            <div class="w-3 h-3 rounded-full" style="background: ${u.renk}"></div>
+            <span class="font-semibold text-sm text-gray-900">${this.esc(u.isim)}</span>
           </div>
-          <p class="text-lg font-bold">${Ring.formatPara(harcanan)} ₺</p>
-          <p class="text-xs ${bakiyeClass}">${bakiye > 0 ? '+' : ''}${Ring.formatPara(bakiye)} ₺ ${bakiyeLabel}</p>
+          <p class="text-lg font-bold text-gray-900">${this.formatPara(harcanan)} ₺</p>
+          <p class="text-xs ${bakiyeClass}">${bakiye > 0 ? '+' : ''}${this.formatPara(bakiye)} ₺ ${bakiyeLabel}</p>
         </div>
       `;
     }).join('');
   },
 
-  // ─── Ana Sayfa: Borç Önerileri (animasyonlu ok) ───
+  // ─── Borc Onerileri ───
   borcBolumuGoster(ozet) {
     const section = document.getElementById('debt-section');
     const container = document.getElementById('debt-transfers');
 
-    if (ozet.onerilen_transferler.length === 0) {
-      section.classList.add('hidden');
-      return;
-    }
+    if (ozet.onerilen_transferler.length === 0) { section.classList.add('hidden'); return; }
     section.classList.remove('hidden');
 
-    const ortakMap = {};
-    ozet.ortaklar.forEach(o => { ortakMap[o.id] = o; });
+    const uyeMap = {};
+    ozet.uyeler.forEach(u => { uyeMap[u.id] = u; });
 
     container.innerHTML = ozet.onerilen_transferler.map(t => {
-      const kimden = ortakMap[t.kimden];
-      const kime = ortakMap[t.kime];
+      const kimden = uyeMap[t.kimden];
+      const kime = uyeMap[t.kime];
+      if (!kimden || !kime) return '';
       return `
         <div class="transfer-card rounded-xl p-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full" style="background: ${kimden.renk}"></div>
-            <span class="font-medium text-sm">${this.esc(kimden.isim)}</span>
+            <span class="font-medium text-sm text-gray-700">${this.esc(kimden.isim)}</span>
             <div class="transfer-arrow w-6 h-5 flex items-center justify-center">
-              <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </div>
             <div class="w-3 h-3 rounded-full" style="background: ${kime.renk}"></div>
-            <span class="font-medium text-sm">${this.esc(kime.isim)}</span>
+            <span class="font-medium text-sm text-gray-700">${this.esc(kime.isim)}</span>
           </div>
-          <span class="font-bold text-brand-light">${Ring.formatPara(t.tutar)} ₺</span>
+          <span class="font-bold text-brand">${this.formatPara(t.tutar)} ₺</span>
         </div>
       `;
     }).join('');
   },
 
-  // ─── Select Güncelle ───
+  // ─── Select Guncelle ───
   selectGuncelle() {
-    const options = this.ortaklar.map(o =>
-      `<option value="${o.id}">${this.esc(o.isim)}</option>`
+    const kullanici = API.getKullanici();
+    const kullaniciId = kullanici?.id;
+
+    // Odeyen: uyeler + Sirket Kasasi
+    const odeyenOptions = this.uyeler.map(u =>
+      `<option value="${u.id}" ${u.kullanici_id === kullaniciId ? 'selected' : ''}>${this.esc(u.isim)}</option>`
     ).join('');
 
-    document.getElementById('tx-payer').innerHTML = options || '<option value="">Önce ortak ekleyin</option>';
-    document.getElementById('tx-receiver').innerHTML = options || '<option value="">Önce ortak ekleyin</option>';
+    document.getElementById('tx-payer').innerHTML =
+      (odeyenOptions || '<option value="">Uye yok</option>') +
+      '<option value="__kasa__">Sirket Kasasi</option>';
+
+    // Alan: sadece uyeler
+    const alanOptions = this.uyeler.map(u =>
+      `<option value="${u.id}">${this.esc(u.isim)}</option>`
+    ).join('');
+    document.getElementById('tx-receiver').innerHTML = alanOptions || '<option value="">Uye yok</option>';
   },
 
   // ─── FAB ───
   bindFAB() {
     document.getElementById('fab').addEventListener('click', () => {
-      if (this.ortaklar.length < 1) {
-        this.toast('Önce en az bir ortak ekleyin!', 'hata');
+      if (this.uyeler.length < 1) {
+        this.toast('Henuz uye yok!', 'hata');
         this.titresim(100);
-        this.navigate('partners');
         return;
       }
       this.modalAc('modal-tx');
     });
   },
 
-  // ─── İşlem Modal ───
+  // ─── Islem Modal ───
   bindIslemModal() {
     document.getElementById('modal-tx-close').addEventListener('click', () => this.modalKapat('modal-tx'));
     document.getElementById('modal-tx').addEventListener('click', (e) => {
@@ -178,23 +432,34 @@ const App = {
         });
         tab.classList.add('bg-brand', 'text-white');
         tab.classList.remove('text-gray-400');
-        document.getElementById('tx-receiver-group').classList.toggle('hidden', this.islemTuru !== 'transfer');
+
+        const receiverGroup = document.getElementById('tx-receiver-group');
+        receiverGroup.classList.toggle('hidden', this.islemTuru !== 'transfer');
+
+        // Transfer modunda kasa secenegi gizle
+        const kasaOpt = document.querySelector('#tx-payer option[value="__kasa__"]');
+        if (kasaOpt) kasaOpt.style.display = this.islemTuru === 'transfer' ? 'none' : '';
       });
     });
 
     document.getElementById('form-tx').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const payerVal = document.getElementById('tx-payer').value;
+      const kasaMi = payerVal === '__kasa__';
+
       const data = {
         tur: this.islemTuru,
-        odeyen_id: document.getElementById('tx-payer').value,
+        odeyen_id: kasaMi ? this.uyeler[0]?.id : payerVal,
         tutar: parseFloat(document.getElementById('tx-amount').value),
         aciklama: document.getElementById('tx-desc').value,
-        tarih: document.getElementById('tx-date').value
+        tarih: document.getElementById('tx-date').value,
+        kasa_mi: kasaMi
       };
+
       if (this.islemTuru === 'transfer') {
         data.alan_id = document.getElementById('tx-receiver').value;
         if (data.odeyen_id === data.alan_id) {
-          this.toast('Ödeyen ve alan aynı kişi olamaz!', 'hata');
+          this.toast('Odeyen ve alan ayni kisi olamaz!', 'hata');
           this.titresim(100);
           return;
         }
@@ -206,7 +471,8 @@ const App = {
         this.modalKapat('modal-tx');
         document.getElementById('form-tx').reset();
         this.varsayilanTarih();
-        this.toast(this.islemTuru === 'transfer' ? 'Transfer kaydedildi' : 'Harcama eklendi', 'basari');
+        this.selectGuncelle();
+        this.toast(kasaMi ? 'Kasa harcamasi eklendi' : this.islemTuru === 'transfer' ? 'Transfer kaydedildi' : 'Harcama eklendi', 'basari');
         await this.yenile();
       } catch (err) {
         this.toast('Hata: ' + err.message, 'hata');
@@ -215,118 +481,134 @@ const App = {
     });
   },
 
-  // ─── Ortak Modal ───
-  bindOrtakModal() {
-    document.getElementById('btn-add-partner').addEventListener('click', () => {
-      this.duzenlenenOrtakId = null;
-      document.getElementById('partner-modal-title').textContent = 'Yeni Ortak';
-      document.getElementById('form-partner').reset();
-      document.getElementById('partner-color').value = this.varsayilanRenk();
-      document.getElementById('partner-color-label').textContent = this.varsayilanRenk();
-      this.modalAc('modal-partner');
+  // ─── Davet Modal ───
+  bindDavetModal() {
+    document.getElementById('btn-davet-gonder').addEventListener('click', () => {
+      this.modalAc('modal-davet');
     });
 
-    document.getElementById('modal-partner-close').addEventListener('click', () => this.modalKapat('modal-partner'));
-    document.getElementById('modal-partner').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) this.modalKapat('modal-partner');
+    document.getElementById('modal-davet-close').addEventListener('click', () => this.modalKapat('modal-davet'));
+    document.getElementById('modal-davet').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) this.modalKapat('modal-davet');
     });
 
-    document.getElementById('partner-color').addEventListener('input', (e) => {
-      document.getElementById('partner-color-label').textContent = e.target.value;
-    });
-
-    document.getElementById('form-partner').addEventListener('submit', async (e) => {
+    document.getElementById('form-davet').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data = {
-        isim: document.getElementById('partner-name').value.trim(),
-        renk: document.getElementById('partner-color').value
-      };
-
       try {
-        if (this.duzenlenenOrtakId) {
-          await API.updateOrtak(this.duzenlenenOrtakId, data);
-          this.toast('Ortak güncellendi', 'basari');
-        } else {
-          await API.addOrtak(data);
-          this.toast(`${data.isim} eklendi`, 'basari');
-        }
+        await API.davetGonder(
+          document.getElementById('davet-eposta').value,
+          document.getElementById('davet-rol').value
+        );
         this.titresim();
-        this.modalKapat('modal-partner');
-        await this.yenile();
-        this.ortakListesiGoster();
+        this.modalKapat('modal-davet');
+        document.getElementById('form-davet').reset();
+        this.toast('Davet gonderildi', 'basari');
+        if (this.mevcutSayfa === 'partners') this.uyeListesiGoster();
       } catch (err) {
-        this.toast('Hata: ' + err.message, 'hata');
+        this.toast(err.message, 'hata');
         this.titresim(100);
       }
     });
   },
 
-  // ─── Ortak Listesi ───
-  async ortakListesiGoster() {
+  // ─── Uye Listesi ───
+  async uyeListesiGoster() {
     const list = document.getElementById('partner-list');
     const empty = document.getElementById('partner-empty');
+    const yonetici = this.rol === 'yonetici';
 
     try {
-      const ortaklar = await API.getOrtaklar();
-      if (ortaklar.length === 0) {
+      const uyeler = await API.getUyeler();
+      if (uyeler.length === 0) {
         list.innerHTML = '';
         empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-
-      list.innerHTML = ortaklar.map(o => `
-        <div class="bg-surface rounded-xl p-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full" style="background: ${o.renk}"></div>
-            <div>
-              <p class="font-semibold">${this.esc(o.isim)}</p>
-              <p class="text-xs text-gray-400">${o.renk}</p>
+      } else {
+        empty.classList.add('hidden');
+        list.innerHTML = uyeler.map(u => `
+          <div class="bg-white rounded-xl p-4 flex items-center justify-between shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full" style="background: ${u.renk}"></div>
+              <div>
+                <p class="font-semibold text-gray-900">${this.esc(u.isim)}</p>
+                <p class="text-xs text-gray-400">${u.rol}</p>
+              </div>
             </div>
+            ${yonetici ? `
+              <div class="flex gap-1">
+                <select class="rol-degistir text-xs border border-gray-200 rounded-lg px-2 py-1" data-id="${u.id}">
+                  <option value="yonetici" ${u.rol === 'yonetici' ? 'selected' : ''}>Yonetici</option>
+                  <option value="uye" ${u.rol === 'uye' ? 'selected' : ''}>Uye</option>
+                  <option value="izleyici" ${u.rol === 'izleyici' ? 'selected' : ''}>Izleyici</option>
+                </select>
+                <button class="uye-sil p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${u.id}" data-isim="${this.esc(u.isim)}">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            ` : ''}
           </div>
-          <div class="flex gap-2">
-            <button onclick="App.ortakDuzenle('${o.id}')" class="p-2 rounded-lg hover:bg-surface-light/50 text-gray-400 hover:text-white transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            </button>
-            <button onclick="App.ortakSil('${o.id}')" class="p-2 rounded-lg hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+
+        // Rol degistir
+        list.querySelectorAll('.rol-degistir').forEach(sel => {
+          sel.addEventListener('change', async () => {
+            try {
+              await API.uyeRolDegistir(sel.dataset.id, sel.value);
+              this.toast('Rol guncellendi', 'basari');
+            } catch (err) {
+              this.toast(err.message, 'hata');
+              this.uyeListesiGoster();
+            }
+          });
+        });
+
+        // Uye sil
+        list.querySelectorAll('.uye-sil').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm(`"${btn.dataset.isim}" uyesini cikarmak istediginize emin misiniz?`)) return;
+            try {
+              await API.uyeSil(btn.dataset.id);
+              this.titresim();
+              this.toast('Uye cikarildi', 'bilgi');
+              await this.yenile();
+              this.uyeListesiGoster();
+            } catch (err) { this.toast(err.message, 'hata'); }
+          });
+        });
+      }
+
+      // Davet listesi (yonetici icin)
+      if (yonetici) {
+        try {
+          const davetler = await API.davetListele();
+          const section = document.getElementById('davet-section');
+          const listEl = document.getElementById('davet-listesi');
+
+          if (davetler.length > 0) {
+            section.classList.remove('hidden');
+            listEl.innerHTML = davetler.map(d => {
+              const durumRenk = d.durum === 'bekliyor' ? 'text-yellow-600 bg-yellow-50' :
+                d.durum === 'kabul' ? 'text-emerald-600 bg-emerald-50' : 'text-red-500 bg-red-50';
+              return `
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-gray-700">${this.esc(d.eposta)}</p>
+                    <p class="text-xs text-gray-400">Rol: ${d.rol}</p>
+                  </div>
+                  <span class="text-xs px-2 py-0.5 rounded-full font-medium ${durumRenk}">${d.durum}</span>
+                </div>
+              `;
+            }).join('');
+          } else {
+            section.classList.add('hidden');
+          }
+        } catch (err) { console.error(err); }
+      }
     } catch (err) {
       console.error(err);
     }
   },
 
-  async ortakDuzenle(id) {
-    const ortak = this.ortaklar.find(o => o.id === id);
-    if (!ortak) return;
-    this.duzenlenenOrtakId = id;
-    document.getElementById('partner-modal-title').textContent = 'Ortağı Düzenle';
-    document.getElementById('partner-name').value = ortak.isim;
-    document.getElementById('partner-color').value = ortak.renk;
-    document.getElementById('partner-color-label').textContent = ortak.renk;
-    this.modalAc('modal-partner');
-  },
-
-  async ortakSil(id) {
-    const ortak = this.ortaklar.find(o => o.id === id);
-    if (!ortak) return;
-    if (!confirm(`"${ortak.isim}" ortağını silmek istediğinize emin misiniz?`)) return;
-
-    try {
-      await API.deleteOrtak(id);
-      this.titresim();
-      this.toast(`${ortak.isim} silindi`, 'bilgi');
-      await this.yenile();
-      this.ortakListesiGoster();
-    } catch (err) {
-      this.toast('Hata: ' + err.message, 'hata');
-    }
-  },
-
-  // ─── İşlem Listesi ───
+  // ─── Islem Listesi ───
   async islemListesiGoster() {
     const list = document.getElementById('tx-list');
     const empty = document.getElementById('tx-empty');
@@ -340,38 +622,54 @@ const App = {
       }
       empty.classList.add('hidden');
 
-      const ortakMap = {};
-      this.ortaklar.forEach(o => { ortakMap[o.id] = o; });
+      const uyeMap = {};
+      this.uyeler.forEach(u => { uyeMap[u.id] = u; });
+
+      const izleyici = this.rol === 'izleyici';
 
       list.innerHTML = islemler.slice().reverse().map(i => {
-        const odeyen = ortakMap[i.odeyen_id] || { isim: '?', renk: '#666' };
+        const odeyen = uyeMap[i.odeyen_id] || { isim: '?', renk: '#999' };
         const transferMi = i.tur === 'transfer';
-        const alan = transferMi ? (ortakMap[i.alan_id] || { isim: '?', renk: '#666' }) : null;
+        const kasaMi = i.kasa_mi;
+        const alan = transferMi ? (uyeMap[i.alan_id] || { isim: '?', renk: '#999' }) : null;
+
+        let turBadge;
+        if (kasaMi) {
+          turBadge = '<span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">Kasa</span>';
+        } else if (transferMi) {
+          turBadge = '<span class="text-xs px-2 py-0.5 rounded-full bg-brand/10 text-brand">Transfer</span>';
+        } else {
+          turBadge = '<span class="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">Harcama</span>';
+        }
 
         return `
-          <div class="bg-surface rounded-xl p-4">
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center gap-2">
-                <div class="w-3 h-3 rounded-full" style="background: ${odeyen.renk}"></div>
-                <span class="font-medium text-sm">${this.esc(odeyen.isim)}</span>
+                ${kasaMi ? '<div class="w-3 h-3 rounded-full bg-purple-400"></div><span class="font-medium text-sm text-gray-700">Kasa</span>' : `
+                  <div class="w-3 h-3 rounded-full" style="background: ${odeyen.renk}"></div>
+                  <span class="font-medium text-sm text-gray-700">${this.esc(odeyen.isim)}</span>
+                `}
                 ${transferMi ? `
-                  <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                  <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                   <div class="w-3 h-3 rounded-full" style="background: ${alan.renk}"></div>
-                  <span class="font-medium text-sm">${this.esc(alan.isim)}</span>
+                  <span class="font-medium text-sm text-gray-700">${this.esc(alan.isim)}</span>
                 ` : ''}
               </div>
-              <span class="font-bold">${Ring.formatPara(i.tutar)} ₺</span>
+              <span class="font-bold text-gray-900">${this.formatPara(i.tutar)} ₺</span>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="text-xs px-2 py-0.5 rounded-full ${transferMi ? 'bg-brand/20 text-brand-light' : 'bg-emerald-900/30 text-emerald-400'}">${transferMi ? 'Transfer' : 'Harcama'}</span>
+                ${turBadge}
                 ${i.aciklama ? `<span class="text-xs text-gray-400">${this.esc(i.aciklama)}</span>` : ''}
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-gray-500">${i.tarih}</span>
-                <button onclick="App.islemSil(${i.id})" class="p-1 rounded hover:bg-red-900/30 text-gray-500 hover:text-red-400 transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+                <span class="text-xs text-gray-400">${i.tarih}</span>
+                ${!izleyici ? `
+                  <button onclick="App.islemSil(${i.id})" class="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                ` : ''}
               </div>
             </div>
           </div>
@@ -383,11 +681,11 @@ const App = {
   },
 
   async islemSil(id) {
-    if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu islemi silmek istediginize emin misiniz?')) return;
     try {
       await API.deleteIslem(id);
       this.titresim();
-      this.toast('İşlem silindi', 'bilgi');
+      this.toast('Islem silindi', 'bilgi');
       await this.yenile();
       this.islemListesiGoster();
     } catch (err) {
@@ -395,59 +693,27 @@ const App = {
     }
   },
 
-  // ─── Tema ───
-  bindTema() {
-    const html = document.documentElement;
-    const kayitli = localStorage.getItem('amort-theme') || 'dark';
-    if (kayitli === 'light') html.classList.remove('dark');
-
-    document.getElementById('btn-theme').addEventListener('click', () => this.temaDegistir());
-    document.getElementById('toggle-dark').addEventListener('click', () => this.temaDegistir());
-  },
-
-  temaDegistir() {
-    const html = document.documentElement;
-    html.classList.toggle('dark');
-    const koyuMu = html.classList.contains('dark');
-    localStorage.setItem('amort-theme', koyuMu ? 'dark' : 'light');
-
-    const hole = document.querySelector('.ring-hole');
-    const slash = document.querySelector('.ring-slash');
-    if (koyuMu) {
-      hole.style.background = '#0f172a';
-      slash.style.background = '#0f172a';
-      document.querySelector('meta[name="theme-color"]').content = '#0f172a';
-    } else {
-      hole.style.background = '#f8fafc';
-      slash.style.background = '#f8fafc';
-      document.querySelector('meta[name="theme-color"]').content = '#f8fafc';
-    }
-  },
-
-  // ─── Yardımcılar ───
-  modalAc(id) {
-    document.getElementById(id).classList.add('open');
-  },
-
-  modalKapat(id) {
-    document.getElementById(id).classList.remove('open');
-  },
+  // ─── Yardimcilar ───
+  modalAc(id) { document.getElementById(id).classList.add('open'); },
+  modalKapat(id) { document.getElementById(id).classList.remove('open'); },
 
   varsayilanTarih() {
-    document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+    const el = document.getElementById('tx-date');
+    if (el) el.value = new Date().toISOString().split('T')[0];
   },
 
-  varsayilanRenk() {
-    const renkler = ['#FDE047', '#1E3A8A', '#10B981', '#F97316', '#EC4899', '#8B5CF6', '#06B6D4'];
-    return renkler[this.ortaklar.length % renkler.length];
+  formatPara(n) {
+    return new Intl.NumberFormat('tr-TR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(n || 0);
   },
 
   esc(str) {
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = str || '';
     return div.innerHTML;
   }
 };
 
-// Başlat
 document.addEventListener('DOMContentLoaded', () => App.init());

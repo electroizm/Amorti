@@ -2,10 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const depo = require('./src/services/depo');
 const { borclariSadelestir } = require('./src/services/borc');
-const ortaklarRouter = require('./src/routes/ortaklar');
+const { authGerekli, sirketBaglami, supabase } = require('./src/middleware/auth');
+
+// Route'lar
+const authRouter = require('./src/routes/auth');
+const sirketlerRouter = require('./src/routes/sirketler');
+const davetlerRouter = require('./src/routes/davetler');
 const islemlerRouter = require('./src/routes/islemler');
+const ortaklarRouter = require('./src/routes/ortaklar');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,32 +19,63 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Route'ları
-app.use('/api/ortaklar', ortaklarRouter);
+// API Route'lari
+app.use('/api/auth', authRouter);
+app.use('/api/sirketler', sirketlerRouter);
+app.use('/api/davetler', davetlerRouter);
+app.use('/api/uyeler', ortaklarRouter);
 app.use('/api/islemler', islemlerRouter);
 
-// Özet endpoint: bakiyeler + sadeleştirilmiş borçlar
-app.get('/api/ozet', async (req, res) => {
+// Ozet endpoint: sirket bazli bakiyeler + sadelestirilmis borclar
+app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
   try {
-    const ortaklar = await depo.getPartners();
-    const islemler = await depo.getTransactions();
-    const { bakiyeler, transferler } = borclariSadelestir(ortaklar, islemler);
+    // Sirketteki uyeler
+    const { data: uyeler, error: uyeErr } = await supabase
+      .from('uyeler')
+      .select('*')
+      .eq('sirket_id', req.sirketId)
+      .eq('silinmis', false)
+      .order('olusturma_tarihi', { ascending: true });
 
-    // Toplam harcama hesapla (kişi bazlı)
+    if (uyeErr) throw uyeErr;
+
+    // Sirketteki islemler
+    const { data: islemler, error: islemErr } = await supabase
+      .from('islemler')
+      .select('*')
+      .eq('sirket_id', req.sirketId)
+      .eq('silinmis', false)
+      .order('olusturma_tarihi', { ascending: true });
+
+    if (islemErr) throw islemErr;
+
+    // Borc hesaplama (kasa haric)
+    const { bakiyeler, transferler } = borclariSadelestir(uyeler, islemler);
+
+    // Toplam harcama (kasa dahil — raporlama icin)
     const harcamalar = {};
-    ortaklar.forEach(o => { harcamalar[o.id] = 0; });
-    islemler.filter(i => !i.silinmis && i.tur === 'harcama').forEach(i => {
-      harcamalar[i.odeyen_id] = (harcamalar[i.odeyen_id] || 0) + i.tutar;
+    uyeler.forEach(u => { harcamalar[u.id] = 0; });
+    let kasaHarcama = 0;
+
+    islemler.filter(i => i.tur === 'harcama').forEach(i => {
+      if (i.kasa_mi) {
+        kasaHarcama += parseFloat(i.tutar);
+      } else {
+        harcamalar[i.odeyen_id] = (harcamalar[i.odeyen_id] || 0) + parseFloat(i.tutar);
+      }
     });
 
-    const toplamHarcama = Object.values(harcamalar).reduce((a, b) => a + b, 0);
+    const kisiselToplam = Object.values(harcamalar).reduce((a, b) => a + b, 0);
+    const toplamHarcama = kisiselToplam + kasaHarcama;
 
     res.json({
-      ortaklar,
+      uyeler,
       bakiyeler,
       harcamalar,
+      kasaHarcama,
       toplamHarcama,
-      onerilen_transferler: transferler
+      onerilen_transferler: transferler,
+      rol: req.uye.rol
     });
   } catch (err) {
     res.status(500).json({ hata: err.message });
@@ -52,5 +88,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`AMØRT! sunucusu çalışıyor: http://localhost:${PORT}`);
+  console.log(`AMORT! sunucusu calisiyor: http://localhost:${PORT}`);
 });

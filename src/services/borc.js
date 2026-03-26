@@ -1,25 +1,26 @@
 /**
- * Borç Sadeleştirme (Debt Simplification) Servisi
- * Greedy algoritma ile minimum transfer sayısı hesaplar.
- * Türkçe alan adları: tur, odeyen_id, alan_id, tutar
+ * Borc Sadelestirme (Debt Simplification) Servisi
+ * Greedy algoritma ile minimum transfer sayisi hesaplar.
+ * kasa_mi=true olan harcamalar borc hesabina dahil edilmez.
  */
 
-function bakiyeleriHesapla(ortaklar, islemler) {
+function bakiyeleriHesapla(uyeler, islemler) {
   const bakiyeler = {};
-  ortaklar.forEach(o => { bakiyeler[o.id] = 0; });
+  uyeler.forEach(u => { bakiyeler[u.id] = 0; });
 
-  const aktifler = islemler.filter(i => !i.silinmis);
-  const n = ortaklar.length;
+  // Kasa harcamalarini filtrele — borc hesabina dahil etme
+  const aktifler = islemler.filter(i => !i.silinmis && !i.kasa_mi);
+  const n = uyeler.length;
   if (n === 0) return bakiyeler;
 
   for (const i of aktifler) {
     if (i.tur === 'harcama') {
-      const pay = i.tutar / n;
-      bakiyeler[i.odeyen_id] += i.tutar;
-      ortaklar.forEach(o => { bakiyeler[o.id] -= pay; });
+      const pay = parseFloat(i.tutar) / n;
+      bakiyeler[i.odeyen_id] += parseFloat(i.tutar);
+      uyeler.forEach(u => { bakiyeler[u.id] -= pay; });
     } else if (i.tur === 'transfer') {
-      bakiyeler[i.odeyen_id] += i.tutar;
-      bakiyeler[i.alan_id] -= i.tutar;
+      bakiyeler[i.odeyen_id] += parseFloat(i.tutar);
+      bakiyeler[i.alan_id] -= parseFloat(i.tutar);
     }
   }
 
@@ -30,8 +31,8 @@ function bakiyeleriHesapla(ortaklar, islemler) {
   return bakiyeler;
 }
 
-function borclariSadelestir(ortaklar, islemler) {
-  const bakiyeler = bakiyeleriHesapla(ortaklar, islemler);
+function borclariSadelestir(uyeler, islemler) {
+  const bakiyeler = bakiyeleriHesapla(uyeler, islemler);
 
   const alacaklilar = [];
   const borclular = [];

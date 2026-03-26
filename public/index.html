@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#f1f5f9">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>AMØRT!</title>
   <link rel="manifest" href="/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
             brand: { DEFAULT: '#6366f1', light: '#818cf8', dark: '#4f46e5' },
-            surface: { DEFAULT: '#1e293b', light: '#334155', dark: '#0f172a' }
+            surface: { DEFAULT: '#ffffff', dark: '#f1f5f9', darker: '#e2e8f0' }
           }
         }
       }
@@ -25,230 +24,270 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     body { font-family: 'Inter', sans-serif; }
-    .ring-container { position: relative; width: 240px; height: 240px; }
-    .ring-donut {
-      width: 100%; height: 100%;
-      border-radius: 50%;
-      transition: background 0.6s ease;
-    }
-    .ring-hole {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 140px; height: 140px;
-      border-radius: 50%;
-      background: #0f172a;
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column;
-    }
-    .ring-slash {
-      position: absolute; top: 50%; left: 50%;
-      width: 3px; height: 260px;
-      background: #0f172a;
-      transform: translate(-50%, -50%) rotate(-25deg);
-      z-index: 2;
-    }
     .page { display: none; }
     .page.active { display: block; }
-    .nav-item.active { color: #818cf8; }
-    .nav-item.active svg { stroke: #818cf8; }
+    .ekran { display: none; }
+    .ekran.active { display: flex; }
+    .nav-item.active { color: #6366f1; }
+    .nav-item.active svg { stroke: #6366f1; }
     .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
       z-index: 40; display: none; align-items: flex-end; justify-content: center;
     }
     .modal-backdrop.open { display: flex; }
     .modal-sheet {
-      background: #1e293b; border-radius: 1.5rem 1.5rem 0 0;
+      background: #ffffff; border-radius: 1.5rem 1.5rem 0 0;
       width: 100%; max-width: 480px; max-height: 90vh;
       padding: 1.5rem; overflow-y: auto;
       transform: translateY(100%);
       transition: transform 0.3s ease;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
     }
     .modal-backdrop.open .modal-sheet { transform: translateY(0); }
     .fab {
       position: fixed; bottom: 5.5rem; right: 1.5rem;
       width: 56px; height: 56px; border-radius: 50%;
       background: #6366f1; color: white;
-      display: flex; align-items: center; justify-content: center;
+      display: none; align-items: center; justify-content: center;
       font-size: 1.75rem; font-weight: 700;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.5);
+      box-shadow: 0 4px 20px rgba(99,102,241,0.4);
       z-index: 30; cursor: pointer;
       transition: transform 0.15s ease;
     }
     .fab:active { transform: scale(0.9); }
     .transfer-card {
-      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.05));
-      border: 1px solid rgba(99,102,241,0.2);
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.03));
+      border: 1px solid rgba(99,102,241,0.15);
     }
-
-    /* Transfer ok animasyonu */
-    .transfer-arrow {
-      position: relative;
-      overflow: hidden;
-    }
+    .transfer-arrow { position: relative; overflow: hidden; }
     .transfer-arrow::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
+      content: ''; position: absolute; top: 0; left: -100%;
       width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(129,140,248,0.4), transparent);
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent);
       animation: akis 2s ease-in-out infinite;
     }
-    @keyframes akis {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-
-    /* Toast bildirimi */
+    @keyframes akis { 0% { left: -100%; } 100% { left: 100%; } }
     .toast-container {
-      position: fixed;
-      top: 4.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 50;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
+      position: fixed; top: 4.5rem; left: 50%; transform: translateX(-50%);
+      z-index: 50; pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
     }
     .toast {
-      padding: 0.625rem 1.25rem;
-      border-radius: 0.75rem;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      backdrop-filter: blur(12px);
-      opacity: 0;
+      padding: 0.625rem 1.25rem; border-radius: 0.75rem;
+      font-size: 0.8125rem; font-weight: 600;
+      backdrop-filter: blur(12px); opacity: 0;
       transform: translateY(-1rem) scale(0.95);
       animation: toastIn 0.3s ease forwards, toastOut 0.3s ease 2.2s forwards;
       pointer-events: auto;
     }
-    .toast-basari {
-      background: rgba(16,185,129,0.2);
-      border: 1px solid rgba(16,185,129,0.3);
-      color: #6ee7b7;
+    .toast-basari { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.25); color: #059669; }
+    .toast-hata { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.25); color: #dc2626; }
+    .toast-bilgi { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.25); color: #4f46e5; }
+    @keyframes toastIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateY(-0.5rem) scale(0.95); } }
+    .input-field {
+      width: 100%; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+      padding: 0.75rem 1rem; font-size: 0.875rem;
+      background: #f8fafc; transition: border-color 0.2s;
     }
-    .toast-hata {
-      background: rgba(239,68,68,0.2);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: #fca5a5;
+    .input-field:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .btn-primary {
+      width: 100%; padding: 0.75rem; background: #6366f1; color: white;
+      border-radius: 0.75rem; font-weight: 700; font-size: 1rem;
+      transition: background 0.2s;
     }
-    .toast-bilgi {
-      background: rgba(99,102,241,0.2);
-      border: 1px solid rgba(99,102,241,0.3);
-      color: #a5b4fc;
-    }
-    @keyframes toastIn {
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes toastOut {
-      to { opacity: 0; transform: translateY(-0.5rem) scale(0.95); }
-    }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
-<body class="bg-surface-dark text-gray-100 min-h-screen pb-20 select-none">
+<body class="bg-surface-dark text-gray-800 min-h-screen select-none">
 
-  <!-- Toast Bildirimleri -->
   <div id="toast-container" class="toast-container"></div>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-20 bg-surface-dark/90 backdrop-blur-md border-b border-white/5 px-4 py-3">
-    <div class="max-w-lg mx-auto flex items-center justify-between">
-      <h1 class="text-2xl font-black tracking-tight">AM<span class="text-brand-light">Ø</span>RT!</h1>
-      <button id="btn-theme" class="p-2 rounded-lg hover:bg-surface-light/50 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-        </svg>
-      </button>
+  <!-- ==================== AUTH EKRANI ==================== -->
+  <div id="ekran-auth" class="ekran active flex-col items-center justify-center min-h-screen px-6">
+    <div class="w-full max-w-sm">
+      <h1 class="text-4xl font-black text-center mb-2">AM<span class="text-brand">Ø</span>RT!</h1>
+      <p class="text-center text-gray-500 text-sm mb-8">Ortakli gider takibi</p>
+
+      <!-- Tab: Giris / Kayit -->
+      <div class="flex bg-surface-darker rounded-xl p-1 mb-6">
+        <button id="auth-tab-giris" class="flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition">Giris</button>
+        <button id="auth-tab-kayit" class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-500 transition">Kayit</button>
+      </div>
+
+      <!-- Giris Formu -->
+      <form id="form-giris" class="space-y-3">
+        <input type="email" placeholder="E-posta" required class="input-field" id="giris-eposta">
+        <input type="password" placeholder="Sifre" required minlength="6" class="input-field" id="giris-sifre">
+        <button type="submit" class="btn-primary">Giris Yap</button>
+      </form>
+
+      <!-- Kayit Formu -->
+      <form id="form-kayit" class="space-y-3 hidden">
+        <input type="text" placeholder="Isim" required class="input-field" id="kayit-isim">
+        <input type="email" placeholder="E-posta" required class="input-field" id="kayit-eposta">
+        <input type="password" placeholder="Sifre (en az 6 karakter)" required minlength="6" class="input-field" id="kayit-sifre">
+        <button type="submit" class="btn-primary">Hesap Olustur</button>
+      </form>
     </div>
-  </header>
+  </div>
 
-  <main class="max-w-lg mx-auto px-4 pt-4">
+  <!-- ==================== SIRKET SECICI EKRANI ==================== -->
+  <div id="ekran-sirket" class="ekran flex-col items-center justify-center min-h-screen px-6">
+    <div class="w-full max-w-sm">
+      <h1 class="text-2xl font-black text-center mb-1">AM<span class="text-brand">Ø</span>RT!</h1>
+      <p class="text-center text-gray-500 text-sm mb-6">Sirket secin veya yeni olusturun</p>
 
-    <!-- ==================== ANA SAYFA ==================== -->
-    <section id="page-home" class="page active">
+      <!-- Bekleyen Davetler -->
+      <div id="bekleyen-davetler" class="mb-4 hidden">
+        <h3 class="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Bekleyen Davetler</h3>
+        <div id="davet-listesi-bekleyen" class="space-y-2"></div>
+      </div>
 
-      <!-- Ø Halkası -->
-      <div class="flex flex-col items-center mb-6">
-        <div class="ring-container">
-          <div id="ring-donut" class="ring-donut" style="background: conic-gradient(#334155 0% 100%)"></div>
-          <div class="ring-slash"></div>
-          <div class="ring-hole">
-            <span class="text-3xl font-black">Ø</span>
-            <span id="ring-total" class="text-sm text-gray-400 mt-1">0 ₺</span>
-          </div>
+      <div id="sirket-listesi" class="space-y-2 mb-4"></div>
+
+      <div class="border-t border-gray-200 pt-4">
+        <form id="form-sirket" class="flex gap-2">
+          <input type="text" placeholder="Yeni sirket ismi" required class="input-field flex-1" id="sirket-isim">
+          <button type="submit" class="px-4 py-3 bg-brand text-white rounded-xl font-semibold text-sm hover:bg-brand-dark transition">Olustur</button>
+        </form>
+      </div>
+
+      <button id="btn-cikis-sirket" class="w-full mt-4 py-2 text-sm text-gray-400 hover:text-red-500 transition">Cikis Yap</button>
+    </div>
+  </div>
+
+  <!-- ==================== ANA UYGULAMA ==================== -->
+  <div id="ekran-app" class="ekran flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-3">
+      <div class="max-w-lg mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-black tracking-tight">AM<span class="text-brand">Ø</span>RT!</h1>
+          <button id="btn-sirket-degistir" class="text-xs bg-surface-dark px-2 py-1 rounded-lg text-gray-500 hover:text-brand transition" title="Sirket degistir"></button>
         </div>
-      </div>
-
-      <!-- Ortak Kartları -->
-      <div id="partner-cards" class="grid grid-cols-2 gap-3 mb-6"></div>
-
-      <!-- Borç Özeti -->
-      <div id="debt-section" class="mb-6 hidden">
-        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Önerilen Transferler</h2>
-        <div id="debt-transfers" class="space-y-2"></div>
-      </div>
-
-      <!-- Boş Durum -->
-      <div id="empty-state" class="text-center py-12">
-        <div class="text-6xl mb-4 opacity-30">Ø</div>
-        <p class="text-gray-400 text-sm">Henüz ortak veya işlem yok.</p>
-        <p class="text-gray-500 text-xs mt-1">Alt menüden ortak ekleyerek başlayın.</p>
-      </div>
-    </section>
-
-    <!-- ==================== İŞLEMLER ==================== -->
-    <section id="page-transactions" class="page">
-      <h2 class="text-lg font-bold mb-4">İşlemler</h2>
-      <div id="tx-list" class="space-y-2"></div>
-      <div id="tx-empty" class="text-center py-12 text-gray-500 text-sm">Henüz işlem yok.</div>
-    </section>
-
-    <!-- ==================== ORTAKLAR ==================== -->
-    <section id="page-partners" class="page">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold">Ortaklar</h2>
-        <button id="btn-add-partner" class="px-4 py-2 bg-brand rounded-xl text-sm font-semibold hover:bg-brand-dark transition">
-          + Ekle
-        </button>
-      </div>
-      <div id="partner-list" class="space-y-2"></div>
-      <div id="partner-empty" class="text-center py-12 text-gray-500 text-sm">Henüz ortak yok.</div>
-    </section>
-
-    <!-- ==================== AYARLAR ==================== -->
-    <section id="page-settings" class="page">
-      <h2 class="text-lg font-bold mb-4">Ayarlar</h2>
-      <div class="space-y-3">
-        <div class="bg-surface rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <p class="font-medium">Koyu Tema</p>
-            <p class="text-xs text-gray-400">Varsayılan tema</p>
-          </div>
-          <button id="toggle-dark" class="w-12 h-7 bg-brand rounded-full relative transition">
-            <span id="toggle-knob" class="absolute top-0.5 left-5.5 w-6 h-6 bg-white rounded-full shadow transition-all"></span>
+        <div class="flex items-center gap-1">
+          <button id="btn-profil" class="p-2 rounded-lg hover:bg-surface-dark transition" title="Profil">
+            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
           </button>
         </div>
-        <div class="bg-surface rounded-xl p-4">
-          <p class="font-medium mb-1">Hakkında</p>
-          <p class="text-xs text-gray-400">AMØRT! v1.0 – Ortaklı gider takibi ve borç yönetimi.</p>
-          <p class="text-xs text-gray-500 mt-1">Node.js + Tailwind + Supabase</p>
-        </div>
       </div>
-    </section>
-  </main>
+    </header>
 
-  <!-- FAB: Hızlı Ekle -->
-  <button id="fab" class="fab" title="Hızlı Ekle">+</button>
+    <main class="max-w-lg mx-auto px-4 pt-4 pb-24 flex-1 w-full">
 
-  <!-- ==================== MODAL: İşlem Ekle ==================== -->
+      <!-- ===== ANA SAYFA ===== -->
+      <section id="page-home" class="page active">
+        <!-- Ozet Karti -->
+        <div class="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Toplam Harcama</span>
+            <span id="ozet-kasa-badge" class="text-xs bg-brand/10 text-brand px-2 py-0.5 rounded-full hidden">Kasa: 0 ₺</span>
+          </div>
+          <p id="ozet-toplam" class="text-3xl font-black text-gray-900">0 ₺</p>
+          <p id="ozet-alt" class="text-xs text-gray-400 mt-1"></p>
+        </div>
+
+        <!-- Ortak Kartlari -->
+        <div id="partner-cards" class="grid grid-cols-2 gap-3 mb-4"></div>
+
+        <!-- Borc Ozeti -->
+        <div id="debt-section" class="mb-4 hidden">
+          <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Onerilen Transferler</h2>
+          <div id="debt-transfers" class="space-y-2"></div>
+        </div>
+
+        <!-- Bos Durum -->
+        <div id="empty-state" class="text-center py-12">
+          <div class="text-5xl mb-3 opacity-20">Ø</div>
+          <p class="text-gray-400 text-sm">Henuz islem yok.</p>
+          <p class="text-gray-400 text-xs mt-1">+ butonuyla harcama ekleyin.</p>
+        </div>
+      </section>
+
+      <!-- ===== ISLEMLER ===== -->
+      <section id="page-transactions" class="page">
+        <h2 class="text-lg font-bold mb-4 text-gray-900">Islemler</h2>
+        <div id="tx-list" class="space-y-2"></div>
+        <div id="tx-empty" class="text-center py-12 text-gray-400 text-sm">Henuz islem yok.</div>
+      </section>
+
+      <!-- ===== UYELER ===== -->
+      <section id="page-partners" class="page">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-gray-900">Uyeler</h2>
+          <button id="btn-davet-gonder" class="px-4 py-2 bg-brand rounded-xl text-sm font-semibold text-white hover:bg-brand-dark transition hidden">
+            + Davet Et
+          </button>
+        </div>
+        <div id="partner-list" class="space-y-2"></div>
+        <div id="partner-empty" class="text-center py-12 text-gray-400 text-sm">Henuz uye yok.</div>
+
+        <!-- Davet Listesi (yonetici icin) -->
+        <div id="davet-section" class="mt-6 hidden">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Gonderilen Davetler</h3>
+          <div id="davet-listesi" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- ===== AYARLAR ===== -->
+      <section id="page-settings" class="page">
+        <h2 class="text-lg font-bold mb-4 text-gray-900">Ayarlar</h2>
+        <div class="space-y-3">
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-medium text-gray-900 mb-1">Hesap</p>
+            <p id="ayar-kullanici" class="text-sm text-gray-500"></p>
+            <p id="ayar-rol" class="text-xs text-brand mt-1"></p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-medium text-gray-900 mb-1">Hakkinda</p>
+            <p class="text-xs text-gray-400">AMORT! v2.0 — Ortakli gider takibi ve borc yonetimi.</p>
+          </div>
+          <button id="btn-cikis" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-semibold text-sm hover:bg-red-100 transition">
+            Cikis Yap
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- FAB -->
+    <button id="fab" class="fab" title="Yeni Islem">+</button>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-30">
+      <div class="max-w-lg mx-auto flex justify-around py-2">
+        <button class="nav-item active flex flex-col items-center gap-0.5 px-3 py-1" data-page="home">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+          <span class="text-[10px] font-medium">Ana Sayfa</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="transactions">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span class="text-[10px] font-medium">Islemler</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="partners">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span class="text-[10px] font-medium">Uyeler</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="settings">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span class="text-[10px] font-medium">Ayarlar</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ==================== MODAL: Islem Ekle ==================== -->
   <div id="modal-tx" class="modal-backdrop">
     <div class="modal-sheet">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold">Yeni İşlem</h3>
-        <button id="modal-tx-close" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        <h3 class="text-lg font-bold text-gray-900">Yeni Islem</h3>
+        <button id="modal-tx-close" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
       </div>
 
-      <!-- Tab: Harcama / Transfer -->
       <div class="flex bg-surface-dark rounded-xl p-1 mb-4">
         <button data-type="harcama" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition">Harcama</button>
         <button data-type="transfer" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition">Transfer</button>
@@ -256,97 +295,57 @@
 
       <form id="form-tx" class="space-y-3">
         <div>
-          <label class="text-xs text-gray-400 block mb-1">Tutar (₺)</label>
+          <label class="text-xs text-gray-500 block mb-1">Tutar (₺)</label>
           <input id="tx-amount" type="number" step="0.01" min="0.01" required
-            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-brand"
-            placeholder="0.00" inputmode="decimal">
+            class="input-field text-2xl font-bold text-center" placeholder="0.00" inputmode="decimal">
         </div>
         <div>
-          <label class="text-xs text-gray-400 block mb-1">Ödeyen</label>
-          <select id="tx-payer" required
-            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand">
-          </select>
+          <label class="text-xs text-gray-500 block mb-1">Odeyen</label>
+          <select id="tx-payer" required class="input-field"></select>
         </div>
         <div id="tx-receiver-group" class="hidden">
-          <label class="text-xs text-gray-400 block mb-1">Alan Kişi</label>
-          <select id="tx-receiver"
-            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand">
-          </select>
+          <label class="text-xs text-gray-500 block mb-1">Alan Kisi</label>
+          <select id="tx-receiver" class="input-field"></select>
         </div>
         <div>
-          <label class="text-xs text-gray-400 block mb-1">Not (opsiyonel)</label>
-          <input id="tx-desc" type="text"
-            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
-            placeholder="Açıklama...">
+          <label class="text-xs text-gray-500 block mb-1">Not (opsiyonel)</label>
+          <input id="tx-desc" type="text" class="input-field" placeholder="Aciklama...">
         </div>
         <div>
-          <label class="text-xs text-gray-400 block mb-1">Tarih</label>
-          <input id="tx-date" type="date"
-            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand">
+          <label class="text-xs text-gray-500 block mb-1">Tarih</label>
+          <input id="tx-date" type="date" class="input-field">
         </div>
-        <button type="submit"
-          class="w-full py-3 bg-brand rounded-xl font-bold text-lg hover:bg-brand-dark transition">
-          Kaydet
-        </button>
+        <button type="submit" class="btn-primary">Kaydet</button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== MODAL: Ortak Ekle ==================== -->
-  <div id="modal-partner" class="modal-backdrop">
+  <!-- ==================== MODAL: Davet Gonder ==================== -->
+  <div id="modal-davet" class="modal-backdrop">
     <div class="modal-sheet">
       <div class="flex items-center justify-between mb-4">
-        <h3 id="partner-modal-title" class="text-lg font-bold">Yeni Ortak</h3>
-        <button id="modal-partner-close" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        <h3 class="text-lg font-bold text-gray-900">Davet Gonder</h3>
+        <button id="modal-davet-close" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
       </div>
-      <form id="form-partner" class="space-y-3">
-        <input type="hidden" id="partner-edit-id">
+      <form id="form-davet" class="space-y-3">
         <div>
-          <label class="text-xs text-gray-400 block mb-1">İsim</label>
-          <input id="partner-name" type="text" required
-            class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
-            placeholder="Ortak adı">
+          <label class="text-xs text-gray-500 block mb-1">E-posta</label>
+          <input id="davet-eposta" type="email" required class="input-field" placeholder="ortak@email.com">
         </div>
         <div>
-          <label class="text-xs text-gray-400 block mb-1">Renk</label>
-          <div class="flex items-center gap-3">
-            <input id="partner-color" type="color" value="#6366f1"
-              class="w-12 h-12 rounded-xl border-0 cursor-pointer bg-transparent">
-            <span id="partner-color-label" class="text-sm text-gray-400">#6366f1</span>
-          </div>
+          <label class="text-xs text-gray-500 block mb-1">Rol</label>
+          <select id="davet-rol" class="input-field">
+            <option value="uye">Uye (harcama ekleyebilir)</option>
+            <option value="izleyici">Izleyici (sadece goruntuler)</option>
+            <option value="yonetici">Yonetici (tam yetki)</option>
+          </select>
         </div>
-        <button type="submit"
-          class="w-full py-3 bg-brand rounded-xl font-bold text-lg hover:bg-brand-dark transition">
-          Kaydet
-        </button>
+        <button type="submit" class="btn-primary">Davet Gonder</button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== BOTTOM NAV ==================== -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-white/5 z-30 safe-bottom">
-    <div class="max-w-lg mx-auto flex justify-around py-2">
-      <button class="nav-item active flex flex-col items-center gap-0.5 px-3 py-1" data-page="home">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
-        <span class="text-[10px] font-medium">Ana Sayfa</span>
-      </button>
-      <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="transactions">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        <span class="text-[10px] font-medium">İşlemler</span>
-      </button>
-      <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="partners">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        <span class="text-[10px] font-medium">Ortaklar</span>
-      </button>
-      <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="settings">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        <span class="text-[10px] font-medium">Ayarlar</span>
-      </button>
-    </div>
-  </nav>
-
   <script src="/js/istemci.js"></script>
-  <script src="/js/halka.js"></script>
   <script src="/js/uygulama.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
