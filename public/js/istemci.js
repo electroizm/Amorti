@@ -130,6 +130,9 @@ const API = {
   sirketOlustur(isim) { return this.request('/sirketler', { method: 'POST', body: { isim } }); },
   sirketGuncelle(id, isim) { return this.request(`/sirketler/${id}`, { method: 'PATCH', body: { isim } }); },
   sirketSil(id) { return this.request(`/sirketler/${id}`, { method: 'DELETE' }); },
+  sirketGizle(id) { return this.request(`/sirketler/${id}/gizle`, { method: 'PATCH' }); },
+  sirketGoster(id) { return this.request(`/sirketler/${id}/goster`, { method: 'PATCH' }); },
+  getSirketlerHepsi() { return this.request('/sirketler?dahilGizli=true'); },
 
   // --- Davetler ---
   davetGonder(eposta, rol) { return this.request('/davetler', { method: 'POST', body: { eposta, rol } }); },

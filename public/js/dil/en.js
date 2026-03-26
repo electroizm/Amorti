@@ -36,7 +36,10 @@ window.AMORT_DIL.en = {
     davetKabulBtn: 'Accept',
     davetRedBtn: 'Decline',
     davetKabulEdildi: 'Invitation accepted',
-    davetReddedildi: 'Invitation declined'
+    davetReddedildi: 'Invitation declined',
+    gizleOnay: 'Hide your personal workspace?',
+    gizlendi: 'Personal workspace hidden',
+    gosterildi: 'Personal workspace restored'
   },
 
   nav: {
@@ -160,7 +163,8 @@ window.AMORT_DIL.en = {
     harfOlduguGibi: 'As is',
     trTemizle: 'Remove Turkish characters',
     trTemizleAciklama: 'ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u',
-    ayarKaydedildi: 'Settings saved'
+    ayarKaydedildi: 'Settings saved',
+    kisiselKasaAc: 'Restore Personal Workspace'
   },
 
   cop: {

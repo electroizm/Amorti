@@ -81,6 +81,7 @@ const App = {
 
       document.getElementById('btn-profil').addEventListener('click', (e) => {
         e.stopPropagation();
+        App.profilMenuGuncelle();
         profilMenu.classList.toggle('hidden');
       });
 
@@ -88,15 +89,21 @@ const App = {
         e.stopPropagation();
         const btn = e.target.closest('button');
         if (!btn) return;
-        profilMenu.classList.add('hidden');
 
-        if (btn.id === 'btn-sirket-degistir') {
-          if (window.GercekZaman) GercekZaman.durdur();
-          API.setSirketId(null);
-          App._appBound = false;
-          App.ekranGoster('sirket');
-          App.bindSirketSecici();
-        } else if (btn.id === 'btn-ayarlar-menu') {
+        if (btn.classList.contains('sirket-menu-item')) {
+          const id = btn.dataset.id;
+          if (id !== API.getSirketId()) {
+            if (window.GercekZaman) GercekZaman.durdur();
+            API.setSirketId(id);
+            App.yenile();
+            App.realtimeBaslat();
+          }
+          profilMenu.classList.add('hidden');
+          return;
+        }
+
+        profilMenu.classList.add('hidden');
+        if (btn.id === 'btn-ayarlar-menu') {
           App.navigate('settings');
         }
       });
@@ -190,11 +197,8 @@ const App = {
       const btnDavet = document.getElementById('btn-davet-gonder');
       btnDavet.classList.toggle('hidden', this.rol !== 'yonetici');
 
-      // Şirket Değiştir: sadece birden fazla şirket varsa göster
-      const btnSirketDegistir = document.getElementById('btn-sirket-degistir');
-      if (btnSirketDegistir) {
-        btnSirketDegistir.classList.toggle('hidden', (this.sirketSayisi || 0) <= 1);
-      }
+      // Profil menüsündeki şirket listesini güncelle
+      this.profilMenuGuncelle();
 
       // Metin ayarlarını yükle
       this.ayarlariYukle();
@@ -274,6 +278,26 @@ const App = {
       svg.appendChild(arc);
       offset += dash + gap;
     });
+  },
+
+  // ─── Profil Menü Şirket Listesi ───
+  profilMenuGuncelle() {
+    const container = document.getElementById('sirket-menu-listesi');
+    if (!container) return;
+    const sirketler = this.tumSirketler || [];
+    const aktifId = API.getSirketId();
+
+    if (sirketler.length <= 1) {
+      container.classList.add('hidden');
+      return;
+    }
+    container.classList.remove('hidden');
+    container.innerHTML = sirketler.map(s => `
+      <button class="sirket-menu-item w-full text-left px-4 py-2 text-sm transition flex items-center gap-2 ${s.id === aktifId ? 'text-brand font-semibold bg-brand/5' : 'text-gray-600 hover:bg-gray-50'}" data-id="${s.id}">
+        ${s.id === aktifId ? '<svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>' : '<span class="w-3.5"></span>'}
+        <span class="truncate">${this.esc(s.isim)}</span>
+      </button>
+    `).join('');
   },
 
   // ─── Yardımcılar ───

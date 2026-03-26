@@ -39,7 +39,10 @@ window.AMORT_DIL.tr = {
     davetKabulBtn: 'Kabul',
     davetRedBtn: 'Red',
     davetKabulEdildi: 'Davet kabul edildi',
-    davetReddedildi: 'Davet reddedildi'
+    davetReddedildi: 'Davet reddedildi',
+    gizleOnay: 'Kişisel kasayı gizlemek istiyor musunuz?',
+    gizlendi: 'Kişisel kasa gizlendi',
+    gosterildi: 'Kişisel kasa tekrar aktif edildi'
   },
 
   // Navigasyon
@@ -176,7 +179,8 @@ window.AMORT_DIL.tr = {
     harfOlduguGibi: 'Olduğu gibi',
     trTemizle: 'Türkçe karakterleri kaldır',
     trTemizleAciklama: 'ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u',
-    ayarKaydedildi: 'Ayarlar kaydedildi'
+    ayarKaydedildi: 'Ayarlar kaydedildi',
+    kisiselKasaAc: 'Kişisel Kasayı Tekrar Aç'
   },
 
   // Hatalar

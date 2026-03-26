@@ -47,19 +47,43 @@ Object.assign(App, {
         return;
       }
 
+      // Şirket listesini profil menüsü için sakla
+      App.tumSirketler = sirketler;
+
       if (sirketler.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-400 text-sm py-4">${t('sirket.henuzYok')}</p>`;
       } else {
+        const kullaniciId = API.getKullanici()?.id;
         container.innerHTML = sirketler.map(s => `
-          <button class="sirket-sec w-full bg-white rounded-xl p-4 text-left shadow-sm border border-gray-100 hover:border-brand transition" data-id="${s.id}">
-            <p class="font-semibold text-gray-900">${App.esc(s.isim)}</p>
-            <p class="text-xs text-gray-400 mt-0.5">${t('ayarlar.rol', { rol: App.rolGoster(s.rol) })}</p>
-          </button>
+          <div class="relative">
+            <button class="sirket-sec w-full bg-white rounded-xl p-4 text-left shadow-sm border border-gray-100 hover:border-brand transition pr-10" data-id="${s.id}">
+              <p class="font-semibold text-gray-900">${App.esc(s.isim)}</p>
+              <p class="text-xs text-gray-400 mt-0.5">${t('ayarlar.rol', { rol: App.rolGoster(s.rol) })}</p>
+            </button>
+            ${s.sahip_id === kullaniciId ? `
+              <button class="sirket-gizle absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition" data-id="${s.id}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            ` : ''}
+          </div>
         `).join('');
 
         if (!container._delegated) {
           container._delegated = true;
           container.addEventListener('click', async (e) => {
+            // Gizle butonu
+            const gizleBtn = e.target.closest('.sirket-gizle');
+            if (gizleBtn) {
+              e.stopPropagation();
+              if (!confirm(t('sirket.gizleOnay'))) return;
+              try {
+                await API.sirketGizle(gizleBtn.dataset.id);
+                App.toast(t('sirket.gizlendi'), 'bilgi');
+                App.sirketleriYukle();
+              } catch (err) { App.toast(err.message, 'hata'); }
+              return;
+            }
+            // Şirket seç
             const btn = e.target.closest('.sirket-sec');
             if (!btn) return;
             API.setSirketId(btn.dataset.id);

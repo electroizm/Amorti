@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS uyeler (
   renk TEXT NOT NULL DEFAULT '#6366f1',
   rol TEXT NOT NULL DEFAULT 'uye' CHECK (rol IN ('yonetici', 'uye', 'izleyici')),
   silinmis BOOLEAN DEFAULT FALSE,
+  gizli BOOLEAN DEFAULT FALSE,
   olusturma_tarihi TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(sirket_id, kullanici_id)
 );

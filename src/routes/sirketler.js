@@ -15,11 +15,17 @@ router.get('/', async (req, res) => {
   try {
     let { data: uyeler, error: uyeErr } = await req.supabase
       .from('uyeler')
-      .select('sirket_id, rol, sirketler(id, isim, sahip_id, olusturma_tarihi)')
+      .select('sirket_id, rol, gizli, sirketler(id, isim, sahip_id, olusturma_tarihi)')
       .eq('kullanici_id', req.kullanici.id)
       .eq('silinmis', false);
 
     if (uyeErr) throw uyeErr;
+
+    // gizli filtresi (varsayılan: gizlileri gösterme)
+    const dahilGizli = req.query.dahilGizli === 'true';
+    if (!dahilGizli && uyeler) {
+      uyeler = uyeler.filter(u => !u.gizli);
+    }
 
     // Hic sirketi yoksa otomatik kisisel alan olustur
     if (!uyeler || uyeler.length === 0) {
@@ -50,7 +56,8 @@ router.get('/', async (req, res) => {
 
     const sirketler = uyeler.map(u => ({
       ...u.sirketler,
-      rol: u.rol
+      rol: u.rol,
+      gizli: u.gizli || false
     }));
 
     res.json(sirketler);
@@ -143,6 +150,38 @@ router.delete('/:id', async (req, res) => {
       .from('sirketler')
       .delete()
       .eq('id', req.params.id);
+
+    if (error) throw error;
+    res.json({ tamam: true });
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// PATCH /api/sirketler/:id/gizle — kişisel kasayı gizle
+router.patch('/:id/gizle', async (req, res) => {
+  try {
+    const { error } = await req.supabase
+      .from('uyeler')
+      .update({ gizli: true })
+      .eq('sirket_id', req.params.id)
+      .eq('kullanici_id', req.kullanici.id);
+
+    if (error) throw error;
+    res.json({ tamam: true });
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// PATCH /api/sirketler/:id/goster — gizli kasayı tekrar aç
+router.patch('/:id/goster', async (req, res) => {
+  try {
+    const { error } = await req.supabase
+      .from('uyeler')
+      .update({ gizli: false })
+      .eq('sirket_id', req.params.id)
+      .eq('kullanici_id', req.kullanici.id);
 
     if (error) throw error;
     res.json({ tamam: true });
