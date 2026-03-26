@@ -1,13 +1,54 @@
 -- ==========================================
--- AMORT! v2.0 Veritabani Semasi
--- 5 Tablo + RLS Politikalari
+-- AMORT! v2.1 Veritabani Semasi
+-- 5 Tablo + RLS (infinite recursion fix)
 -- ==========================================
 
--- Eski tablolari temizle
+-- Eski politikalari temizle
 DROP POLICY IF EXISTS ortaklar_herkese_acik ON ortaklar;
 DROP POLICY IF EXISTS islemler_herkese_acik ON islemler;
+DROP POLICY IF EXISTS sirketler_select ON sirketler;
+DROP POLICY IF EXISTS sirketler_insert ON sirketler;
+DROP POLICY IF EXISTS sirketler_update ON sirketler;
+DROP POLICY IF EXISTS sirketler_delete ON sirketler;
+DROP POLICY IF EXISTS uyeler_select ON uyeler;
+DROP POLICY IF EXISTS uyeler_insert ON uyeler;
+DROP POLICY IF EXISTS uyeler_update ON uyeler;
+DROP POLICY IF EXISTS uyeler_delete ON uyeler;
+DROP POLICY IF EXISTS davetler_select ON davetler;
+DROP POLICY IF EXISTS davetler_insert ON davetler;
+DROP POLICY IF EXISTS davetler_update ON davetler;
+DROP POLICY IF EXISTS islemler_select ON islemler;
+DROP POLICY IF EXISTS islemler_insert ON islemler;
+DROP POLICY IF EXISTS islemler_update ON islemler;
+DROP POLICY IF EXISTS ayarlar_select ON ayarlar;
+DROP POLICY IF EXISTS ayarlar_insert ON ayarlar;
+DROP POLICY IF EXISTS ayarlar_update ON ayarlar;
+
+-- Eski tablolari temizle
+DROP TABLE IF EXISTS ayarlar CASCADE;
 DROP TABLE IF EXISTS islemler CASCADE;
+DROP TABLE IF EXISTS davetler CASCADE;
+DROP TABLE IF EXISTS uyeler CASCADE;
 DROP TABLE IF EXISTS ortaklar CASCADE;
+DROP TABLE IF EXISTS sirketler CASCADE;
+
+-- Helper fonksiyonu temizle
+DROP FUNCTION IF EXISTS kullanici_sirket_idleri(UUID);
+
+-- ==========================================
+-- HELPER: Kullanicinin uye oldugu sirket ID'leri
+-- SECURITY DEFINER = RLS atlanir, infinite recursion olmaz
+-- ==========================================
+CREATE OR REPLACE FUNCTION kullanici_sirket_idleri(uid UUID)
+RETURNS SETOF UUID
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT sirket_id FROM uyeler
+  WHERE kullanici_id = uid AND silinmis = false;
+$$;
 
 -- ==========================================
 -- 1. SIRKETLER
@@ -20,7 +61,7 @@ CREATE TABLE IF NOT EXISTS sirketler (
 );
 
 -- ==========================================
--- 2. UYELER (ortaklarin yerini alir)
+-- 2. UYELER
 -- ==========================================
 CREATE TABLE IF NOT EXISTS uyeler (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -48,7 +89,7 @@ CREATE TABLE IF NOT EXISTS davetler (
 );
 
 -- ==========================================
--- 4. ISLEMLER (guncellendi)
+-- 4. ISLEMLER
 -- ==========================================
 CREATE TABLE IF NOT EXISTS islemler (
   id BIGSERIAL PRIMARY KEY,
@@ -95,18 +136,14 @@ CREATE INDEX IF NOT EXISTS idx_ayarlar_kullanici_sirket ON ayarlar(kullanici_id,
 
 -- ==========================================
 -- RLS (Row Level Security)
+-- Infinite recursion fix: kullanici_sirket_idleri() kullanir
 -- ==========================================
 
--- Sirketler: sadece uyeleri gorebilir
+-- SIRKETLER
 ALTER TABLE sirketler ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY sirketler_select ON sirketler FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM uyeler
-    WHERE uyeler.sirket_id = sirketler.id
-      AND uyeler.kullanici_id = auth.uid()
-      AND uyeler.silinmis = false
-  )
+  id IN (SELECT kullanici_sirket_idleri(auth.uid()))
   OR sahip_id = auth.uid()
 );
 
@@ -122,116 +159,64 @@ CREATE POLICY sirketler_delete ON sirketler FOR DELETE USING (
   sahip_id = auth.uid()
 );
 
--- Uyeler: ayni sirketteki uyeler gorebilir
+-- UYELER: kendi kaydi + ayni sirketteki diger uyeler
 ALTER TABLE uyeler ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY uyeler_select ON uyeler FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM uyeler u2
-    WHERE u2.sirket_id = uyeler.sirket_id
-      AND u2.kullanici_id = auth.uid()
-      AND u2.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
 CREATE POLICY uyeler_insert ON uyeler FOR INSERT WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM uyeler u2
-    WHERE u2.sirket_id = uyeler.sirket_id
-      AND u2.kullanici_id = auth.uid()
-      AND u2.rol = 'yonetici'
-      AND u2.silinmis = false
+  kullanici_id = auth.uid()
+  OR sirket_id IN (
+    SELECT sirket_id FROM uyeler
+    WHERE kullanici_id = auth.uid()
+      AND rol = 'yonetici'
+      AND silinmis = false
   )
-  OR uyeler.kullanici_id = auth.uid()
 );
 
 CREATE POLICY uyeler_update ON uyeler FOR UPDATE USING (
-  EXISTS (
-    SELECT 1 FROM uyeler u2
-    WHERE u2.sirket_id = uyeler.sirket_id
-      AND u2.kullanici_id = auth.uid()
-      AND u2.rol = 'yonetici'
-      AND u2.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
 CREATE POLICY uyeler_delete ON uyeler FOR DELETE USING (
-  EXISTS (
-    SELECT 1 FROM uyeler u2
-    WHERE u2.sirket_id = uyeler.sirket_id
-      AND u2.kullanici_id = auth.uid()
-      AND u2.rol = 'yonetici'
-      AND u2.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
--- Davetler: yoneticiler yonetir, davetli kendi davetini gorebilir
+-- DAVETLER
 ALTER TABLE davetler ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY davetler_select ON davetler FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM uyeler
-    WHERE uyeler.sirket_id = davetler.sirket_id
-      AND uyeler.kullanici_id = auth.uid()
-      AND uyeler.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
   OR eposta = (SELECT email FROM auth.users WHERE id = auth.uid())
 );
 
 CREATE POLICY davetler_insert ON davetler FOR INSERT WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM uyeler
-    WHERE uyeler.sirket_id = davetler.sirket_id
-      AND uyeler.kullanici_id = auth.uid()
-      AND uyeler.rol = 'yonetici'
-      AND uyeler.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
 CREATE POLICY davetler_update ON davetler FOR UPDATE USING (
   eposta = (SELECT email FROM auth.users WHERE id = auth.uid())
-  OR EXISTS (
-    SELECT 1 FROM uyeler
-    WHERE uyeler.sirket_id = davetler.sirket_id
-      AND uyeler.kullanici_id = auth.uid()
-      AND uyeler.rol = 'yonetici'
-      AND uyeler.silinmis = false
-  )
+  OR sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
--- Islemler: sirket uyeleri gorebilir, uye+ ekleyebilir
+-- ISLEMLER
 ALTER TABLE islemler ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY islemler_select ON islemler FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM uyeler
-    WHERE uyeler.sirket_id = islemler.sirket_id
-      AND uyeler.kullanici_id = auth.uid()
-      AND uyeler.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
 CREATE POLICY islemler_insert ON islemler FOR INSERT WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM uyeler
-    WHERE uyeler.sirket_id = islemler.sirket_id
-      AND uyeler.kullanici_id = auth.uid()
-      AND uyeler.rol IN ('yonetici', 'uye')
-      AND uyeler.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
 CREATE POLICY islemler_update ON islemler FOR UPDATE USING (
-  EXISTS (
-    SELECT 1 FROM uyeler
-    WHERE uyeler.sirket_id = islemler.sirket_id
-      AND uyeler.kullanici_id = auth.uid()
-      AND uyeler.rol IN ('yonetici', 'uye')
-      AND uyeler.silinmis = false
-  )
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
--- Ayarlar: kendi ayarlarini yonetir
+-- AYARLAR
 ALTER TABLE ayarlar ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY ayarlar_select ON ayarlar FOR SELECT USING (

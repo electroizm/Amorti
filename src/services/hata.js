@@ -19,6 +19,7 @@ const HATA_ESLEMELERI = {
   'jwt expired': 'Oturum suresi dolmus. Lutfen tekrar giris yapin.',
 
   // DB / RLS hatalari
+  'infinite recursion detected in policy for relation': 'Veritabani politika hatasi. Lutfen yoneticiyle iletisime gecin.',
   'new row violates row-level security policy': 'Bu islemi yapmaya yetkiniz yok.',
   'duplicate key value violates unique constraint': 'Bu kayit zaten mevcut.',
   'violates foreign key constraint': 'Iliskili kayit bulunamadi.',

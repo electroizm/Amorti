@@ -10,16 +10,43 @@ const router = Router();
 
 router.use(authGerekli);
 
-// GET /api/sirketler — kullanicinin sirketleri
+// GET /api/sirketler — kullanicinin sirketleri (yoksa otomatik olustur)
 router.get('/', async (req, res) => {
   try {
-    const { data: uyeler, error: uyeErr } = await req.supabase
+    let { data: uyeler, error: uyeErr } = await req.supabase
       .from('uyeler')
       .select('sirket_id, rol, sirketler(id, isim, sahip_id, olusturma_tarihi)')
       .eq('kullanici_id', req.kullanici.id)
       .eq('silinmis', false);
 
     if (uyeErr) throw uyeErr;
+
+    // Hic sirketi yoksa otomatik kisisel alan olustur
+    if (!uyeler || uyeler.length === 0) {
+      const kullaniciIsim = req.kullanici.user_metadata?.isim || req.kullanici.email.split('@')[0];
+
+      const { data: yeniSirket, error: sirketErr } = await req.supabase
+        .from('sirketler')
+        .insert({ isim: `${kullaniciIsim} - Kisisel`, sahip_id: req.kullanici.id })
+        .select()
+        .single();
+
+      if (sirketErr) throw sirketErr;
+
+      const { error: uyeEklErr } = await req.supabase
+        .from('uyeler')
+        .insert({
+          sirket_id: yeniSirket.id,
+          kullanici_id: req.kullanici.id,
+          isim: kullaniciIsim,
+          renk: '#6366f1',
+          rol: 'yonetici'
+        });
+
+      if (uyeEklErr) throw uyeEklErr;
+
+      return res.json([{ ...yeniSirket, rol: 'yonetici' }]);
+    }
 
     const sirketler = uyeler.map(u => ({
       ...u.sirketler,

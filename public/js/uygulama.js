@@ -152,6 +152,15 @@ const App = {
       const sirketler = await API.getSirketler();
       const container = document.getElementById('sirket-listesi');
 
+      // Tek sirket varsa otomatik sec
+      if (sirketler.length === 1) {
+        API.setSirketId(sirketler[0].id);
+        this.ekranGoster('app');
+        this.bindApp();
+        await this.yenile();
+        return;
+      }
+
       if (sirketler.length === 0) {
         container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">Henuz sirketiniz yok.</p>';
       } else {
