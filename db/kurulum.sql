@@ -184,7 +184,7 @@ ALTER TABLE davetler ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY davetler_select ON davetler FOR SELECT USING (
   sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
-  OR eposta = (SELECT email FROM auth.users WHERE id = auth.uid())
+  OR eposta = (auth.jwt()->>'email')
 );
 
 CREATE POLICY davetler_insert ON davetler FOR INSERT WITH CHECK (
@@ -192,7 +192,7 @@ CREATE POLICY davetler_insert ON davetler FOR INSERT WITH CHECK (
 );
 
 CREATE POLICY davetler_update ON davetler FOR UPDATE USING (
-  eposta = (SELECT email FROM auth.users WHERE id = auth.uid())
+  eposta = (auth.jwt()->>'email')
   OR sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
