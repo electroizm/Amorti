@@ -168,12 +168,6 @@ CREATE POLICY uyeler_select ON uyeler FOR SELECT USING (
 
 CREATE POLICY uyeler_insert ON uyeler FOR INSERT WITH CHECK (
   kullanici_id = auth.uid()
-  OR sirket_id IN (
-    SELECT sirket_id FROM uyeler
-    WHERE kullanici_id = auth.uid()
-      AND rol = 'yonetici'
-      AND silinmis = false
-  )
 );
 
 CREATE POLICY uyeler_update ON uyeler FOR UPDATE USING (
