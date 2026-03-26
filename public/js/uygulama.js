@@ -228,43 +228,51 @@ const App = {
   // ─── Ø Ring ───
   oRingGuncelle(ozet) {
     const svg = document.getElementById('o-ring');
-    // Eski arc'ları temizle (circle ve text kalsın)
     svg.querySelectorAll('.o-arc').forEach(el => el.remove());
 
+    const slash = svg.querySelector('.o-slash');
     const toplam = ozet.toplamHarcama || 0;
-    if (toplam <= 0) return;
 
-    const R = 50, C = 2 * Math.PI * R;
+    if (toplam <= 0) {
+      if (slash) slash.setAttribute('opacity', '0.25');
+      return;
+    }
+    if (slash) slash.setAttribute('opacity', '0.15');
+
+    const R = 78, C = 2 * Math.PI * R;
     let offset = 0;
 
-    // Üye harcamaları
     const parcalar = [];
     ozet.uyeler.forEach(u => {
       const tutar = ozet.harcamalar[u.id] || 0;
       if (tutar > 0) parcalar.push({ renk: u.renk, tutar });
     });
-    // Kasa harcaması
     if (ozet.kasaHarcama > 0) {
       parcalar.push({ renk: '#6366f1', tutar: ozet.kasaHarcama });
     }
 
-    const text = svg.querySelector('text');
+    const gap = parcalar.length > 1 ? 3 : 0;
+    const totalGap = gap * parcalar.length;
+    const usable = C - totalGap;
+
     parcalar.forEach(p => {
-      const oran = p.tutar / toplam;
-      const dash = oran * C;
+      const dash = (p.tutar / toplam) * usable;
       const arc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       arc.setAttribute('class', 'o-arc');
-      arc.setAttribute('cx', '60');
-      arc.setAttribute('cy', '60');
+      arc.setAttribute('cx', '100');
+      arc.setAttribute('cy', '100');
       arc.setAttribute('r', String(R));
       arc.setAttribute('fill', 'none');
       arc.setAttribute('stroke', p.renk);
-      arc.setAttribute('stroke-width', '12');
+      arc.setAttribute('stroke-width', '16');
+      arc.setAttribute('stroke-linecap', 'round');
       arc.setAttribute('stroke-dasharray', `${dash} ${C - dash}`);
       arc.setAttribute('stroke-dashoffset', String(-offset));
-      arc.setAttribute('transform', 'rotate(-90 60 60)');
-      svg.insertBefore(arc, text);
-      offset += dash;
+      arc.setAttribute('transform', 'rotate(-90 100 100)');
+      arc.setAttribute('filter', 'url(#o-glow)');
+      arc.style.transition = 'stroke-dasharray 0.6s ease, stroke-dashoffset 0.6s ease';
+      svg.appendChild(arc);
+      offset += dash + gap;
     });
   },
 
