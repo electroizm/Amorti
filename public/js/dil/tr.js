@@ -8,8 +8,6 @@ window.AMORT_DIL.tr = {
 
   // Giriş / Kayıt
   auth: {
-    tabGiris: 'Giriş',
-    tabKayit: 'Kayıt',
     epostaPlaceholder: 'E-posta',
     sifrePlaceholder: 'Şifre',
     sifreKayitPlaceholder: 'Şifre (en az 6 karakter)',
@@ -17,7 +15,16 @@ window.AMORT_DIL.tr = {
     girisBtn: 'Giriş Yap',
     kayitBtn: 'Hesap Oluştur',
     girisBasarili: 'Giriş başarılı',
-    hesapOlusturuldu: 'Hesap oluşturuldu'
+    hesapOlusturuldu: 'Hesap oluşturuldu',
+    beniHatirla: 'Beni Hatırla',
+    googleGiris: 'Google ile Giriş Yap',
+    googleKayit: 'Google ile Kayıt Ol',
+    kayitOlLink: 'Kayıt Ol',
+    girisYapLink: 'Giriş Yap',
+    hesabinizYokMu: 'Hesabınız yok mu?',
+    zadenHesabVar: 'Zaten hesabınız var mı?',
+    dogrulamaBilgi: 'E-postanızı kontrol edin',
+    dogrulamaDetay: 'Hesabınızı doğrulamak için gönderilen bağlantıya tıklayın. (7 dakika geçerli)'
   },
 
   // Şirket seçici

@@ -6,8 +6,6 @@ window.AMORT_DIL.en = {
   },
 
   auth: {
-    tabGiris: 'Login',
-    tabKayit: 'Sign Up',
     epostaPlaceholder: 'Email',
     sifrePlaceholder: 'Password',
     sifreKayitPlaceholder: 'Password (min 6 characters)',
@@ -15,7 +13,16 @@ window.AMORT_DIL.en = {
     girisBtn: 'Log In',
     kayitBtn: 'Create Account',
     girisBasarili: 'Login successful',
-    hesapOlusturuldu: 'Account created'
+    hesapOlusturuldu: 'Account created',
+    beniHatirla: 'Remember Me',
+    googleGiris: 'Sign in with Google',
+    googleKayit: 'Sign up with Google',
+    kayitOlLink: 'Sign Up',
+    girisYapLink: 'Log In',
+    hesabinizYokMu: "Don't have an account?",
+    zadenHesabVar: 'Already have an account?',
+    dogrulamaBilgi: 'Check your email',
+    dogrulamaDetay: 'Click the link sent to your email to verify your account. (Valid for 7 minutes)'
   },
 
   sirket: {

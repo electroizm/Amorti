@@ -4,41 +4,59 @@
  */
 const API = {
   base: '/api',
+  _depolama: 'local',
+
+  // --- Depolama Modu ---
+  setDepolamaModu(mod) {
+    this._depolama = mod; // 'local' veya 'session'
+  },
+
+  _getDepo() {
+    return this._depolama === 'session' ? sessionStorage : localStorage;
+  },
 
   // --- Token & Oturum ---
   getToken() {
-    const oturum = JSON.parse(localStorage.getItem('amort-oturum') || 'null');
+    const oturum = JSON.parse(this._getDepo().getItem('amort-oturum') || 'null');
     return oturum?.access_token || null;
   },
 
   setOturum(oturum) {
-    localStorage.setItem('amort-oturum', JSON.stringify(oturum));
+    this._getDepo().setItem('amort-oturum', JSON.stringify(oturum));
   },
 
   temizleOturum() {
     localStorage.removeItem('amort-oturum');
     localStorage.removeItem('amort-kullanici');
     localStorage.removeItem('amort-sirket');
+    sessionStorage.removeItem('amort-oturum');
+    sessionStorage.removeItem('amort-kullanici');
+    sessionStorage.removeItem('amort-sirket');
   },
 
   getKullanici() {
-    return JSON.parse(localStorage.getItem('amort-kullanici') || 'null');
+    return JSON.parse(this._getDepo().getItem('amort-kullanici') || 'null');
   },
 
   setKullanici(k) {
-    localStorage.setItem('amort-kullanici', JSON.stringify(k));
+    this._getDepo().setItem('amort-kullanici', JSON.stringify(k));
   },
 
   getSirketId() {
-    return localStorage.getItem('amort-sirket') || null;
+    return this._getDepo().getItem('amort-sirket') || null;
   },
 
   setSirketId(id) {
-    localStorage.setItem('amort-sirket', id);
+    this._getDepo().setItem('amort-sirket', id);
   },
 
   girisYapildiMi() {
-    return !!this.getToken();
+    // Her iki storage'ı kontrol et
+    const local = JSON.parse(localStorage.getItem('amort-oturum') || 'null');
+    if (local?.access_token) { this._depolama = 'local'; return true; }
+    const session = JSON.parse(sessionStorage.getItem('amort-oturum') || 'null');
+    if (session?.access_token) { this._depolama = 'session'; return true; }
+    return false;
   },
 
   // --- HTTP ---
