@@ -209,7 +209,8 @@ const App = {
         davetContainer.classList.add('hidden');
       }
     } catch (err) {
-      console.error(err);
+      console.error('sirketleriYukle hatasi:', err);
+      this.toast('Veriler yuklenemedi: ' + err.message, 'hata');
     }
   },
 

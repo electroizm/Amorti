@@ -1,16 +1,31 @@
 /**
  * Auth Middleware
- * JWT dogrulama + sirket baglami (X-Sirket-Id header)
+ * JWT dogrulama + per-request Supabase client (RLS icin)
  */
 const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+// Admin client: sadece token dogrulama icin
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
- * JWT token dogrula, req.kullanici set et
+ * Kullanicinin token'iyla yeni Supabase client olustur
+ * Bu sayede RLS politikalarinda auth.uid() dogru calısır
+ */
+function supabaseForUser(token) {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  });
+}
+
+/**
+ * JWT token dogrula, req.kullanici ve req.supabase set et
  */
 async function authGerekli(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -20,13 +35,14 @@ async function authGerekli(req, res, next) {
 
   const token = authHeader.split(' ')[1];
 
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
   if (error || !user) {
     return res.status(401).json({ hata: 'Gecersiz veya suresi dolmus token' });
   }
 
   req.kullanici = user;
   req.token = token;
+  req.supabase = supabaseForUser(token);
   next();
 }
 
@@ -40,8 +56,7 @@ async function sirketBaglami(req, res, next) {
     return res.status(400).json({ hata: 'X-Sirket-Id header gerekli' });
   }
 
-  // Kullanicinin bu sirkette aktif uyeligini kontrol et
-  const { data: uye, error } = await supabase
+  const { data: uye, error } = await req.supabase
     .from('uyeler')
     .select('*')
     .eq('sirket_id', sirketId)
@@ -70,4 +85,4 @@ function rolGerekli(...roller) {
   };
 }
 
-module.exports = { authGerekli, sirketBaglami, rolGerekli, supabase };
+module.exports = { authGerekli, sirketBaglami, rolGerekli, supabaseAdmin };

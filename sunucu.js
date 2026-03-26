@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { borclariSadelestir } = require('./src/services/borc');
-const { authGerekli, sirketBaglami, supabase } = require('./src/middleware/auth');
+const { authGerekli, sirketBaglami } = require('./src/middleware/auth');
 
 // Route'lar
 const authRouter = require('./src/routes/auth');
@@ -30,7 +30,7 @@ app.use('/api/islemler', islemlerRouter);
 app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
   try {
     // Sirketteki uyeler
-    const { data: uyeler, error: uyeErr } = await supabase
+    const { data: uyeler, error: uyeErr } = await req.supabase
       .from('uyeler')
       .select('*')
       .eq('sirket_id', req.sirketId)
@@ -40,7 +40,7 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
     if (uyeErr) throw uyeErr;
 
     // Sirketteki islemler
-    const { data: islemler, error: islemErr } = await supabase
+    const { data: islemler, error: islemErr } = await req.supabase
       .from('islemler')
       .select('*')
       .eq('sirket_id', req.sirketId)

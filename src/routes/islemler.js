@@ -3,7 +3,7 @@
  * Sirket bazli islem CRUD + metin formatlama
  */
 const { Router } = require('express');
-const { authGerekli, sirketBaglami, rolGerekli, supabase } = require('../middleware/auth');
+const { authGerekli, sirketBaglami, rolGerekli } = require('../middleware/auth');
 const { formatla } = require('../services/metin');
 
 const router = Router();
@@ -13,7 +13,7 @@ router.use(authGerekli, sirketBaglami);
 // GET /api/islemler
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from('islemler')
       .select('*')
       .eq('sirket_id', req.sirketId)
@@ -43,7 +43,7 @@ router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
 
   try {
     // Kullanicinin metin ayarlarini al
-    const { data: ayar } = await supabase
+    const { data: ayar } = await req.supabase
       .from('ayarlar')
       .select('harf_bicimi, tr_temizle')
       .eq('kullanici_id', req.kullanici.id)
@@ -66,7 +66,7 @@ router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
       ekleyen_id: req.kullanici.id
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from('islemler')
       .insert(row)
       .select()
@@ -82,7 +82,7 @@ router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
 // DELETE /api/islemler/:id — soft delete
 router.delete('/:id', rolGerekli('yonetici', 'uye'), async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from('islemler')
       .update({ silinmis: true })
       .eq('id', parseInt(req.params.id))

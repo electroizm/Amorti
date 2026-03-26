@@ -3,7 +3,7 @@
  * Sirket bazli uye yonetimi
  */
 const { Router } = require('express');
-const { authGerekli, sirketBaglami, rolGerekli, supabase } = require('../middleware/auth');
+const { authGerekli, sirketBaglami, rolGerekli } = require('../middleware/auth');
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.use(authGerekli, sirketBaglami);
 // GET /api/uyeler — sirketteki uyeler
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from('uyeler')
       .select('*')
       .eq('sirket_id', req.sirketId)
@@ -38,7 +38,7 @@ router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from('uyeler')
       .update(guncellemeler)
       .eq('id', req.params.id)
@@ -67,7 +67,7 @@ router.patch('/:id/rol', rolGerekli('yonetici'), async (req, res) => {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from('uyeler')
       .update({ rol })
       .eq('id', req.params.id)
@@ -91,7 +91,7 @@ router.delete('/:id', rolGerekli('yonetici'), async (req, res) => {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from('uyeler')
       .update({ silinmis: true })
       .eq('id', req.params.id)
