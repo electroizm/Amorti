@@ -1,44 +1,106 @@
+/**
+ * Uyeler (Ortaklar) Route'lari
+ * Sirket bazli uye yonetimi
+ */
 const { Router } = require('express');
-const depo = require('../services/depo');
+const { authGerekli, sirketBaglami, rolGerekli, supabase } = require('../middleware/auth');
 
 const router = Router();
 
+router.use(authGerekli, sirketBaglami);
+
+// GET /api/uyeler — sirketteki uyeler
 router.get('/', async (req, res) => {
   try {
-    const ortaklar = await depo.getPartners();
-    res.json(ortaklar);
+    const { data, error } = await supabase
+      .from('uyeler')
+      .select('*')
+      .eq('sirket_id', req.sirketId)
+      .eq('silinmis', false)
+      .order('olusturma_tarihi', { ascending: true });
+
+    if (error) throw error;
+    res.json(data);
   } catch (err) {
     res.status(500).json({ hata: err.message });
   }
 });
 
-router.post('/', async (req, res) => {
+// PATCH /api/uyeler/:id — uye guncelle (yonetici)
+router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
   const { isim, renk } = req.body;
-  if (!isim || !renk) {
-    return res.status(400).json({ hata: 'isim ve renk zorunludur' });
+  const guncellemeler = {};
+  if (isim !== undefined) guncellemeler.isim = isim;
+  if (renk !== undefined) guncellemeler.renk = renk;
+
+  if (Object.keys(guncellemeler).length === 0) {
+    return res.status(400).json({ hata: 'Guncellenecek alan belirtilmedi' });
   }
+
   try {
-    const ortak = await depo.addPartner({ isim, renk });
-    res.status(201).json(ortak);
+    const { data, error } = await supabase
+      .from('uyeler')
+      .update(guncellemeler)
+      .eq('id', req.params.id)
+      .eq('sirket_id', req.sirketId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
+    res.json(data);
   } catch (err) {
     res.status(500).json({ hata: err.message });
   }
 });
 
-router.patch('/:id', async (req, res) => {
+// PATCH /api/uyeler/:id/rol — rol degistir (yonetici)
+router.patch('/:id/rol', rolGerekli('yonetici'), async (req, res) => {
+  const { rol } = req.body;
+  if (!rol || !['yonetici', 'uye', 'izleyici'].includes(rol)) {
+    return res.status(400).json({ hata: 'Gecersiz rol' });
+  }
+
+  // Kendini degistiremez
+  if (req.params.id === req.uye.id) {
+    return res.status(400).json({ hata: 'Kendi rolunuzu degistiremezsiniz' });
+  }
+
   try {
-    const updated = await depo.updatePartner(req.params.id, req.body);
-    if (!updated) return res.status(404).json({ hata: 'Ortak bulunamadı' });
-    res.json(updated);
+    const { data, error } = await supabase
+      .from('uyeler')
+      .update({ rol })
+      .eq('id', req.params.id)
+      .eq('sirket_id', req.sirketId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
+    res.json(data);
   } catch (err) {
     res.status(500).json({ hata: err.message });
   }
 });
 
-router.delete('/:id', async (req, res) => {
+// DELETE /api/uyeler/:id — uye sil / soft delete (yonetici)
+router.delete('/:id', rolGerekli('yonetici'), async (req, res) => {
+  // Kendini silemez
+  if (req.params.id === req.uye.id) {
+    return res.status(400).json({ hata: 'Kendinizi cikaramazsiniz' });
+  }
+
   try {
-    const silindi = await depo.deletePartner(req.params.id);
-    if (!silindi) return res.status(404).json({ hata: 'Ortak bulunamadı' });
+    const { data, error } = await supabase
+      .from('uyeler')
+      .update({ silinmis: true })
+      .eq('id', req.params.id)
+      .eq('sirket_id', req.sirketId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
     res.json({ tamam: true });
   } catch (err) {
     res.status(500).json({ hata: err.message });
