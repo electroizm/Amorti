@@ -167,7 +167,7 @@ const App = {
         container.innerHTML = sirketler.map(s => `
           <button class="sirket-sec w-full bg-white rounded-xl p-4 text-left shadow-sm border border-gray-100 hover:border-brand transition" data-id="${s.id}">
             <p class="font-semibold text-gray-900">${this.esc(s.isim)}</p>
-            <p class="text-xs text-gray-400 mt-0.5">Rol: ${s.rol}</p>
+            <p class="text-xs text-gray-400 mt-0.5">Rol: ${this.rolGoster(s.rol)}</p>
           </button>
         `).join('');
 
@@ -192,7 +192,7 @@ const App = {
           <div class="bg-white rounded-xl p-3 shadow-sm border border-brand/20 flex items-center justify-between">
             <div>
               <p class="font-medium text-sm text-gray-900">${this.esc(d.sirketler?.isim || '?')}</p>
-              <p class="text-xs text-gray-400">Rol: ${d.rol}</p>
+              <p class="text-xs text-gray-400">Rol: ${this.rolGoster(d.rol)}</p>
             </div>
             <div class="flex gap-2">
               <button class="davet-kabul px-3 py-1.5 bg-brand text-white text-xs rounded-lg font-semibold" data-id="${d.id}">Kabul</button>
@@ -318,7 +318,7 @@ const App = {
       // Ayarlar sayfasi
       const kullanici = API.getKullanici();
       document.getElementById('ayar-kullanici').textContent = kullanici ? `${kullanici.isim} (${kullanici.eposta})` : '';
-      document.getElementById('ayar-rol').textContent = `Rol: ${this.rol}`;
+      document.getElementById('ayar-rol').textContent = `Rol: ${this.rolGoster(this.rol)}`;
 
       // Bos durum
       const bos = document.getElementById('empty-state');
@@ -546,7 +546,7 @@ const App = {
               <div class="w-8 h-8 rounded-full" style="background: ${u.renk}"></div>
               <div>
                 <p class="font-semibold text-gray-900">${this.esc(u.isim)}</p>
-                <p class="text-xs text-gray-400">${u.rol}</p>
+                <p class="text-xs text-gray-400">${this.rolGoster(u.rol)}</p>
               </div>
             </div>
             ${yonetici ? `
@@ -608,9 +608,9 @@ const App = {
                 <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-gray-700">${this.esc(d.eposta)}</p>
-                    <p class="text-xs text-gray-400">Rol: ${d.rol}</p>
+                    <p class="text-xs text-gray-400">Rol: ${this.rolGoster(d.rol)}</p>
                   </div>
-                  <span class="text-xs px-2 py-0.5 rounded-full font-medium ${durumRenk}">${d.durum}</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full font-medium ${durumRenk}">${this.durumGoster(d.durum)}</span>
                 </div>
               `;
             }).join('');
@@ -723,6 +723,17 @@ const App = {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     }).format(n || 0);
+  },
+
+  // ─── Türkçe Gösterim Yardımcıları ───
+  rolGoster(rol) {
+    const roller = { yonetici: 'Yönetici', uye: 'Üye', izleyici: 'İzleyici' };
+    return roller[rol] || rol;
+  },
+
+  durumGoster(durum) {
+    const durumlar = { bekliyor: 'Bekliyor', kabul: 'Kabul Edildi', red: 'Reddedildi' };
+    return durumlar[durum] || durum;
   },
 
   esc(str) {
