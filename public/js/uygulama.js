@@ -1,6 +1,6 @@
 /**
- * AMORT! Ana Uygulama Mantigi
- * Auth akisi, sirket secimi, harcama/transfer, davet, rol kontrolu
+ * AMØRT! Ana Uygulama Mantığı
+ * Auth akışı, şirket seçimi, harcama/transfer, davet, rol kontrolü
  */
 const App = {
   mevcutSayfa: 'home',
@@ -78,7 +78,7 @@ const App = {
           document.getElementById('giris-eposta').value,
           document.getElementById('giris-sifre').value
         );
-        this.toast('Giris basarili', 'basari');
+        this.toast('Giriş başarılı', 'basari');
         this.ekranGoster('sirket');
         this.bindSirketSecici();
       } catch (err) {
@@ -105,7 +105,7 @@ const App = {
           tabGiris.click();
           return;
         }
-        this.toast('Hesap olusturuldu', 'basari');
+        this.toast('Hesap oluşturuldu', 'basari');
         this.ekranGoster('sirket');
         this.bindSirketSecici();
       } catch (err) {
@@ -129,7 +129,7 @@ const App = {
       if (!isim) return;
       try {
         const sirket = await API.sirketOlustur(isim);
-        this.toast(`${isim} olusturuldu`, 'basari');
+        this.toast(`${isim} oluşturuldu`, 'basari');
         document.getElementById('sirket-isim').value = '';
         API.setSirketId(sirket.id);
         this.ekranGoster('app');
@@ -162,7 +162,7 @@ const App = {
       }
 
       if (sirketler.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">Henuz sirketiniz yok.</p>';
+        container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">Henüz şirketiniz yok.</p>';
       } else {
         container.innerHTML = sirketler.map(s => `
           <button class="sirket-sec w-full bg-white rounded-xl p-4 text-left shadow-sm border border-gray-100 hover:border-brand transition" data-id="${s.id}">
@@ -225,7 +225,7 @@ const App = {
       }
     } catch (err) {
       console.error('sirketleriYukle hatasi:', err);
-      this.toast('Veriler yuklenemedi: ' + err.message, 'hata');
+      this.toast('Veriler yüklenemedi: ' + err.message, 'hata');
     }
   },
 
@@ -294,7 +294,7 @@ const App = {
 
       // Header'da sirket ismi
       // Sirket ismini sirketler listesinden cekmek yerine basit gosterim
-      document.getElementById('btn-sirket-degistir').textContent = '↔ Degistir';
+      document.getElementById('btn-sirket-degistir').textContent = '↔ Değiştir';
 
       // Ozet karti
       document.getElementById('ozet-toplam').textContent = this.formatPara(ozet.toplamHarcama) + ' ₺';
@@ -308,7 +308,7 @@ const App = {
       }
 
       const kisisel = ozet.toplamHarcama - (ozet.kasaHarcama || 0);
-      document.getElementById('ozet-alt').textContent = `${ozet.uyeler.length} uye • Kisisel: ${this.formatPara(kisisel)} ₺`;
+      document.getElementById('ozet-alt').textContent = `${ozet.uyeler.length} üye • Kişisel: ${this.formatPara(kisisel)} ₺`;
 
       // Kartlar & borc
       this.ortakKartlariGoster(ozet);
@@ -334,8 +334,8 @@ const App = {
       btnDavet.classList.toggle('hidden', this.rol !== 'yonetici');
 
     } catch (err) {
-      console.error('Veri yukleme hatasi:', err);
-      if (err.message.includes('erisim')) {
+      console.error('Veri yükleme hatası:', err);
+      if (err.message.includes('erişim')) {
         API.setSirketId(null);
         this.ekranGoster('sirket');
         this.bindSirketSecici();
@@ -352,7 +352,7 @@ const App = {
       const harcanan = ozet.harcamalar[u.id] || 0;
       const bakiye = ozet.bakiyeler[u.id] || 0;
       const bakiyeClass = bakiye > 0 ? 'text-emerald-600' : bakiye < 0 ? 'text-red-500' : 'text-gray-400';
-      const bakiyeLabel = bakiye > 0 ? 'alacakli' : bakiye < 0 ? 'borclu' : 'esit';
+      const bakiyeLabel = bakiye > 0 ? 'alacaklı' : bakiye < 0 ? 'borçlu' : 'eşit';
 
       return `
         <div class="bg-white rounded-xl p-4 border-l-4 shadow-sm" style="border-color: ${u.renk}">
@@ -410,21 +410,21 @@ const App = {
     ).join('');
 
     document.getElementById('tx-payer').innerHTML =
-      (odeyenOptions || '<option value="">Uye yok</option>') +
-      '<option value="__kasa__">Sirket Kasasi</option>';
+      (odeyenOptions || '<option value="">Üye yok</option>') +
+      '<option value="__kasa__">Şirket Kasası</option>';
 
     // Alan: sadece uyeler
     const alanOptions = this.uyeler.map(u =>
       `<option value="${u.id}">${this.esc(u.isim)}</option>`
     ).join('');
-    document.getElementById('tx-receiver').innerHTML = alanOptions || '<option value="">Uye yok</option>';
+    document.getElementById('tx-receiver').innerHTML = alanOptions || '<option value="">Üye yok</option>';
   },
 
   // ─── FAB ───
   bindFAB() {
     document.getElementById('fab').addEventListener('click', () => {
       if (this.uyeler.length < 1) {
-        this.toast('Henuz uye yok!', 'hata');
+        this.toast('Henüz üye yok!', 'hata');
         this.titresim(100);
         return;
       }
@@ -475,7 +475,7 @@ const App = {
       if (this.islemTuru === 'transfer') {
         data.alan_id = document.getElementById('tx-receiver').value;
         if (data.odeyen_id === data.alan_id) {
-          this.toast('Odeyen ve alan ayni kisi olamaz!', 'hata');
+          this.toast('Ödeyen ve alan aynı kişi olamaz!', 'hata');
           this.titresim(100);
           return;
         }
@@ -488,7 +488,7 @@ const App = {
         document.getElementById('form-tx').reset();
         this.varsayilanTarih();
         this.selectGuncelle();
-        this.toast(kasaMi ? 'Kasa harcamasi eklendi' : this.islemTuru === 'transfer' ? 'Transfer kaydedildi' : 'Harcama eklendi', 'basari');
+        this.toast(kasaMi ? 'Kasa harcaması eklendi' : this.islemTuru === 'transfer' ? 'Transfer kaydedildi' : 'Harcama eklendi', 'basari');
         await this.yenile();
       } catch (err) {
         this.toast('Hata: ' + err.message, 'hata');
@@ -518,7 +518,7 @@ const App = {
         this.titresim();
         this.modalKapat('modal-davet');
         document.getElementById('form-davet').reset();
-        this.toast('Davet gonderildi', 'basari');
+        this.toast('Davet gönderildi', 'basari');
         if (this.mevcutSayfa === 'partners') this.uyeListesiGoster();
       } catch (err) {
         this.toast(err.message, 'hata');
@@ -552,9 +552,9 @@ const App = {
             ${yonetici ? `
               <div class="flex gap-1">
                 <select class="rol-degistir text-xs border border-gray-200 rounded-lg px-2 py-1" data-id="${u.id}">
-                  <option value="yonetici" ${u.rol === 'yonetici' ? 'selected' : ''}>Yonetici</option>
-                  <option value="uye" ${u.rol === 'uye' ? 'selected' : ''}>Uye</option>
-                  <option value="izleyici" ${u.rol === 'izleyici' ? 'selected' : ''}>Izleyici</option>
+                  <option value="yonetici" ${u.rol === 'yonetici' ? 'selected' : ''}>Yönetici</option>
+                  <option value="uye" ${u.rol === 'uye' ? 'selected' : ''}>Üye</option>
+                  <option value="izleyici" ${u.rol === 'izleyici' ? 'selected' : ''}>İzleyici</option>
                 </select>
                 <button class="uye-sil p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${u.id}" data-isim="${this.esc(u.isim)}">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -569,7 +569,7 @@ const App = {
           sel.addEventListener('change', async () => {
             try {
               await API.uyeRolDegistir(sel.dataset.id, sel.value);
-              this.toast('Rol guncellendi', 'basari');
+              this.toast('Rol güncellendi', 'basari');
             } catch (err) {
               this.toast(err.message, 'hata');
               this.uyeListesiGoster();
@@ -580,11 +580,11 @@ const App = {
         // Uye sil
         list.querySelectorAll('.uye-sil').forEach(btn => {
           btn.addEventListener('click', async () => {
-            if (!confirm(`"${btn.dataset.isim}" uyesini cikarmak istediginize emin misiniz?`)) return;
+            if (!confirm(`"${btn.dataset.isim}" üyesini çıkarmak istediğinize emin misiniz?`)) return;
             try {
               await API.uyeSil(btn.dataset.id);
               this.titresim();
-              this.toast('Uye cikarildi', 'bilgi');
+              this.toast('Üye çıkarıldı', 'bilgi');
               await this.yenile();
               this.uyeListesiGoster();
             } catch (err) { this.toast(err.message, 'hata'); }
@@ -697,11 +697,11 @@ const App = {
   },
 
   async islemSil(id) {
-    if (!confirm('Bu islemi silmek istediginize emin misiniz?')) return;
+    if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
     try {
       await API.deleteIslem(id);
       this.titresim();
-      this.toast('Islem silindi', 'bilgi');
+      this.toast('İşlem silindi', 'bilgi');
       await this.yenile();
       this.islemListesiGoster();
     } catch (err) {

@@ -33,13 +33,13 @@ router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
   const { tur, odeyen_id, alan_id, tutar, aciklama, tarih, kasa_mi } = req.body;
 
   if (!odeyen_id || !tutar) {
-    return res.status(400).json({ hata: 'odeyen_id ve tutar zorunludur' });
+    return res.status(400).json({ hata: 'Ödeyen ve tutar zorunludur' });
   }
   if (tur === 'transfer' && !alan_id) {
-    return res.status(400).json({ hata: 'Transfer icin alan_id zorunludur' });
+    return res.status(400).json({ hata: 'Transfer için alan zorunludur' });
   }
   if (parseFloat(tutar) <= 0) {
-    return res.status(400).json({ hata: 'Tutar sifirdan buyuk olmalidir' });
+    return res.status(400).json({ hata: 'Tutar sıfırdan büyük olmalıdır' });
   }
 
   try {
@@ -92,7 +92,7 @@ router.delete('/:id', rolGerekli('yonetici', 'uye'), async (req, res) => {
       .single();
 
     if (error) throw error;
-    if (!data) return res.status(404).json({ hata: 'Islem bulunamadi' });
+    if (!data) return res.status(404).json({ hata: 'İşlem bulunamadı' });
     res.json(mapIslem(data));
   } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });

@@ -60,11 +60,11 @@ const API = {
     if (res.status === 401) {
       this.temizleOturum();
       window.location.reload();
-      throw new Error('Oturum suresi doldu');
+      throw new Error('Oturum süresi doldu');
     }
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ hata: 'Bir hata olustu' }));
+      const err = await res.json().catch(() => ({ hata: 'Bir hata oluştu' }));
       throw new Error(err.hata);
     }
     return res.json();

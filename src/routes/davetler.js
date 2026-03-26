@@ -52,7 +52,7 @@ router.post('/', sirketBaglami, rolGerekli('yonetici'), async (req, res) => {
 
   const davetRol = rol || 'uye';
   if (!['yonetici', 'uye', 'izleyici'].includes(davetRol)) {
-    return res.status(400).json({ hata: 'Gecersiz rol' });
+    return res.status(400).json({ hata: 'Geçersiz rol' });
   }
 
   try {
@@ -106,7 +106,7 @@ router.post('/:id/kabul', async (req, res) => {
       .single();
 
     if (davetErr || !davet) {
-      return res.status(404).json({ hata: 'Davet bulunamadi veya zaten islendi' });
+      return res.status(404).json({ hata: 'Davet bulunamadı veya zaten işlendi' });
     }
 
     // Uyeyi ekle
@@ -152,7 +152,7 @@ router.post('/:id/red', async (req, res) => {
       .single();
 
     if (!davet) {
-      return res.status(404).json({ hata: 'Davet bulunamadi' });
+      return res.status(404).json({ hata: 'Davet bulunamadı' });
     }
 
     const { error } = await req.supabase

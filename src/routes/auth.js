@@ -17,10 +17,10 @@ const router = Router();
 router.post('/kayit', async (req, res) => {
   const { isim, eposta, sifre } = req.body;
   if (!isim || !eposta || !sifre) {
-    return res.status(400).json({ hata: 'Isim, e-posta ve sifre zorunludur' });
+    return res.status(400).json({ hata: 'İsim, e-posta ve şifre zorunludur' });
   }
   if (sifre.length < 6) {
-    return res.status(400).json({ hata: 'Sifre en az 6 karakter olmalidir' });
+    return res.status(400).json({ hata: 'Şifre en az 6 karakter olmalıdır' });
   }
 
   try {
@@ -37,7 +37,7 @@ router.post('/kayit', async (req, res) => {
     // Supabase email onay gerektiriyorsa session null olabilir
     if (!data.session) {
       return res.status(201).json({
-        mesaj: 'Hesabiniz olusturuldu. Lutfen e-postanizi kontrol edip hesabinizi dogrulayin.',
+        mesaj: 'Hesabınız oluşturuldu. Lütfen e-postanızı kontrol edip hesabınızı doğrulayın.',
         dogrulama_gerekli: true
       });
     }
@@ -59,7 +59,7 @@ router.post('/kayit', async (req, res) => {
 router.post('/giris', async (req, res) => {
   const { eposta, sifre } = req.body;
   if (!eposta || !sifre) {
-    return res.status(400).json({ hata: 'E-posta ve sifre zorunludur' });
+    return res.status(400).json({ hata: 'E-posta ve şifre zorunludur' });
   }
 
   try {
@@ -102,7 +102,7 @@ router.post('/cikis', async (req, res) => {
 router.get('/ben', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ hata: 'Giris yapmaniz gerekiyor' });
+    return res.status(401).json({ hata: 'Giriş yapmanız gerekiyor' });
   }
 
   try {
@@ -110,7 +110,7 @@ router.get('/ben', async (req, res) => {
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      return res.status(401).json({ hata: turkceHata(error?.message || 'Gecersiz token') });
+      return res.status(401).json({ hata: turkceHata(error?.message || 'Geçersiz token') });
     }
 
     res.json({

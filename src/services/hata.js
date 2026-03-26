@@ -1,67 +1,67 @@
 /**
- * Supabase & sistem hata mesajlarini Turkceye cevir
+ * Supabase & sistem hata mesajlarını Türkçeye çevir
  */
 
 const HATA_ESLEMELERI = {
-  // Auth hatalari
-  'email rate limit exceeded': 'Cok fazla deneme yaptiniz. Lutfen birkaç dakika bekleyip tekrar deneyin.',
-  'rate limit exceeded': 'Cok fazla istek gonderdiniz. Lutfen biraz bekleyin.',
-  'user already registered': 'Bu e-posta adresi zaten kayitli.',
-  'user not found': 'Kullanici bulunamadi.',
-  'invalid login credentials': 'Gecersiz e-posta veya sifre.',
-  'invalid claim: missing sub claim': 'Oturum suresi dolmus. Lutfen tekrar giris yapin.',
-  'email not confirmed': 'E-posta adresiniz henuz dogrulanmadi. Lutfen e-postanizi kontrol edin.',
-  'new password should be different from the old password': 'Yeni sifre eski sifreden farkli olmalidir.',
-  'password should be at least 6 characters': 'Sifre en az 6 karakter olmalidir.',
-  'signup is disabled': 'Kayit islemi gecici olarak devre disi.',
-  'signups not allowed for this instance': 'Kayit islemi gecici olarak devre disi.',
-  'token has expired or is invalid': 'Oturum suresi dolmus. Lutfen tekrar giris yapin.',
-  'jwt expired': 'Oturum suresi dolmus. Lutfen tekrar giris yapin.',
+  // Auth hataları
+  'email rate limit exceeded': 'Çok fazla deneme yaptınız. Lütfen birkaç dakika bekleyip tekrar deneyin.',
+  'rate limit exceeded': 'Çok fazla istek gönderdiniz. Lütfen biraz bekleyin.',
+  'user already registered': 'Bu e-posta adresi zaten kayıtlı.',
+  'user not found': 'Kullanıcı bulunamadı.',
+  'invalid login credentials': 'Geçersiz e-posta veya şifre.',
+  'invalid claim: missing sub claim': 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.',
+  'email not confirmed': 'E-posta adresiniz henüz doğrulanmadı. Lütfen e-postanızı kontrol edin.',
+  'new password should be different from the old password': 'Yeni şifre eski şifreden farklı olmalıdır.',
+  'password should be at least 6 characters': 'Şifre en az 6 karakter olmalıdır.',
+  'signup is disabled': 'Kayıt işlemi geçici olarak devre dışı.',
+  'signups not allowed for this instance': 'Kayıt işlemi geçici olarak devre dışı.',
+  'token has expired or is invalid': 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.',
+  'jwt expired': 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.',
 
-  // DB / RLS hatalari
-  'infinite recursion detected in policy for relation': 'Veritabani politika hatasi. Lutfen yoneticiyle iletisime gecin.',
-  'new row violates row-level security policy': 'Bu islemi yapmaya yetkiniz yok.',
-  'duplicate key value violates unique constraint': 'Bu kayit zaten mevcut.',
-  'violates foreign key constraint': 'Iliskili kayit bulunamadi.',
-  'violates check constraint': 'Gecersiz deger girdiniz.',
-  'null value in column': 'Zorunlu alan bos birakilamaz.',
-  'permission denied for table': 'Bu tabloya erisim yetkiniz yok.',
-  'relation does not exist': 'Veritabani tablosu bulunamadi. Lutfen yoneticiyle iletisime gecin.',
+  // DB / RLS hataları
+  'infinite recursion detected in policy for relation': 'Veritabanı politika hatası. Lütfen yöneticiyle iletişime geçin.',
+  'new row violates row-level security policy': 'Bu işlemi yapmaya yetkiniz yok.',
+  'duplicate key value violates unique constraint': 'Bu kayıt zaten mevcut.',
+  'violates foreign key constraint': 'İlişkili kayıt bulunamadı.',
+  'violates check constraint': 'Geçersiz değer girdiniz.',
+  'null value in column': 'Zorunlu alan boş bırakılamaz.',
+  'permission denied for table': 'Bu tabloya erişim yetkiniz yok.',
+  'relation does not exist': 'Veritabanı tablosu bulunamadı. Lütfen yöneticiyle iletişime geçin.',
 
-  // Ag hatalari
-  'failed to fetch': 'Sunucuya baglanilamadi. Internet baglantinizi kontrol edin.',
-  'network error': 'Ag hatasi. Internet baglantinizi kontrol edin.',
-  'fetch failed': 'Sunucuya baglanilamadi. Internet baglantinizi kontrol edin.',
-  'load failed': 'Sunucuya baglanilamadi. Internet baglantinizi kontrol edin.',
+  // Ağ hataları
+  'failed to fetch': 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.',
+  'network error': 'Ağ hatası. İnternet bağlantınızı kontrol edin.',
+  'fetch failed': 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.',
+  'load failed': 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.',
 
   // Genel
-  'not found': 'Aradiginiz kayit bulunamadi.',
-  'internal server error': 'Sunucu hatasi. Lutfen daha sonra tekrar deneyin.',
-  'bad request': 'Gecersiz istek.',
-  'unauthorized': 'Giris yapmaniz gerekiyor.',
-  'forbidden': 'Bu islemi yapmaya yetkiniz yok.',
-  'conflict': 'Bu kayit zaten mevcut.',
-  'too many requests': 'Cok fazla istek gonderdiniz. Lutfen biraz bekleyin.',
+  'not found': 'Aradığınız kayıt bulunamadı.',
+  'internal server error': 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.',
+  'bad request': 'Geçersiz istek.',
+  'unauthorized': 'Giriş yapmanız gerekiyor.',
+  'forbidden': 'Bu işlemi yapmaya yetkiniz yok.',
+  'conflict': 'Bu kayıt zaten mevcut.',
+  'too many requests': 'Çok fazla istek gönderdiniz. Lütfen biraz bekleyin.',
 };
 
 /**
- * Ingilizce hata mesajini Turkceye cevir
- * Tam eslesme yoksa kismi eslesme dener
+ * İngilizce hata mesajını Türkçeye çevir
+ * Tam eşleşme yoksa kısmi eşleşme dener
  */
 function turkceHata(mesaj) {
-  if (!mesaj) return 'Bilinmeyen bir hata olustu.';
+  if (!mesaj) return 'Bilinmeyen bir hata oluştu.';
 
   const kucuk = mesaj.toLowerCase();
 
-  // Tam eslesme
+  // Tam eşleşme
   if (HATA_ESLEMELERI[kucuk]) return HATA_ESLEMELERI[kucuk];
 
-  // Kismi eslesme
+  // Kısmi eşleşme
   for (const [anahtar, ceviri] of Object.entries(HATA_ESLEMELERI)) {
     if (kucuk.includes(anahtar)) return ceviri;
   }
 
-  // Zaten Turkce ise veya cevirisi yoksa oldugu gibi dondur
+  // Zaten Türkçe ise veya çevirisi yoksa olduğu gibi döndür
   return mesaj;
 }
 

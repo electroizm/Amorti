@@ -108,38 +108,34 @@
   <div id="ekran-auth" class="ekran active flex-col items-center justify-center min-h-screen px-6">
     <div class="w-full max-w-sm">
       <h1 class="text-4xl font-black text-center mb-2">AM<span class="text-brand">Ø</span>RT!</h1>
-      <p class="text-center text-gray-500 text-sm mb-8">Ortakli gider takibi</p>
+      <p class="text-center text-gray-500 text-sm mb-8">Ortaklı gider takibi</p>
 
-      <!-- Tab: Giris / Kayit -->
       <div class="flex bg-surface-darker rounded-xl p-1 mb-6">
-        <button id="auth-tab-giris" class="flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition">Giris</button>
-        <button id="auth-tab-kayit" class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-500 transition">Kayit</button>
+        <button id="auth-tab-giris" class="flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition">Giriş</button>
+        <button id="auth-tab-kayit" class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-500 transition">Kayıt</button>
       </div>
 
-      <!-- Giris Formu -->
       <form id="form-giris" class="space-y-3">
         <input type="email" placeholder="E-posta" required class="input-field" id="giris-eposta">
-        <input type="password" placeholder="Sifre" required minlength="6" class="input-field" id="giris-sifre">
-        <button type="submit" class="btn-primary">Giris Yap</button>
+        <input type="password" placeholder="Şifre" required minlength="6" class="input-field" id="giris-sifre">
+        <button type="submit" class="btn-primary">Giriş Yap</button>
       </form>
 
-      <!-- Kayit Formu -->
       <form id="form-kayit" class="space-y-3 hidden">
-        <input type="text" placeholder="Isim" required class="input-field" id="kayit-isim">
+        <input type="text" placeholder="İsim" required class="input-field" id="kayit-isim">
         <input type="email" placeholder="E-posta" required class="input-field" id="kayit-eposta">
-        <input type="password" placeholder="Sifre (en az 6 karakter)" required minlength="6" class="input-field" id="kayit-sifre">
-        <button type="submit" class="btn-primary">Hesap Olustur</button>
+        <input type="password" placeholder="Şifre (en az 6 karakter)" required minlength="6" class="input-field" id="kayit-sifre">
+        <button type="submit" class="btn-primary">Hesap Oluştur</button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== SIRKET SECICI EKRANI ==================== -->
+  <!-- ==================== ŞİRKET SEÇİCİ EKRANI ==================== -->
   <div id="ekran-sirket" class="ekran flex-col items-center justify-center min-h-screen px-6">
     <div class="w-full max-w-sm">
       <h1 class="text-2xl font-black text-center mb-1">AM<span class="text-brand">Ø</span>RT!</h1>
-      <p class="text-center text-gray-500 text-sm mb-6">Sirket secin veya yeni olusturun</p>
+      <p class="text-center text-gray-500 text-sm mb-6">Şirket seçin veya yeni oluşturun</p>
 
-      <!-- Bekleyen Davetler -->
       <div id="bekleyen-davetler" class="mb-4 hidden">
         <h3 class="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Bekleyen Davetler</h3>
         <div id="davet-listesi-bekleyen" class="space-y-2"></div>
@@ -149,24 +145,23 @@
 
       <div class="border-t border-gray-200 pt-4">
         <form id="form-sirket" class="flex gap-2">
-          <input type="text" placeholder="Yeni sirket ismi" required class="input-field flex-1" id="sirket-isim">
-          <button type="submit" class="px-4 py-3 bg-brand text-white rounded-xl font-semibold text-sm hover:bg-brand-dark transition">Olustur</button>
+          <input type="text" placeholder="Yeni şirket ismi" required class="input-field flex-1" id="sirket-isim">
+          <button type="submit" class="px-4 py-3 bg-brand text-white rounded-xl font-semibold text-sm hover:bg-brand-dark transition">Oluştur</button>
         </form>
       </div>
 
-      <button id="btn-cikis-sirket" class="w-full mt-4 py-2 text-sm text-gray-400 hover:text-red-500 transition">Cikis Yap</button>
+      <button id="btn-cikis-sirket" class="w-full mt-4 py-2 text-sm text-gray-400 hover:text-red-500 transition">Çıkış Yap</button>
     </div>
   </div>
 
   <!-- ==================== ANA UYGULAMA ==================== -->
   <div id="ekran-app" class="ekran flex-col min-h-screen">
 
-    <!-- Header -->
     <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-3">
       <div class="max-w-lg mx-auto flex items-center justify-between">
         <div class="flex items-center gap-2">
           <h1 class="text-xl font-black tracking-tight">AM<span class="text-brand">Ø</span>RT!</h1>
-          <button id="btn-sirket-degistir" class="text-xs bg-surface-dark px-2 py-1 rounded-lg text-gray-500 hover:text-brand transition" title="Sirket degistir"></button>
+          <button id="btn-sirket-degistir" class="text-xs bg-surface-dark px-2 py-1 rounded-lg text-gray-500 hover:text-brand transition" title="Şirket değiştir"></button>
         </div>
         <div class="flex items-center gap-1">
           <button id="btn-profil" class="p-2 rounded-lg hover:bg-surface-dark transition" title="Profil">
@@ -180,9 +175,7 @@
 
     <main class="max-w-lg mx-auto px-4 pt-4 pb-24 flex-1 w-full">
 
-      <!-- ===== ANA SAYFA ===== -->
       <section id="page-home" class="page active">
-        <!-- Ozet Karti -->
         <div class="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-gray-100">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Toplam Harcama</span>
@@ -192,49 +185,42 @@
           <p id="ozet-alt" class="text-xs text-gray-400 mt-1"></p>
         </div>
 
-        <!-- Ortak Kartlari -->
         <div id="partner-cards" class="grid grid-cols-2 gap-3 mb-4"></div>
 
-        <!-- Borc Ozeti -->
         <div id="debt-section" class="mb-4 hidden">
-          <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Onerilen Transferler</h2>
+          <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Önerilen Transferler</h2>
           <div id="debt-transfers" class="space-y-2"></div>
         </div>
 
-        <!-- Bos Durum -->
         <div id="empty-state" class="text-center py-12">
           <div class="text-5xl mb-3 opacity-20">Ø</div>
-          <p class="text-gray-400 text-sm">Henuz islem yok.</p>
+          <p class="text-gray-400 text-sm">Henüz işlem yok.</p>
           <p class="text-gray-400 text-xs mt-1">+ butonuyla harcama ekleyin.</p>
         </div>
       </section>
 
-      <!-- ===== ISLEMLER ===== -->
       <section id="page-transactions" class="page">
-        <h2 class="text-lg font-bold mb-4 text-gray-900">Islemler</h2>
+        <h2 class="text-lg font-bold mb-4 text-gray-900">İşlemler</h2>
         <div id="tx-list" class="space-y-2"></div>
-        <div id="tx-empty" class="text-center py-12 text-gray-400 text-sm">Henuz islem yok.</div>
+        <div id="tx-empty" class="text-center py-12 text-gray-400 text-sm">Henüz işlem yok.</div>
       </section>
 
-      <!-- ===== UYELER ===== -->
       <section id="page-partners" class="page">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-bold text-gray-900">Uyeler</h2>
+          <h2 class="text-lg font-bold text-gray-900">Üyeler</h2>
           <button id="btn-davet-gonder" class="px-4 py-2 bg-brand rounded-xl text-sm font-semibold text-white hover:bg-brand-dark transition hidden">
             + Davet Et
           </button>
         </div>
         <div id="partner-list" class="space-y-2"></div>
-        <div id="partner-empty" class="text-center py-12 text-gray-400 text-sm">Henuz uye yok.</div>
+        <div id="partner-empty" class="text-center py-12 text-gray-400 text-sm">Henüz üye yok.</div>
 
-        <!-- Davet Listesi (yonetici icin) -->
         <div id="davet-section" class="mt-6 hidden">
-          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Gonderilen Davetler</h3>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Gönderilen Davetler</h3>
           <div id="davet-listesi" class="space-y-2"></div>
         </div>
       </section>
 
-      <!-- ===== AYARLAR ===== -->
       <section id="page-settings" class="page">
         <h2 class="text-lg font-bold mb-4 text-gray-900">Ayarlar</h2>
         <div class="space-y-3">
@@ -244,20 +230,18 @@
             <p id="ayar-rol" class="text-xs text-brand mt-1"></p>
           </div>
           <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p class="font-medium text-gray-900 mb-1">Hakkinda</p>
-            <p class="text-xs text-gray-400">AMORT! v2.0 — Ortakli gider takibi ve borc yonetimi.</p>
+            <p class="font-medium text-gray-900 mb-1">Hakkında</p>
+            <p class="text-xs text-gray-400">AMØRT! v2.0 — Ortaklı gider takibi ve borç yönetimi.</p>
           </div>
           <button id="btn-cikis" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-semibold text-sm hover:bg-red-100 transition">
-            Cikis Yap
+            Çıkış Yap
           </button>
         </div>
       </section>
     </main>
 
-    <!-- FAB -->
-    <button id="fab" class="fab" title="Yeni Islem">+</button>
+    <button id="fab" class="fab" title="Yeni İşlem">+</button>
 
-    <!-- Bottom Nav -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-30">
       <div class="max-w-lg mx-auto flex justify-around py-2">
         <button class="nav-item active flex flex-col items-center gap-0.5 px-3 py-1" data-page="home">
@@ -266,11 +250,11 @@
         </button>
         <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="transactions">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          <span class="text-[10px] font-medium">Islemler</span>
+          <span class="text-[10px] font-medium">İşlemler</span>
         </button>
         <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="partners">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <span class="text-[10px] font-medium">Uyeler</span>
+          <span class="text-[10px] font-medium">Üyeler</span>
         </button>
         <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="settings">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -280,11 +264,11 @@
     </nav>
   </div>
 
-  <!-- ==================== MODAL: Islem Ekle ==================== -->
+  <!-- ==================== MODAL: İşlem Ekle ==================== -->
   <div id="modal-tx" class="modal-backdrop">
     <div class="modal-sheet">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold text-gray-900">Yeni Islem</h3>
+        <h3 class="text-lg font-bold text-gray-900">Yeni İşlem</h3>
         <button id="modal-tx-close" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
       </div>
 
@@ -300,16 +284,16 @@
             class="input-field text-2xl font-bold text-center" placeholder="0.00" inputmode="decimal">
         </div>
         <div>
-          <label class="text-xs text-gray-500 block mb-1">Odeyen</label>
+          <label class="text-xs text-gray-500 block mb-1">Ödeyen</label>
           <select id="tx-payer" required class="input-field"></select>
         </div>
         <div id="tx-receiver-group" class="hidden">
-          <label class="text-xs text-gray-500 block mb-1">Alan Kisi</label>
+          <label class="text-xs text-gray-500 block mb-1">Alan Kişi</label>
           <select id="tx-receiver" class="input-field"></select>
         </div>
         <div>
           <label class="text-xs text-gray-500 block mb-1">Not (opsiyonel)</label>
-          <input id="tx-desc" type="text" class="input-field" placeholder="Aciklama...">
+          <input id="tx-desc" type="text" class="input-field" placeholder="Açıklama...">
         </div>
         <div>
           <label class="text-xs text-gray-500 block mb-1">Tarih</label>
@@ -320,11 +304,11 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: Davet Gonder ==================== -->
+  <!-- ==================== MODAL: Davet Gönder ==================== -->
   <div id="modal-davet" class="modal-backdrop">
     <div class="modal-sheet">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold text-gray-900">Davet Gonder</h3>
+        <h3 class="text-lg font-bold text-gray-900">Davet Gönder</h3>
         <button id="modal-davet-close" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
       </div>
       <form id="form-davet" class="space-y-3">
@@ -335,12 +319,12 @@
         <div>
           <label class="text-xs text-gray-500 block mb-1">Rol</label>
           <select id="davet-rol" class="input-field">
-            <option value="uye">Uye (harcama ekleyebilir)</option>
-            <option value="izleyici">Izleyici (sadece goruntuler)</option>
-            <option value="yonetici">Yonetici (tam yetki)</option>
+            <option value="uye">Üye (harcama ekleyebilir)</option>
+            <option value="izleyici">İzleyici (sadece görüntüler)</option>
+            <option value="yonetici">Yönetici (tam yetki)</option>
           </select>
         </div>
-        <button type="submit" class="btn-primary">Davet Gonder</button>
+        <button type="submit" class="btn-primary">Davet Gönder</button>
       </form>
     </div>
   </div>

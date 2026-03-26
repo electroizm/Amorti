@@ -35,7 +35,7 @@ router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
   if (renk !== undefined) guncellemeler.renk = renk;
 
   if (Object.keys(guncellemeler).length === 0) {
-    return res.status(400).json({ hata: 'Guncellenecek alan belirtilmedi' });
+    return res.status(400).json({ hata: 'Güncellenecek alan belirtilmedi' });
   }
 
   try {
@@ -48,7 +48,7 @@ router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
       .single();
 
     if (error) throw error;
-    if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
+    if (!data) return res.status(404).json({ hata: 'Üye bulunamadı' });
     res.json(data);
   } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });
@@ -59,12 +59,12 @@ router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
 router.patch('/:id/rol', rolGerekli('yonetici'), async (req, res) => {
   const { rol } = req.body;
   if (!rol || !['yonetici', 'uye', 'izleyici'].includes(rol)) {
-    return res.status(400).json({ hata: 'Gecersiz rol' });
+    return res.status(400).json({ hata: 'Geçersiz rol' });
   }
 
   // Kendini degistiremez
   if (req.params.id === req.uye.id) {
-    return res.status(400).json({ hata: 'Kendi rolunuzu degistiremezsiniz' });
+    return res.status(400).json({ hata: 'Kendi rolünüzü değiştiremezsiniz' });
   }
 
   try {
@@ -77,7 +77,7 @@ router.patch('/:id/rol', rolGerekli('yonetici'), async (req, res) => {
       .single();
 
     if (error) throw error;
-    if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
+    if (!data) return res.status(404).json({ hata: 'Üye bulunamadı' });
     res.json(data);
   } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });
@@ -88,7 +88,7 @@ router.patch('/:id/rol', rolGerekli('yonetici'), async (req, res) => {
 router.delete('/:id', rolGerekli('yonetici'), async (req, res) => {
   // Kendini silemez
   if (req.params.id === req.uye.id) {
-    return res.status(400).json({ hata: 'Kendinizi cikaramazsiniz' });
+    return res.status(400).json({ hata: 'Kendinizi çıkaramazsınız' });
   }
 
   try {
@@ -101,7 +101,7 @@ router.delete('/:id', rolGerekli('yonetici'), async (req, res) => {
       .single();
 
     if (error) throw error;
-    if (!data) return res.status(404).json({ hata: 'Uye bulunamadi' });
+    if (!data) return res.status(404).json({ hata: 'Üye bulunamadı' });
     res.json({ tamam: true });
   } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });

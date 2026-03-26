@@ -30,14 +30,14 @@ function supabaseForUser(token) {
 async function authGerekli(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ hata: 'Giris yapmaniz gerekiyor' });
+    return res.status(401).json({ hata: 'Giriş yapmanız gerekiyor' });
   }
 
   const token = authHeader.split(' ')[1];
 
   const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
   if (error || !user) {
-    return res.status(401).json({ hata: 'Gecersiz veya suresi dolmus token' });
+    return res.status(401).json({ hata: 'Geçersiz veya süresi dolmuş token' });
   }
 
   req.kullanici = user;
@@ -65,7 +65,7 @@ async function sirketBaglami(req, res, next) {
     .single();
 
   if (error || !uye) {
-    return res.status(403).json({ hata: 'Bu sirkete erisim yetkiniz yok' });
+    return res.status(403).json({ hata: 'Bu şirkete erişim yetkiniz yok' });
   }
 
   req.sirketId = sirketId;
@@ -79,7 +79,7 @@ async function sirketBaglami(req, res, next) {
 function rolGerekli(...roller) {
   return (req, res, next) => {
     if (!req.uye || !roller.includes(req.uye.rol)) {
-      return res.status(403).json({ hata: 'Bu islem icin yetkiniz yok' });
+      return res.status(403).json({ hata: 'Bu işlem için yetkiniz yok' });
     }
     next();
   };

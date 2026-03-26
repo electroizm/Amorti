@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 
       const { data: yeniSirket, error: sirketErr } = await req.supabase
         .from('sirketler')
-        .insert({ isim: `${kullaniciIsim} - Kisisel`, sahip_id: req.kullanici.id })
+        .insert({ isim: `${kullaniciIsim} - Kişisel`, sahip_id: req.kullanici.id })
         .select()
         .single();
 
@@ -63,7 +63,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { isim } = req.body;
   if (!isim || !isim.trim()) {
-    return res.status(400).json({ hata: 'Sirket ismi zorunludur' });
+    return res.status(400).json({ hata: 'Şirket ismi zorunludur' });
   }
 
   try {
@@ -98,7 +98,7 @@ router.post('/', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   const { isim } = req.body;
   if (!isim || !isim.trim()) {
-    return res.status(400).json({ hata: 'Sirket ismi zorunludur' });
+    return res.status(400).json({ hata: 'Şirket ismi zorunludur' });
   }
 
   try {
@@ -109,7 +109,7 @@ router.patch('/:id', async (req, res) => {
       .single();
 
     if (!sirket || sirket.sahip_id !== req.kullanici.id) {
-      return res.status(403).json({ hata: 'Sadece sirket sahibi guncelleyebilir' });
+      return res.status(403).json({ hata: 'Sadece şirket sahibi güncelleyebilir' });
     }
 
     const { data, error } = await req.supabase
@@ -136,7 +136,7 @@ router.delete('/:id', async (req, res) => {
       .single();
 
     if (!sirket || sirket.sahip_id !== req.kullanici.id) {
-      return res.status(403).json({ hata: 'Sadece sirket sahibi silebilir' });
+      return res.status(403).json({ hata: 'Sadece şirket sahibi silebilir' });
     }
 
     const { error } = await req.supabase
