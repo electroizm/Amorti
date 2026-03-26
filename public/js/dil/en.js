@@ -1,7 +1,7 @@
 window.AMORT_DIL = window.AMORT_DIL || {};
 window.AMORT_DIL.en = {
   app: {
-    slogan: 'Shared expense tracking',
+    slogan: 'Shared Expenses Ø One Tracker',
     hakkinda: 'AMØRT! v2.0 — Shared expense tracking & debt management.'
   },
 
@@ -41,16 +41,21 @@ window.AMORT_DIL.en = {
 
   header: {
     degistir: '↔ Switch',
+    sirketDegistir: 'Switch Company',
     sirketDegistirTitle: 'Switch company',
+    ayarlar: 'Settings',
     profilTitle: 'Profile'
   },
 
   ozet: {
     toplamHarcama: 'Total Expenses',
-    kasaFormat: 'Fund: {tutar} ₺',
+    kasaFormat: '{isim}: {tutar} ₺',
     altBilgi: '{sayi} members • Personal: {tutar} ₺',
     bosBaslik: 'No transactions yet.',
-    bosAlt: 'Tap + to add an expense.'
+    bosAlt: 'Tap + to add an expense.',
+    bosBaslikTek: 'Track your expenses',
+    bosAltTek: 'Tap + to add your first expense. You can also invite partners anytime.',
+    altBilgiTek: 'Personal: {tutar} ₺'
   },
 
   bakiye: {
@@ -83,6 +88,7 @@ window.AMORT_DIL.en = {
     transferKaydedildi: 'Transfer saved',
     harcamaEklendi: 'Expense added',
     ayniKisiHata: 'Payer and recipient cannot be the same!',
+    kasaKasaHata: 'Cannot transfer from fund to fund!',
     henuzUyeYok: 'No members yet!',
     silOnay: 'Are you sure you want to delete this transaction?',
     silindi: 'Transaction deleted',
@@ -165,6 +171,14 @@ window.AMORT_DIL.en = {
     senkronEdildi: '{sayi} pending action(s) synced.',
     senkronHatasi: '{sayi} action(s) failed to sync.',
     kuyrugaEklendi: 'You are offline, action queued.'
+  },
+
+  bildirim: {
+    yeniHarcama: '{isim} added a {tutar} ₺ expense',
+    yeniTransfer: '{kimden} → {kime} transferred {tutar} ₺',
+    islemSilindi: 'A transaction was deleted',
+    yeniUye: '{isim} joined the group',
+    uyeAyrildi: '{isim} left the group'
   },
 
   hata: {

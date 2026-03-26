@@ -62,7 +62,7 @@ const API = {
       throw new Error(window.HataSanitize ? HataSanitize.cevir(fetchErr.message) : fetchErr.message);
     }
 
-    if (res.status === 401) {
+    if (res.status === 401 && !path.startsWith('/auth/')) {
       this.temizleOturum();
       window.location.reload();
       throw new Error(t('hata.oturumDoldu'));

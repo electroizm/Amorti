@@ -33,8 +33,7 @@ Object.assign(App, {
         const receiverGroup = document.getElementById('tx-receiver-group');
         receiverGroup.classList.toggle('hidden', App.islemTuru !== 'transfer');
 
-        const kasaOpt = document.querySelector('#tx-payer option[value="__kasa__"]');
-        if (kasaOpt) kasaOpt.style.display = App.islemTuru === 'transfer' ? 'none' : '';
+        // Kasa, hem harcama hem transfer modunda seçilebilir
       });
     });
 
@@ -53,8 +52,19 @@ Object.assign(App, {
       };
 
       if (App.islemTuru === 'transfer') {
-        data.alan_id = document.getElementById('tx-receiver').value;
-        if (data.odeyen_id === data.alan_id) {
+        const receiverVal = document.getElementById('tx-receiver').value;
+        const alanKasaMi = receiverVal === '__kasa__';
+
+        if (kasaMi && alanKasaMi) {
+          App.toast(t('islem.kasaKasaHata'), 'hata');
+          App.titresim(100);
+          return;
+        }
+
+        data.alan_id = alanKasaMi ? App.uyeler[0]?.id : receiverVal;
+        data.alan_kasa_mi = alanKasaMi;
+
+        if (!kasaMi && !alanKasaMi && data.odeyen_id === data.alan_id) {
           App.toast(t('islem.ayniKisiHata'), 'hata');
           App.titresim(100);
           return;
@@ -85,18 +95,22 @@ Object.assign(App, {
     const kullanici = API.getKullanici();
     const kullaniciId = kullanici?.id;
 
+    const kasaOption = App.sirketIsim
+      ? `<option value="__kasa__">🏢 ${App.esc(App.sirketIsim)}</option>`
+      : '';
+
     const odeyenOptions = App.uyeler.map(u =>
       `<option value="${u.id}" ${u.kullanici_id === kullaniciId ? 'selected' : ''}>${App.esc(u.isim)}</option>`
     ).join('');
 
     document.getElementById('tx-payer').innerHTML =
-      (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`) +
-      `<option value="__kasa__">${t('islem.sirketKasasi')}</option>`;
+      kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
 
     const alanOptions = App.uyeler.map(u =>
       `<option value="${u.id}">${App.esc(u.isim)}</option>`
     ).join('');
-    document.getElementById('tx-receiver').innerHTML = alanOptions || `<option value="">${t('islem.uyeYok')}</option>`;
+    document.getElementById('tx-receiver').innerHTML =
+      kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
   },
 
   async islemListesiGoster() {
@@ -121,29 +135,33 @@ Object.assign(App, {
         const odeyen = uyeMap[i.odeyen_id] || { isim: '?', renk: '#999' };
         const transferMi = i.tur === 'transfer';
         const kasaMi = i.kasa_mi;
+        const alanKasaMi = i.alan_kasa_mi;
         const alan = transferMi ? (uyeMap[i.alan_id] || { isim: '?', renk: '#999' }) : null;
 
         let turBadge;
-        if (kasaMi) {
-          turBadge = `<span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">${t('tur.kasa')}</span>`;
+        if (kasaMi || alanKasaMi) {
+          turBadge = `<span class="text-xs px-2 py-0.5 rounded-full bg-brand/10 text-brand">🏢 ${App.esc(App.sirketIsim)}</span>`;
         } else if (transferMi) {
           turBadge = `<span class="text-xs px-2 py-0.5 rounded-full bg-brand/10 text-brand">${t('tur.transfer')}</span>`;
         } else {
           turBadge = `<span class="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">${t('tur.harcama')}</span>`;
         }
 
+        const odeyenIsim = kasaMi ? App.sirketIsim : odeyen.isim;
+        const odeyenRenk = kasaMi ? '#6366f1' : odeyen.renk;
+        const alanIsim = alanKasaMi ? App.sirketIsim : alan?.isim;
+        const alanRenk = alanKasaMi ? '#6366f1' : alan?.renk;
+
         return `
           <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center gap-2">
-                ${kasaMi ? `<div class="w-3 h-3 rounded-full bg-purple-400"></div><span class="font-medium text-sm text-gray-700">${t('tur.kasa')}</span>` : `
-                  <div class="w-3 h-3 rounded-full" style="background: ${odeyen.renk}"></div>
-                  <span class="font-medium text-sm text-gray-700">${App.esc(odeyen.isim)}</span>
-                `}
+                <div class="w-3 h-3 rounded-full" style="background: ${odeyenRenk}"></div>
+                <span class="font-medium text-sm text-gray-700">${App.esc(odeyenIsim)}</span>
                 ${transferMi ? `
                   <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                  <div class="w-3 h-3 rounded-full" style="background: ${alan.renk}"></div>
-                  <span class="font-medium text-sm text-gray-700">${App.esc(alan.isim)}</span>
+                  <div class="w-3 h-3 rounded-full" style="background: ${alanRenk}"></div>
+                  <span class="font-medium text-sm text-gray-700">${App.esc(alanIsim)}</span>
                 ` : ''}
               </div>
               <span class="font-bold text-gray-900">${App.formatPara(i.tutar)} ₺</span>
@@ -166,11 +184,14 @@ Object.assign(App, {
         `;
       }).join('');
 
-      list.addEventListener('click', async (e) => {
-        const btn = e.target.closest('.islem-sil');
-        if (!btn) return;
-        App.islemSil(parseInt(btn.dataset.id));
-      });
+      if (!list._delegated) {
+        list._delegated = true;
+        list.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.islem-sil');
+          if (!btn) return;
+          App.islemSil(parseInt(btn.dataset.id));
+        });
+      }
     } catch (err) {
       console.error(err);
     }

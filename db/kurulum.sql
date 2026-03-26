@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS islemler (
   odeyen_id UUID NOT NULL REFERENCES uyeler(id),
   alan_id UUID REFERENCES uyeler(id),
   kasa_mi BOOLEAN DEFAULT FALSE,
+  alan_kasa_mi BOOLEAN DEFAULT FALSE,
   tutar NUMERIC(12,2) NOT NULL CHECK (tutar > 0),
   aciklama TEXT DEFAULT '',
   tarih DATE DEFAULT CURRENT_DATE,
@@ -224,3 +225,14 @@ CREATE POLICY ayarlar_insert ON ayarlar FOR INSERT WITH CHECK (
 CREATE POLICY ayarlar_update ON ayarlar FOR UPDATE USING (
   kullanici_id = auth.uid()
 );
+
+-- ==========================================
+-- GRANT: authenticated role icin tablo izinleri
+-- Supabase bazi durumlarda otomatik vermez
+-- ==========================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON sirketler TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON uyeler TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON davetler TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON islemler TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON ayarlar TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE islemler_id_seq TO authenticated;

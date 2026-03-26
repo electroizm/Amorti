@@ -8,8 +8,8 @@ function bakiyeleriHesapla(uyeler, islemler) {
   const bakiyeler = {};
   uyeler.forEach(u => { bakiyeler[u.id] = 0; });
 
-  // Kasa harcamalarini filtrele — borc hesabina dahil etme
-  const aktifler = islemler.filter(i => !i.silinmis && !i.kasa_mi);
+  // Kasa islemlerini filtrele — borc hesabina dahil etme
+  const aktifler = islemler.filter(i => !i.silinmis && !i.kasa_mi && !i.alan_kasa_mi);
   const n = uyeler.length;
   if (n === 0) return bakiyeler;
 

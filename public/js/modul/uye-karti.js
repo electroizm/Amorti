@@ -68,30 +68,33 @@ Object.assign(App, {
           </div>
         `).join('');
 
-        list.addEventListener('change', async (e) => {
-          const sel = e.target.closest('.rol-degistir');
-          if (!sel) return;
-          try {
-            await API.uyeRolDegistir(sel.dataset.id, sel.value);
-            App.toast(t('uye.rolGuncellendi'), 'basari');
-          } catch (err) {
-            App.toast(err.message, 'hata');
-            App.uyeListesiGoster();
-          }
-        });
+        if (!list._delegated) {
+          list._delegated = true;
+          list.addEventListener('change', async (e) => {
+            const sel = e.target.closest('.rol-degistir');
+            if (!sel) return;
+            try {
+              await API.uyeRolDegistir(sel.dataset.id, sel.value);
+              App.toast(t('uye.rolGuncellendi'), 'basari');
+            } catch (err) {
+              App.toast(err.message, 'hata');
+              App.uyeListesiGoster();
+            }
+          });
 
-        list.addEventListener('click', async (e) => {
-          const btn = e.target.closest('.uye-sil');
-          if (!btn) return;
-          if (!confirm(t('uye.silOnay', { isim: btn.dataset.isim }))) return;
-          try {
-            await API.uyeSil(btn.dataset.id);
-            App.titresim();
-            App.toast(t('uye.cikarildi'), 'bilgi');
-            await App.yenile();
-            App.uyeListesiGoster();
-          } catch (err) { App.toast(err.message, 'hata'); }
-        });
+          list.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.uye-sil');
+            if (!btn) return;
+            if (!confirm(t('uye.silOnay', { isim: btn.dataset.isim }))) return;
+            try {
+              await API.uyeSil(btn.dataset.id);
+              App.titresim();
+              App.toast(t('uye.cikarildi'), 'bilgi');
+              await App.yenile();
+              App.uyeListesiGoster();
+            } catch (err) { App.toast(err.message, 'hata'); }
+          });
+        }
       }
 
       // Davet listesi (yonetici icin)

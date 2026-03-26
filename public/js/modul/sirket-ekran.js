@@ -32,6 +32,7 @@ Object.assign(App, {
   async sirketleriYukle() {
     try {
       const sirketler = await API.getSirketler();
+      App.sirketSayisi = sirketler.length;
       const container = document.getElementById('sirket-listesi');
 
       if (sirketler.length === 1) {
@@ -52,14 +53,17 @@ Object.assign(App, {
           </button>
         `).join('');
 
-        container.addEventListener('click', async (e) => {
-          const btn = e.target.closest('.sirket-sec');
-          if (!btn) return;
-          API.setSirketId(btn.dataset.id);
-          App.ekranGoster('app');
-          App.bindApp();
-          await App.yenile();
-        });
+        if (!container._delegated) {
+          container._delegated = true;
+          container.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.sirket-sec');
+            if (!btn) return;
+            API.setSirketId(btn.dataset.id);
+            App.ekranGoster('app');
+            App.bindApp();
+            await App.yenile();
+          });
+        }
       }
 
       // Bekleyen davetler
@@ -82,23 +86,26 @@ Object.assign(App, {
           </div>
         `).join('');
 
-        davetListesi.addEventListener('click', async (e) => {
-          const kabulBtn = e.target.closest('.davet-kabul');
-          const redBtn = e.target.closest('.davet-red');
-          if (kabulBtn) {
-            try {
-              await API.davetKabul(kabulBtn.dataset.id);
-              App.toast(t('sirket.davetKabulEdildi'), 'basari');
-              App.sirketleriYukle();
-            } catch (err) { App.toast(err.message, 'hata'); }
-          } else if (redBtn) {
-            try {
-              await API.davetRed(redBtn.dataset.id);
-              App.toast(t('sirket.davetReddedildi'), 'bilgi');
-              App.sirketleriYukle();
-            } catch (err) { App.toast(err.message, 'hata'); }
-          }
-        });
+        if (!davetListesi._delegated) {
+          davetListesi._delegated = true;
+          davetListesi.addEventListener('click', async (e) => {
+            const kabulBtn = e.target.closest('.davet-kabul');
+            const redBtn = e.target.closest('.davet-red');
+            if (kabulBtn) {
+              try {
+                await API.davetKabul(kabulBtn.dataset.id);
+                App.toast(t('sirket.davetKabulEdildi'), 'basari');
+                App.sirketleriYukle();
+              } catch (err) { App.toast(err.message, 'hata'); }
+            } else if (redBtn) {
+              try {
+                await API.davetRed(redBtn.dataset.id);
+                App.toast(t('sirket.davetReddedildi'), 'bilgi');
+                App.sirketleriYukle();
+              } catch (err) { App.toast(err.message, 'hata'); }
+            }
+          });
+        }
       } else {
         davetContainer.classList.add('hidden');
       }

@@ -48,16 +48,19 @@ Object.assign(App, {
             </div>
           `).join('');
 
-        islemContainer.addEventListener('click', async (e) => {
-          const btn = e.target.closest('.cop-islem-geri-al');
-          if (!btn) return;
-          try {
-            await API.islemGeriAl(parseInt(btn.dataset.id));
-            App.toast(t('cop.geriAlindi'), 'basari');
-            App.copKutusuYukle();
-            App.yenile();
-          } catch (err) { App.toast(err.message, 'hata'); }
-        });
+        if (!islemContainer._delegated) {
+          islemContainer._delegated = true;
+          islemContainer.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.cop-islem-geri-al');
+            if (!btn) return;
+            try {
+              await API.islemGeriAl(parseInt(btn.dataset.id));
+              App.toast(t('cop.geriAlindi'), 'basari');
+              App.copKutusuYukle();
+              App.yenile();
+            } catch (err) { App.toast(err.message, 'hata'); }
+          });
+        }
       } else {
         islemContainer.innerHTML = '';
       }
@@ -76,16 +79,19 @@ Object.assign(App, {
             </div>
           `).join('');
 
-        uyeContainer.addEventListener('click', async (e) => {
-          const btn = e.target.closest('.cop-uye-geri-al');
-          if (!btn) return;
-          try {
-            await API.uyeGeriAl(btn.dataset.id);
-            App.toast(t('cop.geriAlindi'), 'basari');
-            App.copKutusuYukle();
-            App.yenile();
-          } catch (err) { App.toast(err.message, 'hata'); }
-        });
+        if (!uyeContainer._delegated) {
+          uyeContainer._delegated = true;
+          uyeContainer.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.cop-uye-geri-al');
+            if (!btn) return;
+            try {
+              await API.uyeGeriAl(btn.dataset.id);
+              App.toast(t('cop.geriAlindi'), 'basari');
+              App.copKutusuYukle();
+              App.yenile();
+            } catch (err) { App.toast(err.message, 'hata'); }
+          });
+        }
       } else {
         uyeContainer.innerHTML = '';
       }

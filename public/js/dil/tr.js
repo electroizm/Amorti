@@ -2,7 +2,7 @@ window.AMORT_DIL = window.AMORT_DIL || {};
 window.AMORT_DIL.tr = {
   // Uygulama
   app: {
-    slogan: 'Ortaklı gider takibi',
+    slogan: 'Ortak Gider Ø Tek Takip',
     hakkinda: 'AMØRT! v2.0 — Ortaklı gider takibi ve borç yönetimi.'
   },
 
@@ -46,17 +46,22 @@ window.AMORT_DIL.tr = {
   // Header
   header: {
     degistir: '↔ Değiştir',
+    sirketDegistir: 'Şirket Değiştir',
     sirketDegistirTitle: 'Şirket değiştir',
+    ayarlar: 'Ayarlar',
     profilTitle: 'Profil'
   },
 
   // Özet
   ozet: {
     toplamHarcama: 'Toplam Harcama',
-    kasaFormat: 'Kasa: {tutar} ₺',
+    kasaFormat: '{isim}: {tutar} ₺',
     altBilgi: '{sayi} üye • Kişisel: {tutar} ₺',
     bosBaslik: 'Henüz işlem yok.',
-    bosAlt: '+ butonuyla harcama ekleyin.'
+    bosAlt: '+ butonuyla harcama ekleyin.',
+    bosBaslikTek: 'Harcamalarınızı takip edin',
+    bosAltTek: '+ butonuyla ilk harcamanızı ekleyin. Dilediğinizde ortaklarınızı da davet edebilirsiniz.',
+    altBilgiTek: 'Kişisel: {tutar} ₺'
   },
 
   // Bakiye
@@ -92,6 +97,7 @@ window.AMORT_DIL.tr = {
     transferKaydedildi: 'Transfer kaydedildi',
     harcamaEklendi: 'Harcama eklendi',
     ayniKisiHata: 'Ödeyen ve alan aynı kişi olamaz!',
+    kasaKasaHata: 'Kasadan kasaya transfer yapılamaz!',
     henuzUyeYok: 'Henüz üye yok!',
     silOnay: 'Bu işlemi silmek istediğinize emin misiniz?',
     silindi: 'İşlem silindi',
@@ -182,6 +188,14 @@ window.AMORT_DIL.tr = {
     senkronEdildi: '{sayi} bekleyen işlem senkronize edildi.',
     senkronHatasi: '{sayi} işlem senkronize edilemedi.',
     kuyrugaEklendi: 'Çevrimdışısınız, işlem kuyruğa alındı.'
+  },
+
+  bildirim: {
+    yeniHarcama: '{isim} {tutar} ₺ harcama ekledi',
+    yeniTransfer: '{kimden} → {kime} {tutar} ₺ transfer etti',
+    islemSilindi: 'Bir işlem silindi',
+    yeniUye: '{isim} gruba katıldı',
+    uyeAyrildi: '{isim} gruptan çıkarıldı'
   },
 
   hata: {

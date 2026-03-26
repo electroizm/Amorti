@@ -10,6 +10,8 @@ const App = {
   islemTuru: 'harcama',
   uyeler: [],
   rol: null,
+  sirketSayisi: 0,
+  sirketIsim: '',
 
   async init() {
     i18n.init();
@@ -72,17 +74,37 @@ const App = {
     this.bindAyarlar();
     this.varsayilanTarih();
 
-    document.getElementById('btn-sirket-degistir').addEventListener('click', () => {
-      if (window.GercekZaman) GercekZaman.durdur();
-      API.setSirketId(null);
-      this._appBound = false;
-      this.ekranGoster('sirket');
-      this.bindSirketSecici();
-    });
+    // Profil menü (listener'lar sadece 1 kez eklenir)
+    if (!this._profilMenuBound) {
+      this._profilMenuBound = true;
+      const profilMenu = document.getElementById('profil-menu');
 
-    document.getElementById('btn-profil').addEventListener('click', () => {
-      this.navigate('settings');
-    });
+      document.getElementById('btn-profil').addEventListener('click', (e) => {
+        e.stopPropagation();
+        profilMenu.classList.toggle('hidden');
+      });
+
+      profilMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        profilMenu.classList.add('hidden');
+
+        if (btn.id === 'btn-sirket-degistir') {
+          if (window.GercekZaman) GercekZaman.durdur();
+          API.setSirketId(null);
+          App._appBound = false;
+          App.ekranGoster('sirket');
+          App.bindSirketSecici();
+        } else if (btn.id === 'btn-ayarlar-menu') {
+          App.navigate('settings');
+        }
+      });
+
+      document.addEventListener('click', () => {
+        profilMenu.classList.add('hidden');
+      });
+    }
 
     document.getElementById('btn-cikis').addEventListener('click', async () => {
       await API.cikis();
@@ -117,8 +139,7 @@ const App = {
       const ozet = await API.getOzet();
       this.uyeler = ozet.uyeler;
       this.rol = ozet.rol;
-
-      document.getElementById('btn-sirket-degistir').textContent = t('header.degistir');
+      this.sirketIsim = ozet.sirketIsim || '';
 
       // Özet kartı
       document.getElementById('ozet-toplam').textContent = this.formatPara(ozet.toplamHarcama) + ' ₺';
@@ -126,13 +147,14 @@ const App = {
       const kasaBadge = document.getElementById('ozet-kasa-badge');
       if (ozet.kasaHarcama > 0) {
         kasaBadge.classList.remove('hidden');
-        kasaBadge.textContent = t('ozet.kasaFormat', { tutar: this.formatPara(ozet.kasaHarcama) });
+        kasaBadge.textContent = t('ozet.kasaFormat', { isim: this.sirketIsim, tutar: this.formatPara(ozet.kasaHarcama) });
       } else {
         kasaBadge.classList.add('hidden');
       }
 
       const kisisel = ozet.toplamHarcama - (ozet.kasaHarcama || 0);
-      document.getElementById('ozet-alt').textContent = t('ozet.altBilgi', {
+      const altKey = ozet.uyeler.length <= 1 ? 'ozet.altBilgiTek' : 'ozet.altBilgi';
+      document.getElementById('ozet-alt').textContent = t(altKey, {
         sayi: ozet.uyeler.length,
         tutar: this.formatPara(kisisel)
       });
@@ -146,9 +168,17 @@ const App = {
       document.getElementById('ayar-kullanici').textContent = kullanici ? `${kullanici.isim} (${kullanici.eposta})` : '';
       document.getElementById('ayar-rol').textContent = t('ayarlar.rol', { rol: this.rolGoster(this.rol) });
 
-      // Boş durum
+      // Boş durum (tek/çok kişi farkı)
       const bos = document.getElementById('empty-state');
-      bos.classList.toggle('hidden', ozet.uyeler.length > 0 && ozet.toplamHarcama > 0);
+      const bosGoster = !(ozet.uyeler.length > 0 && ozet.toplamHarcama > 0);
+      bos.classList.toggle('hidden', !bosGoster);
+      if (bosGoster) {
+        const tekKisi = ozet.uyeler.length <= 1;
+        bos.querySelector('[data-i18n="ozet.bosBaslik"]').textContent =
+          t(tekKisi ? 'ozet.bosBaslikTek' : 'ozet.bosBaslik');
+        bos.querySelector('[data-i18n="ozet.bosAlt"]').textContent =
+          t(tekKisi ? 'ozet.bosAltTek' : 'ozet.bosAlt');
+      }
 
       // FAB: izleyici için gizle
       const fab = document.getElementById('fab');
@@ -158,6 +188,12 @@ const App = {
       // Davet butonu: sadece yönetici
       const btnDavet = document.getElementById('btn-davet-gonder');
       btnDavet.classList.toggle('hidden', this.rol !== 'yonetici');
+
+      // Şirket Değiştir: sadece birden fazla şirket varsa göster
+      const btnSirketDegistir = document.getElementById('btn-sirket-degistir');
+      if (btnSirketDegistir) {
+        btnSirketDegistir.classList.toggle('hidden', (this.sirketSayisi || 0) <= 1);
+      }
 
       // Metin ayarlarını yükle
       this.ayarlariYukle();

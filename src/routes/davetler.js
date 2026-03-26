@@ -56,13 +56,6 @@ router.post('/', sirketBaglami, rolGerekli('yonetici'), async (req, res) => {
   }
 
   try {
-    // Zaten uye mi kontrol et
-    const { data: mevcutUyeler } = await req.supabase
-      .from('uyeler')
-      .select('kullanici_id, auth_users:kullanici_id(email)')
-      .eq('sirket_id', req.sirketId)
-      .eq('silinmis', false);
-
     // Bekleyen davet var mi kontrol et
     const { data: mevcutDavet } = await req.supabase
       .from('davetler')

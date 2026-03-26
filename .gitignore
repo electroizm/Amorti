@@ -2,6 +2,7 @@ node_modules/
 .env
 .DS_Store
 .claude/
-Promt_Amorti.md
+Promt_AMØRT!.md
+public/icons/
 .vscode/
 .gitignore

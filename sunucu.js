@@ -40,6 +40,15 @@ app.get('/api/config', (req, res) => {
 // Ozet endpoint: sirket bazli bakiyeler + sadelestirilmis borclar
 app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
   try {
+    // Sirket bilgisi
+    const { data: sirket, error: sirketErr } = await req.supabase
+      .from('sirketler')
+      .select('isim')
+      .eq('id', req.sirketId)
+      .single();
+
+    if (sirketErr) throw sirketErr;
+
     // Sirketteki uyeler
     const { data: uyeler, error: uyeErr } = await req.supabase
       .from('uyeler')
@@ -80,6 +89,7 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
     const toplamHarcama = kisiselToplam + kasaHarcama;
 
     res.json({
+      sirketIsim: sirket.isim,
       uyeler,
       bakiyeler,
       harcamalar,

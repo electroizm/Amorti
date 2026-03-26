@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/islemler — yeni islem (uye veya yonetici)
 router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
-  const { tur, odeyen_id, alan_id, tutar, aciklama, tarih, kasa_mi } = req.body;
+  const { tur, odeyen_id, alan_id, tutar, aciklama, tarih, kasa_mi, alan_kasa_mi } = req.body;
 
   if (!odeyen_id || !tutar) {
     return res.status(400).json({ hata: 'Ödeyen ve tutar zorunludur' });
@@ -61,6 +61,7 @@ router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
       odeyen_id,
       alan_id: alan_id || null,
       kasa_mi: kasa_mi || false,
+      ...(alan_kasa_mi ? { alan_kasa_mi: true } : {}),
       tutar: parseFloat(tutar),
       aciklama: formatliAciklama,
       tarih: tarih || new Date().toISOString().split('T')[0],
@@ -143,6 +144,7 @@ function mapIslem(row) {
     odeyen_id: row.odeyen_id,
     alan_id: row.alan_id,
     kasa_mi: row.kasa_mi,
+    alan_kasa_mi: row.alan_kasa_mi || false,
     tutar: parseFloat(row.tutar),
     aciklama: row.aciklama,
     tarih: row.tarih,
