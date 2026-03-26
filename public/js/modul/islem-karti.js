@@ -44,14 +44,18 @@ Object.assign(App, {
       const payerVal = document.getElementById('tx-payer').value;
       const kasaMi = payerVal === '__kasa__';
 
+      const ortakModu = (App.ortaklar || []).length > 0;
       const data = {
         tur: App.islemTuru,
-        odeyen_id: kasaMi ? App.uyeler[0]?.id : payerVal,
+        odeyen_id: kasaMi ? App.uyeler[0]?.id : (ortakModu ? App.uyeler[0]?.id : payerVal),
         tutar: parseFloat(document.getElementById('tx-amount').value),
         aciklama: document.getElementById('tx-desc').value,
         tarih: document.getElementById('tx-date').value,
         kasa_mi: kasaMi
       };
+      if (ortakModu && !kasaMi) {
+        data.odeyen_ortak_id = payerVal;
+      }
 
       if (App.islemTuru === 'transfer') {
         const receiverVal = document.getElementById('tx-receiver').value;
@@ -63,8 +67,11 @@ Object.assign(App, {
           return;
         }
 
-        data.alan_id = alanKasaMi ? App.uyeler[0]?.id : receiverVal;
+        data.alan_id = alanKasaMi ? App.uyeler[0]?.id : (ortakModu ? App.uyeler[0]?.id : receiverVal);
         data.alan_kasa_mi = alanKasaMi;
+        if (ortakModu && !alanKasaMi) {
+          data.alan_ortak_id = receiverVal;
+        }
 
         if (!kasaMi && !alanKasaMi && data.odeyen_id === data.alan_id) {
           App.toast(t('islem.ayniKisiHata'), 'hata');
@@ -96,23 +103,44 @@ Object.assign(App, {
   selectGuncelle() {
     const kullanici = API.getKullanici();
     const kullaniciId = kullanici?.id;
+    const ortaklar = App.ortaklar || [];
 
     const kasaOption = App.sirketIsim
       ? `<option value="__kasa__">🏢 ${App.esc(App.sirketIsim)}</option>`
       : '';
 
-    const odeyenOptions = App.uyeler.map(u =>
-      `<option value="${u.id}" ${u.kullanici_id === kullaniciId ? 'selected' : ''}>${App.esc(u.isim)}</option>`
-    ).join('');
+    // Ortaklar varsa ortaklardan, yoksa üyelerden doldur
+    if (ortaklar.length > 0) {
+      // Kullanıcının atandığı ortağı bul
+      const mevcutUye = App.uyeler.find(u => u.kullanici_id === kullaniciId);
+      const varsayilanOrtakId = mevcutUye?.ortak_id;
 
-    document.getElementById('tx-payer').innerHTML =
-      kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+      const odeyenOptions = ortaklar.map(o =>
+        `<option value="${o.id}" ${o.id === varsayilanOrtakId ? 'selected' : ''}>${App.esc(o.isim)}</option>`
+      ).join('');
 
-    const alanOptions = App.uyeler.map(u =>
-      `<option value="${u.id}">${App.esc(u.isim)}</option>`
-    ).join('');
-    document.getElementById('tx-receiver').innerHTML =
-      kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+      document.getElementById('tx-payer').innerHTML =
+        kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+
+      const alanOptions = ortaklar.map(o =>
+        `<option value="${o.id}">${App.esc(o.isim)}</option>`
+      ).join('');
+      document.getElementById('tx-receiver').innerHTML =
+        kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+    } else {
+      const odeyenOptions = App.uyeler.map(u =>
+        `<option value="${u.id}" ${u.kullanici_id === kullaniciId ? 'selected' : ''}>${App.esc(u.isim)}</option>`
+      ).join('');
+
+      document.getElementById('tx-payer').innerHTML =
+        kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+
+      const alanOptions = App.uyeler.map(u =>
+        `<option value="${u.id}">${App.esc(u.isim)}</option>`
+      ).join('');
+      document.getElementById('tx-receiver').innerHTML =
+        kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+    }
   },
 
   async islemListesiGoster() {
@@ -130,15 +158,20 @@ Object.assign(App, {
 
       const uyeMap = {};
       App.uyeler.forEach(u => { uyeMap[u.id] = u; });
+      const ortakMap = {};
+      (App.ortaklar || []).forEach(o => { ortakMap[o.id] = o; });
+      const ortakModu = (App.ortaklar || []).length > 0;
 
       const izleyici = App.rol === 'izleyici';
 
       list.innerHTML = islemler.slice().reverse().map(i => {
-        const odeyen = uyeMap[i.odeyen_id] || { isim: '?', renk: '#999' };
+        const odeyenOrtak = i.odeyen_ortak_id ? ortakMap[i.odeyen_ortak_id] : null;
+        const odeyen = odeyenOrtak || uyeMap[i.odeyen_id] || { isim: '?', renk: '#999' };
         const transferMi = i.tur === 'transfer';
         const kasaMi = i.kasa_mi;
         const alanKasaMi = i.alan_kasa_mi;
-        const alan = transferMi ? (uyeMap[i.alan_id] || { isim: '?', renk: '#999' }) : null;
+        const alanOrtak = i.alan_ortak_id ? ortakMap[i.alan_ortak_id] : null;
+        const alan = transferMi ? (alanOrtak || uyeMap[i.alan_id] || { isim: '?', renk: '#999' }) : null;
 
         let turBadge;
         if (kasaMi || alanKasaMi) {

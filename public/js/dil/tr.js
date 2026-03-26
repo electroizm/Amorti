@@ -81,6 +81,20 @@ window.AMORT_DIL.tr = {
     esit: 'eşit'
   },
 
+  // Ortaklar
+  ortak: {
+    baslik: 'Ortaklar',
+    ekleBtn: '+ Ortak Ekle',
+    henuzYok: 'Henüz ortak yok.',
+    silOnay: '"{isim}" ortağını silmek istiyor musunuz?',
+    silindi: 'Ortak silindi',
+    eklendi: 'Ortak eklendi',
+    guncellendi: 'Ortak güncellendi',
+    isimPlaceholder: 'Ortak ismi',
+    payLabel: 'Pay (%)',
+    payPlaceholder: 'Boş = eşit'
+  },
+
   // Borç
   borc: {
     baslik: 'Önerilen Transferler'
@@ -129,7 +143,10 @@ window.AMORT_DIL.tr = {
     silOnay: '"{isim}" üyesini çıkarmak istediğinize emin misiniz?',
     cikarildi: 'Üye çıkarıldı',
     rolGuncellendi: 'Rol güncellendi',
-    gonderilenDavetler: 'Gönderilen Davetler'
+    gonderilenDavetler: 'Gönderilen Davetler',
+    ortakLabel: 'Atandığı Ortak',
+    ortakYok: 'Atanmamış',
+    sadeceKendiOrtagi: 'Sadece kendi ortağı adına'
   },
 
   // Davet

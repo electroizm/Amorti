@@ -134,6 +134,12 @@ const API = {
   sirketGoster(id) { return this.request(`/sirketler/${id}/goster`, { method: 'PATCH' }); },
   getSirketlerHepsi() { return this.request('/sirketler?dahilGizli=true'); },
 
+  // --- Ortaklar ---
+  getOrtaklar() { return this.request('/ortaklar'); },
+  ortakEkle(data) { return this.request('/ortaklar', { method: 'POST', body: data }); },
+  ortakGuncelle(id, data) { return this.request(`/ortaklar/${id}`, { method: 'PATCH', body: data }); },
+  ortakSil(id) { return this.request(`/ortaklar/${id}`, { method: 'DELETE' }); },
+
   // --- Davetler ---
   davetGonder(eposta, rol) { return this.request('/davetler', { method: 'POST', body: { eposta, rol } }); },
   davetListele() { return this.request('/davetler'); },

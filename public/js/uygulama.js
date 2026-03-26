@@ -9,6 +9,7 @@ const App = {
   mevcutSayfa: 'home',
   islemTuru: 'harcama',
   uyeler: [],
+  ortaklar: [],
   rol: null,
   sirketSayisi: 0,
   sirketIsim: '',
@@ -145,6 +146,7 @@ const App = {
     try {
       const ozet = await API.getOzet();
       this.uyeler = ozet.uyeler;
+      this.ortaklar = ozet.ortaklar || [];
       this.rol = ozet.rol;
       this.sirketIsim = ozet.sirketIsim || '';
 
@@ -247,10 +249,20 @@ const App = {
     let offset = 0;
 
     const parcalar = [];
-    ozet.uyeler.forEach(u => {
-      const tutar = ozet.harcamalar[u.id] || 0;
-      if (tutar > 0) parcalar.push({ renk: u.renk, tutar });
-    });
+    const ortaklar = ozet.ortaklar || [];
+    if (ortaklar.length > 0) {
+      // Ortak bazlı Ø Ring
+      ortaklar.forEach(o => {
+        const tutar = (ozet.ortakHarcamalar || {})[o.id] || 0;
+        if (tutar > 0) parcalar.push({ renk: o.renk, tutar });
+      });
+    } else {
+      // Üye bazlı (geriye uyumlu)
+      ozet.uyeler.forEach(u => {
+        const tutar = ozet.harcamalar[u.id] || 0;
+        if (tutar > 0) parcalar.push({ renk: u.renk, tutar });
+      });
+    }
     if (ozet.kasaHarcama > 0) {
       parcalar.push({ renk: '#6366f1', tutar: ozet.kasaHarcama });
     }

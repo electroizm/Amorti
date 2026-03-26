@@ -29,10 +29,12 @@ router.get('/', async (req, res) => {
 
 // PATCH /api/uyeler/:id — uye guncelle (yonetici)
 router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
-  const { isim, renk } = req.body;
+  const { isim, renk, ortak_id, sadece_kendi_ortagi } = req.body;
   const guncellemeler = {};
   if (isim !== undefined) guncellemeler.isim = isim;
   if (renk !== undefined) guncellemeler.renk = renk;
+  if (ortak_id !== undefined) guncellemeler.ortak_id = ortak_id || null;
+  if (sadece_kendi_ortagi !== undefined) guncellemeler.sadece_kendi_ortagi = !!sadece_kendi_ortagi;
 
   if (Object.keys(guncellemeler).length === 0) {
     return res.status(400).json({ hata: 'Güncellenecek alan belirtilmedi' });

@@ -2,13 +2,23 @@
  * Borc Sadelestirme (Debt Simplification) Servisi
  * Greedy algoritma ile minimum transfer sayisi hesaplar.
  * kasa_mi=true olan harcamalar borc hesabina dahil edilmez.
+ *
+ * Ortaklar varsa: hesaplama ortaklar bazinda yapilir.
+ * Ortaklar yoksa: mevcut uye bazli hesaplama (geriye uyumlu).
  */
 
-function bakiyeleriHesapla(uyeler, islemler) {
+function bakiyeleriHesapla(uyeler, islemler, ortaklar) {
+  // Ortaklar varsa ortak bazlı hesapla
+  if (ortaklar && ortaklar.length > 0) {
+    return _ortakBazliBakiye(ortaklar, islemler);
+  }
+  return _uyeBazliBakiye(uyeler, islemler);
+}
+
+function _uyeBazliBakiye(uyeler, islemler) {
   const bakiyeler = {};
   uyeler.forEach(u => { bakiyeler[u.id] = 0; });
 
-  // Kasa islemlerini filtrele — borc hesabina dahil etme
   const aktifler = islemler.filter(i => !i.silinmis && !i.kasa_mi && !i.alan_kasa_mi);
   const n = uyeler.length;
   if (n === 0) return bakiyeler;
@@ -27,12 +37,61 @@ function bakiyeleriHesapla(uyeler, islemler) {
   for (const id of Object.keys(bakiyeler)) {
     bakiyeler[id] = Math.round(bakiyeler[id] * 100) / 100;
   }
-
   return bakiyeler;
 }
 
-function borclariSadelestir(uyeler, islemler) {
-  const bakiyeler = bakiyeleriHesapla(uyeler, islemler);
+function _ortakBazliBakiye(ortaklar, islemler) {
+  const bakiyeler = {};
+  ortaklar.forEach(o => { bakiyeler[o.id] = 0; });
+
+  const aktifler = islemler.filter(i => !i.silinmis && !i.kasa_mi && !i.alan_kasa_mi);
+  const n = ortaklar.length;
+  if (n === 0) return bakiyeler;
+
+  // Pay yüzdeleri: null ise eşit bölüşüm
+  const paylar = {};
+  const toplamPay = ortaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+  const hepsiNull = ortaklar.every(o => o.pay == null);
+
+  ortaklar.forEach(o => {
+    if (hepsiNull) {
+      paylar[o.id] = 1 / n;
+    } else {
+      paylar[o.id] = (o.pay != null ? parseFloat(o.pay) : 0) / (toplamPay || 100);
+    }
+  });
+
+  for (const i of aktifler) {
+    const odeyenOrtakId = i.odeyen_ortak_id || i.odeyen_id;
+    if (i.tur === 'harcama') {
+      const tutar = parseFloat(i.tutar);
+      // Ödeyene tam tutar ekle
+      if (bakiyeler[odeyenOrtakId] !== undefined) {
+        bakiyeler[odeyenOrtakId] += tutar;
+      }
+      // Her ortaktan payını düş
+      ortaklar.forEach(o => {
+        bakiyeler[o.id] -= tutar * paylar[o.id];
+      });
+    } else if (i.tur === 'transfer') {
+      const alanOrtakId = i.alan_ortak_id || i.alan_id;
+      if (bakiyeler[odeyenOrtakId] !== undefined) {
+        bakiyeler[odeyenOrtakId] += parseFloat(i.tutar);
+      }
+      if (bakiyeler[alanOrtakId] !== undefined) {
+        bakiyeler[alanOrtakId] -= parseFloat(i.tutar);
+      }
+    }
+  }
+
+  for (const id of Object.keys(bakiyeler)) {
+    bakiyeler[id] = Math.round(bakiyeler[id] * 100) / 100;
+  }
+  return bakiyeler;
+}
+
+function borclariSadelestir(uyeler, islemler, ortaklar) {
+  const bakiyeler = bakiyeleriHesapla(uyeler, islemler, ortaklar);
 
   const alacaklilar = [];
   const borclular = [];

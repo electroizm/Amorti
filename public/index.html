@@ -294,17 +294,40 @@
 
       <section id="page-partners" class="page">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-bold text-gray-900" data-i18n="uye.baslik">Üyeler</h2>
+          <div class="flex gap-2">
+            <button class="partner-tab px-4 py-1.5 rounded-lg text-sm font-semibold bg-brand text-white" data-tab="uyeler" data-i18n="uye.baslik">Üyeler</button>
+            <button class="partner-tab px-4 py-1.5 rounded-lg text-sm font-semibold text-gray-400" data-tab="ortaklar" data-i18n="ortak.baslik">Ortaklar</button>
+          </div>
           <button id="btn-davet-gonder" class="px-4 py-2 bg-brand rounded-xl text-sm font-semibold text-white hover:bg-brand-dark transition hidden" data-i18n="uye.davetBtn">
             + Davet Et
           </button>
         </div>
-        <div id="partner-list" class="space-y-2"></div>
-        <div id="partner-empty" class="text-center py-12 text-gray-400 text-sm" data-i18n="uye.henuzYok">Henüz üye yok.</div>
 
-        <div id="davet-section" class="mt-6 hidden">
-          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3" data-i18n="uye.gonderilenDavetler">Gönderilen Davetler</h3>
-          <div id="davet-listesi" class="space-y-2"></div>
+        <!-- Üyeler tab -->
+        <div id="tab-uyeler">
+          <div id="partner-list" class="space-y-2"></div>
+          <div id="partner-empty" class="text-center py-12 text-gray-400 text-sm" data-i18n="uye.henuzYok">Henüz üye yok.</div>
+          <div id="davet-section" class="mt-6 hidden">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3" data-i18n="uye.gonderilenDavetler">Gönderilen Davetler</h3>
+            <div id="davet-listesi" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- Ortaklar tab -->
+        <div id="tab-ortaklar" class="hidden">
+          <div id="ortak-list" class="space-y-2"></div>
+          <div id="ortak-empty" class="text-center py-12 text-gray-400 text-sm" data-i18n="ortak.henuzYok">Henüz ortak yok.</div>
+          <div id="ortak-ekle-form" class="mt-4 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hidden">
+            <form id="form-ortak" class="space-y-3">
+              <input type="text" required class="input-field" id="ortak-isim" data-i18n-placeholder="ortak.isimPlaceholder" placeholder="Ortak ismi">
+              <div class="flex gap-2">
+                <input type="color" id="ortak-renk" value="#6366f1" class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer">
+                <input type="number" step="0.01" min="0" max="100" class="input-field flex-1" id="ortak-pay" data-i18n-placeholder="ortak.payPlaceholder" placeholder="Boş = eşit">
+              </div>
+              <button type="submit" class="btn-primary w-full" data-i18n="ortak.ekleBtn">+ Ortak Ekle</button>
+            </form>
+          </div>
+          <button id="btn-ortak-ekle-toggle" class="w-full mt-3 py-2.5 bg-brand/10 text-brand rounded-xl font-semibold text-sm hover:bg-brand/20 transition hidden" data-i18n="ortak.ekleBtn">+ Ortak Ekle</button>
         </div>
       </section>
 

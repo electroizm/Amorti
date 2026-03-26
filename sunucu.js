@@ -12,6 +12,7 @@ const sirketlerRouter = require('./src/routes/sirketler');
 const davetlerRouter = require('./src/routes/davetler');
 const islemlerRouter = require('./src/routes/islemler');
 const ortaklarRouter = require('./src/routes/ortaklar');
+const ortakYonetimRouter = require('./src/routes/ortaklar-yonetim');
 const ayarlarRouter = require('./src/routes/ayarlar');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/sirketler', sirketlerRouter);
 app.use('/api/davetler', davetlerRouter);
 app.use('/api/uyeler', ortaklarRouter);
+app.use('/api/ortaklar', ortakYonetimRouter);
 app.use('/api/islemler', islemlerRouter);
 app.use('/api/ayarlar', ayarlarRouter);
 
@@ -59,6 +61,15 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
 
     if (uyeErr) throw uyeErr;
 
+    // Sirketteki ortaklar
+    const { data: ortaklar, error: ortakErr } = await req.supabase
+      .from('ortaklar')
+      .select('*')
+      .eq('sirket_id', req.sirketId)
+      .order('olusturma_tarihi', { ascending: true });
+
+    if (ortakErr) throw ortakErr;
+
     // Sirketteki islemler
     const { data: islemler, error: islemErr } = await req.supabase
       .from('islemler')
@@ -69,8 +80,8 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
 
     if (islemErr) throw islemErr;
 
-    // Borc hesaplama (kasa haric)
-    const { bakiyeler, transferler } = borclariSadelestir(uyeler, islemler);
+    // Borc hesaplama (kasa haric) — ortaklar varsa ortak bazlı
+    const { bakiyeler, transferler } = borclariSadelestir(uyeler, islemler, ortaklar || []);
 
     // Toplam harcama (kasa dahil — raporlama icin)
     const harcamalar = {};
@@ -88,11 +99,25 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
     const kisiselToplam = Object.values(harcamalar).reduce((a, b) => a + b, 0);
     const toplamHarcama = kisiselToplam + kasaHarcama;
 
+    // Ortak bazlı harcamalar (ortaklar varsa)
+    const ortakHarcamalar = {};
+    if (ortaklar && ortaklar.length > 0) {
+      ortaklar.forEach(o => { ortakHarcamalar[o.id] = 0; });
+      islemler.filter(i => i.tur === 'harcama' && !i.kasa_mi).forEach(i => {
+        const ortakId = i.odeyen_ortak_id || i.odeyen_id;
+        if (ortakHarcamalar[ortakId] !== undefined) {
+          ortakHarcamalar[ortakId] += parseFloat(i.tutar);
+        }
+      });
+    }
+
     res.json({
       sirketIsim: sirket.isim,
       uyeler,
+      ortaklar: ortaklar || [],
       bakiyeler,
       harcamalar,
+      ortakHarcamalar,
       kasaHarcama,
       toplamHarcama,
       onerilen_transferler: transferler,

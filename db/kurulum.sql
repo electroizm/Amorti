@@ -17,6 +17,10 @@ DROP POLICY IF EXISTS uyeler_delete ON uyeler;
 DROP POLICY IF EXISTS davetler_select ON davetler;
 DROP POLICY IF EXISTS davetler_insert ON davetler;
 DROP POLICY IF EXISTS davetler_update ON davetler;
+DROP POLICY IF EXISTS ortaklar_select ON ortaklar;
+DROP POLICY IF EXISTS ortaklar_insert ON ortaklar;
+DROP POLICY IF EXISTS ortaklar_update ON ortaklar;
+DROP POLICY IF EXISTS ortaklar_delete ON ortaklar;
 DROP POLICY IF EXISTS islemler_select ON islemler;
 DROP POLICY IF EXISTS islemler_insert ON islemler;
 DROP POLICY IF EXISTS islemler_update ON islemler;
@@ -70,10 +74,24 @@ CREATE TABLE IF NOT EXISTS uyeler (
   isim TEXT NOT NULL,
   renk TEXT NOT NULL DEFAULT '#6366f1',
   rol TEXT NOT NULL DEFAULT 'uye' CHECK (rol IN ('yonetici', 'uye', 'izleyici')),
+  ortak_id UUID REFERENCES ortaklar(id) ON DELETE SET NULL,
+  sadece_kendi_ortagi BOOLEAN DEFAULT FALSE,
   silinmis BOOLEAN DEFAULT FALSE,
   gizli BOOLEAN DEFAULT FALSE,
   olusturma_tarihi TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(sirket_id, kullanici_id)
+);
+
+-- ==========================================
+-- 2b. ORTAKLAR (Şirket ortakları — harcama paylaşımı bunlara göre)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS ortaklar (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  sirket_id UUID NOT NULL REFERENCES sirketler(id) ON DELETE CASCADE,
+  isim TEXT NOT NULL,
+  renk TEXT NOT NULL DEFAULT '#6366f1',
+  pay NUMERIC(5,2) DEFAULT NULL,
+  olusturma_tarihi TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ==========================================
@@ -98,6 +116,8 @@ CREATE TABLE IF NOT EXISTS islemler (
   tur TEXT NOT NULL CHECK (tur IN ('harcama', 'transfer')),
   odeyen_id UUID NOT NULL REFERENCES uyeler(id),
   alan_id UUID REFERENCES uyeler(id),
+  odeyen_ortak_id UUID REFERENCES ortaklar(id),
+  alan_ortak_id UUID REFERENCES ortaklar(id),
   kasa_mi BOOLEAN DEFAULT FALSE,
   alan_kasa_mi BOOLEAN DEFAULT FALSE,
   tutar NUMERIC(12,2) NOT NULL CHECK (tutar > 0),
@@ -127,6 +147,7 @@ CREATE TABLE IF NOT EXISTS ayarlar (
 CREATE INDEX IF NOT EXISTS idx_uyeler_sirket ON uyeler(sirket_id);
 CREATE INDEX IF NOT EXISTS idx_uyeler_kullanici ON uyeler(kullanici_id);
 CREATE INDEX IF NOT EXISTS idx_uyeler_silinmis ON uyeler(silinmis);
+CREATE INDEX IF NOT EXISTS idx_ortaklar_sirket ON ortaklar(sirket_id);
 CREATE INDEX IF NOT EXISTS idx_davetler_sirket ON davetler(sirket_id);
 CREATE INDEX IF NOT EXISTS idx_davetler_eposta ON davetler(eposta);
 CREATE INDEX IF NOT EXISTS idx_davetler_durum ON davetler(durum);
@@ -160,6 +181,22 @@ CREATE POLICY sirketler_update ON sirketler FOR UPDATE USING (
 
 CREATE POLICY sirketler_delete ON sirketler FOR DELETE USING (
   sahip_id = auth.uid()
+);
+
+-- ORTAKLAR
+ALTER TABLE ortaklar ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY ortaklar_select ON ortaklar FOR SELECT USING (
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
+);
+CREATE POLICY ortaklar_insert ON ortaklar FOR INSERT WITH CHECK (
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
+);
+CREATE POLICY ortaklar_update ON ortaklar FOR UPDATE USING (
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
+);
+CREATE POLICY ortaklar_delete ON ortaklar FOR DELETE USING (
+  sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
 );
 
 -- UYELER: kendi kaydi + ayni sirketteki diger uyeler
@@ -232,6 +269,7 @@ CREATE POLICY ayarlar_update ON ayarlar FOR UPDATE USING (
 -- GRANT: authenticated role icin tablo izinleri
 -- Supabase bazi durumlarda otomatik vermez
 -- ==========================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON ortaklar TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON sirketler TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON uyeler TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON davetler TO authenticated;

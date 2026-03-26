@@ -74,6 +74,19 @@ window.AMORT_DIL.en = {
     esit: 'even'
   },
 
+  ortak: {
+    baslik: 'Partners',
+    ekleBtn: '+ Add Partner',
+    henuzYok: 'No partners yet.',
+    silOnay: 'Remove partner "{isim}"?',
+    silindi: 'Partner removed',
+    eklendi: 'Partner added',
+    guncellendi: 'Partner updated',
+    isimPlaceholder: 'Partner name',
+    payLabel: 'Share (%)',
+    payPlaceholder: 'Empty = equal'
+  },
+
   borc: {
     baslik: 'Suggested Transfers'
   },
@@ -118,7 +131,10 @@ window.AMORT_DIL.en = {
     silOnay: 'Are you sure you want to remove "{isim}"?',
     cikarildi: 'Member removed',
     rolGuncellendi: 'Role updated',
-    gonderilenDavetler: 'Sent Invitations'
+    gonderilenDavetler: 'Sent Invitations',
+    ortakLabel: 'Assigned Partner',
+    ortakYok: 'Unassigned',
+    sadeceKendiOrtagi: 'Own partner only'
   },
 
   davet: {
