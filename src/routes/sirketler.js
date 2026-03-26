@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
   try {
     let { data: uyeler, error: uyeErr } = await req.supabase
       .from('uyeler')
-      .select('sirket_id, rol, gizli, sirketler(id, isim, sahip_id, olusturma_tarihi)')
+      .select('sirket_id, rol, gizli, sirketler(id, isim, tip, sahip_id, olusturma_tarihi)')
       .eq('kullanici_id', req.kullanici.id)
       .eq('silinmis', false);
 
@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
 
       const { data: yeniSirket, error: sirketErr } = await req.supabase
         .from('sirketler')
-        .insert({ isim: `${kullaniciIsim} - Kişisel`, sahip_id: req.kullanici.id })
+        .insert({ isim: kullaniciIsim, tip: 'bireysel', sahip_id: req.kullanici.id })
         .select()
         .single();
 

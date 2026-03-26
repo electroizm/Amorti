@@ -39,7 +39,7 @@ Object.assign(App, {
     try {
       const hepsi = await API.getSirketlerHepsi();
       const kullaniciId = API.getKullanici()?.id;
-      const gizliKasa = hepsi.find(s => s.sahip_id === kullaniciId && s.gizli);
+      const gizliKasa = hepsi.find(s => s.tip === 'bireysel' && s.gizli);
       if (gizliKasa) {
         section.classList.remove('hidden');
         const btn = document.getElementById('btn-kisisel-kasa-ac');

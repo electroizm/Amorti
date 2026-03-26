@@ -40,9 +40,9 @@ window.AMORT_DIL.tr = {
     davetRedBtn: 'Red',
     davetKabulEdildi: 'Davet kabul edildi',
     davetReddedildi: 'Davet reddedildi',
-    gizleOnay: 'Kişisel kasayı gizlemek istiyor musunuz?',
-    gizlendi: 'Kişisel kasa gizlendi',
-    gosterildi: 'Kişisel kasa tekrar aktif edildi'
+    gizleOnay: 'Bireysel kasayı gizlemek istiyor musunuz?',
+    gizlendi: 'Bireysel kasa gizlendi',
+    gosterildi: 'Bireysel kasa tekrar aktif edildi'
   },
 
   // Navigasyon
@@ -66,12 +66,12 @@ window.AMORT_DIL.tr = {
   ozet: {
     toplamHarcama: 'Toplam Harcama',
     kasaFormat: '{isim}: {tutar} ₺',
-    altBilgi: '{sayi} üye • Kişisel: {tutar} ₺',
+    altBilgi: '{sayi} üye • Bireysel: {tutar} ₺',
     bosBaslik: 'Henüz işlem yok.',
     bosAlt: '+ butonuyla harcama ekleyin.',
     bosBaslikTek: 'Harcamalarınızı takip edin',
     bosAltTek: '+ butonuyla ilk harcamanızı ekleyin. Dilediğinizde ortaklarınızı da davet edebilirsiniz.',
-    altBilgiTek: 'Kişisel: {tutar} ₺'
+    altBilgiTek: 'Bireysel: {tutar} ₺'
   },
 
   // Bakiye
@@ -197,7 +197,7 @@ window.AMORT_DIL.tr = {
     trTemizle: 'Türkçe karakterleri kaldır',
     trTemizleAciklama: 'ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u',
     ayarKaydedildi: 'Ayarlar kaydedildi',
-    kisiselKasaAc: 'Kişisel Kasayı Tekrar Aç'
+    kisiselKasaAc: 'Bireysel Kasayı Tekrar Aç'
   },
 
   // Hatalar

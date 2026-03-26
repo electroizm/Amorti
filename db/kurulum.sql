@@ -60,6 +60,7 @@ $$;
 CREATE TABLE IF NOT EXISTS sirketler (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   isim TEXT NOT NULL,
+  tip TEXT NOT NULL DEFAULT 'sirket',
   sahip_id UUID NOT NULL REFERENCES auth.users(id),
   olusturma_tarihi TIMESTAMPTZ DEFAULT NOW()
 );

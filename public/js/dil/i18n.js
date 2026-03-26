@@ -1,7 +1,7 @@
 /**
  * AMØRT! i18n modülü
  * t('auth.girisBtn') => 'Giriş Yap'
- * t('ozet.altBilgi', {sayi: 3, tutar: '450'}) => '3 üye • Kişisel: 450 ₺'
+ * t('ozet.altBilgi', {sayi: 3, tutar: '450'}) => '3 üye • Bireysel: 450 ₺'
  */
 window.i18n = {
   dil: 'tr',
