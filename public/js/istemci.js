@@ -138,7 +138,7 @@ const API = {
   getOrtaklar() { return this.request('/ortaklar'); },
   ortakEkle(data) { return this.request('/ortaklar', { method: 'POST', body: data }); },
   ortakGuncelle(id, data) { return this.request(`/ortaklar/${id}`, { method: 'PATCH', body: data }); },
-  ortakSil(id) { return this.request(`/ortaklar/${id}`, { method: 'DELETE' }); },
+  ortakSil(id, hedefOrtakId) { return this.request(`/ortaklar/${id}`, { method: 'DELETE', body: { hedef_ortak_id: hedefOrtakId || null } }); },
 
   // --- Davetler ---
   davetGonder(eposta, rol) { return this.request('/davetler', { method: 'POST', body: { eposta, rol } }); },

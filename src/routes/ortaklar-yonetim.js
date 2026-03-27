@@ -98,9 +98,59 @@ router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
   }
 });
 
-// DELETE /api/ortaklar/:id — ortak sil (yönetici)
+// DELETE /api/ortaklar/:id — ortak sil + pay dağıt + harcama devret (yönetici)
 router.delete('/:id', rolGerekli('yonetici'), async (req, res) => {
+  const { hedef_ortak_id } = req.body || {};
+
   try {
+    // Silinecek ortağı bul
+    const { data: silinecek, error: bulErr } = await req.supabase
+      .from('ortaklar')
+      .select('*')
+      .eq('id', req.params.id)
+      .eq('sirket_id', req.sirketId)
+      .single();
+
+    if (bulErr || !silinecek) return res.status(404).json({ hata: 'Ortak bulunamadı' });
+
+    // Kalan ortakları bul
+    const { data: kalanlar } = await req.supabase
+      .from('ortaklar')
+      .select('*')
+      .eq('sirket_id', req.sirketId)
+      .neq('id', req.params.id);
+
+    // Pay dağıtımı (orana göre)
+    if (silinecek.pay != null && kalanlar && kalanlar.length > 0) {
+      const kalanToplamPay = kalanlar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+      if (kalanToplamPay > 0) {
+        for (const o of kalanlar) {
+          if (o.pay == null) continue;
+          const yeniPay = parseFloat(o.pay) + (parseFloat(silinecek.pay) * parseFloat(o.pay) / kalanToplamPay);
+          await req.supabase
+            .from('ortaklar')
+            .update({ pay: Math.round(yeniPay * 100) / 100 })
+            .eq('id', o.id);
+        }
+      }
+    }
+
+    // Harcamaları devret
+    if (hedef_ortak_id) {
+      await req.supabase
+        .from('islemler')
+        .update({ odeyen_ortak_id: hedef_ortak_id })
+        .eq('odeyen_ortak_id', req.params.id)
+        .eq('sirket_id', req.sirketId);
+
+      await req.supabase
+        .from('islemler')
+        .update({ alan_ortak_id: hedef_ortak_id })
+        .eq('alan_ortak_id', req.params.id)
+        .eq('sirket_id', req.sirketId);
+    }
+
+    // Ortağı sil
     const { error } = await req.supabase
       .from('ortaklar')
       .delete()

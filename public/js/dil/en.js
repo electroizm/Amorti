@@ -84,7 +84,14 @@ window.AMORT_DIL.en = {
     guncellendi: 'Partner updated',
     isimPlaceholder: 'Partner name',
     payLabel: 'Share (%)',
-    payPlaceholder: 'Empty = equal'
+    payPlaceholder: 'Empty = equal',
+    duzenleBtn: 'Edit',
+    kaydetBtn: 'Save',
+    iptalBtn: 'Cancel',
+    payDolu: 'Partner shares total 100%. Edit shares first.',
+    devirSecim: 'Transfer expenses to:',
+    silVeDevret: 'Delete & Transfer',
+    isimLabel: 'Name'
   },
 
   borc: {

@@ -92,7 +92,14 @@ window.AMORT_DIL.tr = {
     guncellendi: 'Ortak güncellendi',
     isimPlaceholder: 'Ortak ismi',
     payLabel: 'Pay (%)',
-    payPlaceholder: 'Boş = eşit'
+    payPlaceholder: 'Boş = eşit',
+    duzenleBtn: 'Düzenle',
+    kaydetBtn: 'Kaydet',
+    iptalBtn: 'İptal',
+    payDolu: 'Ortak payları %100 şeklindedir. Payları düzenleyin.',
+    devirSecim: 'Harcamaları devret:',
+    silVeDevret: 'Sil ve Devret',
+    isimLabel: 'İsim'
   },
 
   // Borç
