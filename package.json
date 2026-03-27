@@ -8,7 +8,7 @@
     "dev": "concurrently \"node --watch sunucu.js\" \"vite\"",
     "dev:server": "node --watch sunucu.js",
     "dev:vite": "vite",
-    "build": "vite build",
+    "build": "npm install --include=dev && vite build",
     "preview": "vite preview",
     "db-kur": "node db/kur.js"
   },

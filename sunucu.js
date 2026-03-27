@@ -21,9 +21,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 // Production: dist/ (Vite build), Fallback: public/ (eski CDN sürüm)
-const staticDir = process.env.NODE_ENV === 'production'
-  ? path.join(__dirname, 'dist')
-  : path.join(__dirname, 'public');
+const fs = require('fs');
+const distDir = path.join(__dirname, 'dist');
+const publicDir = path.join(__dirname, 'public');
+const staticDir = fs.existsSync(distDir) ? distDir : publicDir;
 app.use(express.static(staticDir));
 
 // API Route'lari
