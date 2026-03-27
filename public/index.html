@@ -139,7 +139,7 @@
         <div class="sifre-wrapper">
           <input type="password" required minlength="6" class="input-field" id="giris-sifre" data-i18n-placeholder="auth.sifrePlaceholder" placeholder="Şifre">
           <button type="button" class="btn-sifre-goster" tabindex="-1">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178a1.01 1.01 0 010 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <i data-lucide="eye" class="w-5 h-5"></i>
           </button>
         </div>
         <label class="flex items-center gap-2 text-sm text-gray-500 cursor-pointer select-none">
@@ -165,7 +165,7 @@
         <div class="sifre-wrapper">
           <input type="password" required minlength="6" class="input-field" id="kayit-sifre" data-i18n-placeholder="auth.sifreKayitPlaceholder" placeholder="Şifre (en az 6 karakter)">
           <button type="button" class="btn-sifre-goster" tabindex="-1">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178a1.01 1.01 0 010 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <i data-lucide="eye" class="w-5 h-5"></i>
           </button>
         </div>
         <button type="submit" class="btn-primary" data-i18n="auth.kayitBtn">Hesap Oluştur</button>
@@ -217,14 +217,12 @@
         </div>
         <div class="relative">
           <button id="btn-profil" class="p-2 rounded-lg hover:bg-surface-dark transition" data-i18n-title="header.profilTitle" title="Profil">
-            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
+            <i data-lucide="user" class="w-5 h-5 text-gray-500"></i>
           </button>
           <div id="profil-menu" class="hidden absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[180px] z-30">
             <div id="sirket-menu-listesi" class="border-b border-gray-100 py-1"></div>
             <button id="btn-ayarlar-menu" class="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+              <i data-lucide="settings" class="w-4 h-4"></i>
               <span data-i18n="header.ayarlar">Ayarlar</span>
             </button>
           </div>
@@ -382,24 +380,24 @@
       </section>
     </main>
 
-    <button id="fab" class="fab" style="display:none" data-i18n-title="islem.fabTitle" title="Yeni İşlem">+</button>
+    <button id="fab" class="fab" style="display:none" data-i18n-title="islem.fabTitle" title="Yeni İşlem"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-30">
       <div class="max-w-lg mx-auto flex justify-around py-2">
         <button class="nav-item active flex flex-col items-center gap-0.5 px-3 py-1" data-page="home">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+          <i data-lucide="home" class="w-6 h-6"></i>
           <span class="text-[10px] font-medium" data-i18n="nav.anaSayfa">Ana Sayfa</span>
         </button>
         <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="transactions">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <i data-lucide="clipboard-list" class="w-6 h-6"></i>
           <span class="text-[10px] font-medium" data-i18n="nav.islemler">İşlemler</span>
         </button>
         <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="partners">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <i data-lucide="users" class="w-6 h-6"></i>
           <span class="text-[10px] font-medium" data-i18n="nav.uyeler">Üyeler</span>
         </button>
         <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="settings">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <i data-lucide="settings" class="w-6 h-6"></i>
           <span class="text-[10px] font-medium" data-i18n="nav.ayarlar">Ayarlar</span>
         </button>
       </div>
@@ -411,7 +409,7 @@
     <div class="modal-sheet">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-bold text-gray-900" data-i18n="islem.yeniBaslik">Yeni İşlem</h3>
-        <button id="modal-tx-close" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <button id="modal-tx-close" class="text-gray-400 hover:text-gray-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <div class="flex bg-surface-dark rounded-xl p-1 mb-4">
@@ -451,7 +449,7 @@
     <div class="modal-sheet">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-bold text-gray-900" data-i18n="davet.baslik">Davet Gönder</h3>
-        <button id="modal-davet-close" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <button id="modal-davet-close" class="text-gray-400 hover:text-gray-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form id="form-davet" class="space-y-3">
         <div>
@@ -472,6 +470,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/js/dil/tr.js"></script>
   <script src="/js/dil/en.js"></script>
   <script src="/js/dil/i18n.js"></script>

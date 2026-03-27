@@ -164,7 +164,7 @@ Object.assign(App, {
 
       const izleyici = App.rol === 'izleyici';
 
-      list.innerHTML = islemler.slice().reverse().map(i => {
+      const html = islemler.slice().reverse().map(i => {
         const odeyenOrtak = i.odeyen_ortak_id ? ortakMap[i.odeyen_ortak_id] : null;
         const odeyen = odeyenOrtak || uyeMap[i.odeyen_id] || { isim: '?', renk: '#999' };
         const transferMi = i.tur === 'transfer';
@@ -194,7 +194,7 @@ Object.assign(App, {
                 <div class="w-3 h-3 rounded-full" style="background: ${odeyenRenk}"></div>
                 <span class="font-medium text-sm text-gray-700">${App.esc(odeyenIsim)}</span>
                 ${transferMi ? `
-                  <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                  <i data-lucide="arrow-right" class="w-4 h-4 text-brand"></i>
                   <div class="w-3 h-3 rounded-full" style="background: ${alanRenk}"></div>
                   <span class="font-medium text-sm text-gray-700">${App.esc(alanIsim)}</span>
                 ` : ''}
@@ -210,7 +210,7 @@ Object.assign(App, {
                 <span class="text-xs text-gray-400">${i.tarih}</span>
                 ${!izleyici ? `
                   <button class="islem-sil p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${i.id}">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
                   </button>
                 ` : ''}
               </div>
@@ -218,6 +218,8 @@ Object.assign(App, {
           </div>
         `;
       }).join('');
+      list.innerHTML = html;
+      App.ikonlariGuncelle();
 
       if (!list._delegated) {
         list._delegated = true;

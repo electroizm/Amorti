@@ -62,11 +62,13 @@ Object.assign(App, {
             </button>
             ${s.tip === 'bireysel' ? `
               <button class="sirket-gizle absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition" data-id="${s.id}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                <i data-lucide="x" class="w-4 h-4"></i>
               </button>
             ` : ''}
           </div>
         `).join('');
+
+        App.ikonlariGuncelle();
 
         if (!container._delegated) {
           container._delegated = true;

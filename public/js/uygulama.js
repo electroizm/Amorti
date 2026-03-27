@@ -208,6 +208,7 @@ const App = {
       // Çöp kutusu (yönetici)
       if (this.copKutusuYukle) this.copKutusuYukle();
 
+      this.ikonlariGuncelle();
     } catch (err) {
       console.error('Veri yukleme hatasi:', err);
       if (err.message.includes('erişim') || err.message.includes('access')) {
@@ -306,10 +307,11 @@ const App = {
     container.classList.remove('hidden');
     container.innerHTML = sirketler.map(s => `
       <button class="sirket-menu-item w-full text-left px-4 py-2 text-sm transition flex items-center gap-2 ${s.id === aktifId ? 'text-brand font-semibold bg-brand/5' : 'text-gray-600 hover:bg-gray-50'}" data-id="${s.id}">
-        ${s.id === aktifId ? '<svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>' : '<span class="w-3.5"></span>'}
+        ${s.id === aktifId ? '<i data-lucide="check" class="w-3.5 h-3.5 flex-shrink-0"></i>' : '<span class="w-3.5"></span>'}
         <span class="truncate">${this.esc(s.isim)}</span>
       </button>
     `).join('');
+    this.ikonlariGuncelle();
   },
 
   // ─── Yardımcılar ───
@@ -341,7 +343,14 @@ const App = {
     const div = document.createElement('div');
     div.textContent = str || '';
     return div.innerHTML;
+  },
+
+  ikonlariGuncelle() {
+    if (window.lucide) lucide.createIcons();
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => {
+  App.init();
+  App.ikonlariGuncelle();
+});

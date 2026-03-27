@@ -77,7 +77,7 @@ Object.assign(App, {
             <div class="w-3 h-3 rounded-full" style="background: ${kimden.renk}"></div>
             <span class="font-medium text-sm text-gray-700">${App.esc(kimden.isim)}</span>
             <div class="transfer-arrow w-6 h-5 flex items-center justify-center">
-              <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              <i data-lucide="arrow-right" class="w-4 h-4 text-brand"></i>
             </div>
             <div class="w-3 h-3 rounded-full" style="background: ${kime.renk}"></div>
             <span class="font-medium text-sm text-gray-700">${App.esc(kime.isim)}</span>
@@ -86,5 +86,6 @@ Object.assign(App, {
         </div>
       `;
     }).join('');
+    App.ikonlariGuncelle();
   }
 });

@@ -141,7 +141,7 @@ Object.assign(App, {
             ).join('')
           : '';
 
-        list.innerHTML = uyeler.map(u => `
+        const uyeHtml = uyeler.map(u => `
           <div class="bg-white rounded-xl p-4 flex items-center justify-between shadow-sm border border-gray-100">
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 rounded-full" style="background: ${u.renk}"></div>
@@ -163,12 +163,14 @@ Object.assign(App, {
                   <option value="izleyici" ${u.rol === 'izleyici' ? 'selected' : ''}>${t('rol.izleyici')}</option>
                 </select>
                 <button class="uye-sil p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${u.id}" data-isim="${App.esc(u.isim)}">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
               </div>
             ` : ''}
           </div>
         `).join('');
+        list.innerHTML = uyeHtml;
+        App.ikonlariGuncelle();
 
         if (!list._delegated) {
           list._delegated = true;
@@ -271,10 +273,10 @@ Object.assign(App, {
               ${yonetici ? `
                 <div class="flex gap-1">
                   <button class="ortak-duzenle p-2 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition" data-id="${o.id}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
                   </button>
                   <button class="ortak-sil p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${o.id}" data-isim="${App.esc(o.isim)}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
                   </button>
                 </div>
               ` : ''}
@@ -282,6 +284,7 @@ Object.assign(App, {
             <div class="ortak-edit-panel hidden"></div>
           </div>
         `).join('');
+        App.ikonlariGuncelle();
       }
 
       if (toggleBtn) toggleBtn.classList.toggle('hidden', !yonetici);

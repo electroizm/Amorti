@@ -1,11 +1,12 @@
-const CACHE_NAME = 'amort-v1';
+const CACHE_NAME = 'amort-v2';
 const ASSETS = [
   '/',
   '/index.html',
   '/js/app.js',
   '/js/api.js',
   '/js/ring.js',
-  '/manifest.json'
+  '/manifest.json',
+  'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js'
 ];
 
 // Install: cache core assets
