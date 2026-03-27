@@ -20,7 +20,11 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// Production: dist/ (Vite build), Fallback: public/ (eski CDN sürüm)
+const staticDir = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, 'dist')
+  : path.join(__dirname, 'public');
+app.use(express.static(staticDir));
 
 // API Route'lari
 app.use('/api/auth', authRouter);
@@ -130,7 +134,7 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
 
 // SPA fallback
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(staticDir, 'index.html'));
 });
 
 app.listen(PORT, () => {

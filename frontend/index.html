@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f1f5f9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>AMØRT!</title>
+</head>
+<body class="bg-surface-dark text-gray-800 min-h-screen select-none">
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ==================== AUTH EKRANI ==================== -->
+  <div id="ekran-auth" class="ekran active flex-col items-center justify-center min-h-screen px-6">
+    <div class="w-full max-w-sm">
+      <h1 class="text-4xl font-black text-center mb-2">AM<span class="text-brand">Ø</span>RT!</h1>
+      <p class="text-center text-gray-500 text-sm mb-8" data-i18n="app.slogan">Ortak Gider Ø Tek Takip</p>
+
+      <!-- GİRİŞ FORMU -->
+      <form id="form-giris" class="space-y-3">
+        <input type="email" required class="input-field" id="giris-eposta" data-i18n-placeholder="auth.epostaPlaceholder" placeholder="E-posta">
+        <div class="sifre-wrapper">
+          <input type="password" required minlength="6" class="input-field" id="giris-sifre" data-i18n-placeholder="auth.sifrePlaceholder" placeholder="Şifre">
+          <button type="button" class="btn-sifre-goster" tabindex="-1">
+            <i data-lucide="eye" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <label class="flex items-center gap-2 text-sm text-gray-500 cursor-pointer select-none">
+          <input type="checkbox" id="beni-hatirla" checked class="w-4 h-4 rounded border-gray-300 text-brand accent-brand">
+          <span data-i18n="auth.beniHatirla">Beni Hatırla</span>
+        </label>
+        <button type="submit" class="btn-primary" data-i18n="auth.girisBtn">Giriş Yap</button>
+        <div class="auth-divider">veya</div>
+        <button type="button" id="btn-google-giris" class="btn-google">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          <span data-i18n="auth.googleGiris">Google ile Giriş Yap</span>
+        </button>
+        <p class="text-center text-sm text-gray-500 mt-2">
+          <span data-i18n="auth.hesabinizYokMu">Hesabınız yok mu?</span>
+          <a href="#" id="auth-kayit-goster" class="text-brand font-semibold ml-1" data-i18n="auth.kayitOlLink">Kayıt Ol</a>
+        </p>
+      </form>
+
+      <!-- KAYIT FORMU -->
+      <form id="form-kayit" class="space-y-3 hidden">
+        <input type="text" required class="input-field" id="kayit-isim" data-i18n-placeholder="auth.isimPlaceholder" placeholder="İsim">
+        <input type="email" required class="input-field" id="kayit-eposta" data-i18n-placeholder="auth.epostaPlaceholder" placeholder="E-posta">
+        <div class="sifre-wrapper">
+          <input type="password" required minlength="6" class="input-field" id="kayit-sifre" data-i18n-placeholder="auth.sifreKayitPlaceholder" placeholder="Şifre (en az 6 karakter)">
+          <button type="button" class="btn-sifre-goster" tabindex="-1">
+            <i data-lucide="eye" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <button type="submit" class="btn-primary" data-i18n="auth.kayitBtn">Hesap Oluştur</button>
+        <div class="auth-divider">veya</div>
+        <button type="button" id="btn-google-kayit" class="btn-google">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          <span data-i18n="auth.googleKayit">Google ile Kayıt Ol</span>
+        </button>
+        <p class="text-center text-sm text-gray-500 mt-2">
+          <span data-i18n="auth.zadenHesabVar">Zaten hesabınız var mı?</span>
+          <a href="#" id="auth-giris-goster" class="text-brand font-semibold ml-1" data-i18n="auth.girisYapLink">Giriş Yap</a>
+        </p>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ==================== ŞİRKET SEÇİCİ EKRANI ==================== -->
+  <div id="ekran-sirket" class="ekran flex-col items-center justify-center min-h-screen px-6">
+    <div class="w-full max-w-sm">
+      <h1 class="text-2xl font-black text-center mb-1">AM<span class="text-brand">Ø</span>RT!</h1>
+      <p class="text-center text-gray-500 text-sm mb-6" data-i18n="sirket.baslik">Şirket seçin veya yeni oluşturun</p>
+
+      <div id="bekleyen-davetler" class="mb-4 hidden">
+        <h3 class="text-xs font-semibold text-brand uppercase tracking-wider mb-2" data-i18n="sirket.bekleyenDavetler">Bekleyen Davetler</h3>
+        <div id="davet-listesi-bekleyen" class="space-y-2"></div>
+      </div>
+
+      <div id="sirket-listesi" class="space-y-2 mb-4"></div>
+
+      <div class="border-t border-gray-200 pt-4">
+        <form id="form-sirket" class="flex gap-2">
+          <input type="text" required class="input-field flex-1" id="sirket-isim" data-i18n-placeholder="sirket.yeniPlaceholder" placeholder="Yeni şirket ismi">
+          <button type="submit" class="px-4 py-3 bg-brand text-white rounded-xl font-semibold text-sm hover:bg-brand-dark transition" data-i18n="sirket.olusturBtn">Oluştur</button>
+        </form>
+      </div>
+
+      <button id="btn-cikis-sirket" class="w-full mt-4 py-2 text-sm text-gray-400 hover:text-red-500 transition" data-i18n="sirket.cikisBtn">Çıkış Yap</button>
+    </div>
+  </div>
+
+  <!-- ==================== ANA UYGULAMA ==================== -->
+  <div id="ekran-app" class="ekran flex-col min-h-screen">
+
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-3">
+      <div class="max-w-lg mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-black tracking-tight">AM<span class="text-brand">Ø</span>RT!</h1>
+        </div>
+        <div class="relative">
+          <button id="btn-profil" class="p-2 rounded-lg hover:bg-surface-dark transition" data-i18n-title="header.profilTitle" title="Profil">
+            <i data-lucide="user" class="w-5 h-5 text-gray-500"></i>
+          </button>
+          <div id="profil-menu" class="hidden absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[180px] z-30">
+            <div id="sirket-menu-listesi" class="border-b border-gray-100 py-1"></div>
+            <button id="btn-ayarlar-menu" class="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition flex items-center gap-2">
+              <i data-lucide="settings" class="w-4 h-4"></i>
+              <span data-i18n="header.ayarlar">Ayarlar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-4 pt-4 pb-24 flex-1 w-full">
+
+      <section id="page-home" class="page active">
+        <div class="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-gray-100">
+          <div class="flex flex-col items-center">
+            <div class="relative w-36 h-36 mb-1">
+              <svg id="o-ring" viewBox="0 0 200 200" class="w-full h-full drop-shadow-sm">
+                <defs>
+                  <filter id="o-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2" result="blur"/>
+                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                  </filter>
+                </defs>
+                <circle cx="100" cy="100" r="78" fill="none" stroke="#f1f5f9" stroke-width="16"/>
+                <line class="o-slash" x1="72" y1="128" x2="128" y2="72" stroke="#6366f1" stroke-width="3.5" stroke-linecap="round" opacity="0.25"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span id="ozet-toplam" class="text-2xl font-black text-gray-900 leading-none">0 ₺</span>
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5" data-i18n="ozet.toplamHarcama">Toplam Harcama</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="ozet-kasa-badge" class="text-xs bg-brand/10 text-brand px-2 py-0.5 rounded-full hidden"></span>
+            </div>
+            <p id="ozet-alt" class="text-xs text-gray-400 mt-1"></p>
+          </div>
+        </div>
+
+        <div id="partner-cards" class="grid grid-cols-2 gap-3 mb-4"></div>
+
+        <div id="debt-section" class="mb-4 hidden">
+          <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3" data-i18n="borc.baslik">Önerilen Transferler</h2>
+          <div id="debt-transfers" class="space-y-2"></div>
+        </div>
+
+        <div id="empty-state" class="text-center py-12">
+          <div class="text-5xl mb-3 opacity-20">Ø</div>
+          <p class="text-gray-400 text-sm" data-i18n="ozet.bosBaslik">Henüz işlem yok.</p>
+          <p class="text-gray-400 text-xs mt-1" data-i18n="ozet.bosAlt">+ butonuyla harcama ekleyin.</p>
+        </div>
+      </section>
+
+      <section id="page-transactions" class="page">
+        <h2 class="text-lg font-bold mb-4 text-gray-900" data-i18n="islem.baslik">İşlemler</h2>
+        <div id="tx-list" class="space-y-2"></div>
+        <div id="tx-empty" class="text-center py-12 text-gray-400 text-sm" data-i18n="islem.henuzYok">Henüz işlem yok.</div>
+      </section>
+
+      <section id="page-partners" class="page">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex gap-2">
+            <button class="partner-tab px-4 py-1.5 rounded-lg text-sm font-semibold bg-brand text-white" data-tab="uyeler" data-i18n="uye.baslik">Üyeler</button>
+            <button class="partner-tab px-4 py-1.5 rounded-lg text-sm font-semibold text-gray-400" data-tab="ortaklar" data-i18n="ortak.baslik">Ortaklar</button>
+          </div>
+          <button id="btn-davet-gonder" class="px-4 py-2 bg-brand rounded-xl text-sm font-semibold text-white hover:bg-brand-dark transition hidden" data-i18n="uye.davetBtn">
+            + Davet Et
+          </button>
+        </div>
+
+        <div id="tab-uyeler">
+          <div id="partner-list" class="space-y-2"></div>
+          <div id="partner-empty" class="text-center py-12 text-gray-400 text-sm" data-i18n="uye.henuzYok">Henüz üye yok.</div>
+          <div id="davet-section" class="mt-6 hidden">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3" data-i18n="uye.gonderilenDavetler">Gönderilen Davetler</h3>
+            <div id="davet-listesi" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <div id="tab-ortaklar" class="hidden">
+          <div id="ortak-list" class="space-y-2"></div>
+          <div id="ortak-empty" class="text-center py-12 text-gray-400 text-sm" data-i18n="ortak.henuzYok">Henüz ortak yok.</div>
+          <div id="ortak-ekle-form" class="mt-4 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hidden">
+            <form id="form-ortak" class="space-y-3">
+              <input type="text" required class="input-field" id="ortak-isim" data-i18n-placeholder="ortak.isimPlaceholder" placeholder="Ortak ismi">
+              <div class="flex gap-2">
+                <input type="color" id="ortak-renk" value="#6366f1" class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer">
+                <input type="number" step="0.01" min="0" max="100" class="input-field flex-1" id="ortak-pay" data-i18n-placeholder="ortak.payPlaceholder" placeholder="Boş = eşit">
+              </div>
+              <button type="submit" class="btn-primary w-full" data-i18n="ortak.ekleBtn">+ Ortak Ekle</button>
+            </form>
+          </div>
+          <button id="btn-ortak-ekle-toggle" class="w-full mt-3 py-2.5 bg-brand/10 text-brand rounded-xl font-semibold text-sm hover:bg-brand/20 transition hidden" data-i18n="ortak.ekleBtn">+ Ortak Ekle</button>
+        </div>
+      </section>
+
+      <section id="page-settings" class="page">
+        <h2 class="text-lg font-bold mb-4 text-gray-900" data-i18n="ayarlar.baslik">Ayarlar</h2>
+        <div class="space-y-3">
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-medium text-gray-900 mb-1" data-i18n="ayarlar.hesap">Hesap</p>
+            <p id="ayar-kullanici" class="text-sm text-gray-500"></p>
+            <p id="ayar-rol" class="text-xs text-brand mt-1"></p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-medium text-gray-900 mb-1" data-i18n="ayarlar.dil">Dil</p>
+            <select id="ayar-dil" class="input-field text-sm" data-i18n-title="ayarlar.dilSecimi">
+              <option value="tr">Türkçe</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-medium text-gray-900 mb-2" data-i18n="ayarlar.metinAyarlari">Metin Ayarları</p>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-gray-500 block mb-1" data-i18n="ayarlar.harfBicimi">Harf Biçimi</label>
+                <select id="ayar-harf-bicimi" class="input-field text-sm">
+                  <option value="oldugu_gibi" data-i18n="ayarlar.harfOlduguGibi">Olduğu gibi</option>
+                  <option value="buyuk" data-i18n="ayarlar.harfBuyuk">BÜYÜK HARF</option>
+                  <option value="kucuk" data-i18n="ayarlar.harfKucuk">küçük harf</option>
+                </select>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-sm text-gray-700" data-i18n="ayarlar.trTemizle">Türkçe karakterleri kaldır</span>
+                  <p class="text-xs text-gray-400" data-i18n="ayarlar.trTemizleAciklama">ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="ayar-tr-temizle" class="sr-only peer">
+                  <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div id="kisisel-kasa-ayar" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hidden">
+            <button id="btn-kisisel-kasa-ac" class="w-full py-2.5 bg-brand/10 text-brand rounded-lg font-semibold text-sm hover:bg-brand/20 transition" data-i18n="ayarlar.kisiselKasaAc">
+              Bireysel Kasayı Tekrar Aç
+            </button>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-medium text-gray-900 mb-1" data-i18n="ayarlar.hakkinda">Hakkında</p>
+            <p class="text-xs text-gray-400" data-i18n="app.hakkinda">AMØRT! v2.0 — Ortaklı gider takibi ve borç yönetimi.</p>
+          </div>
+          <div id="cop-kutusu-section" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hidden">
+            <p class="font-medium text-gray-900 mb-3" data-i18n="cop.baslik">Çöp Kutusu</p>
+            <div id="cop-islemler" class="space-y-2 mb-3"></div>
+            <div id="cop-uyeler" class="space-y-2"></div>
+            <p id="cop-bos" class="text-xs text-gray-400 text-center py-2 hidden" data-i18n="cop.bos">Çöp kutusu boş.</p>
+          </div>
+          <button id="btn-cikis" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-semibold text-sm hover:bg-red-100 transition" data-i18n="ayarlar.cikisBtn">
+            Çıkış Yap
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <button id="fab" class="fab" style="display:none" data-i18n-title="islem.fabTitle" title="Yeni İşlem"><i data-lucide="plus" class="w-7 h-7"></i></button>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-30">
+      <div class="max-w-lg mx-auto flex justify-around py-2">
+        <button class="nav-item active flex flex-col items-center gap-0.5 px-3 py-1" data-page="home">
+          <i data-lucide="home" class="w-6 h-6"></i>
+          <span class="text-[10px] font-medium" data-i18n="nav.anaSayfa">Ana Sayfa</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="transactions">
+          <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+          <span class="text-[10px] font-medium" data-i18n="nav.islemler">İşlemler</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="partners">
+          <i data-lucide="users" class="w-6 h-6"></i>
+          <span class="text-[10px] font-medium" data-i18n="nav.uyeler">Üyeler</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-0.5 px-3 py-1" data-page="settings">
+          <i data-lucide="settings" class="w-6 h-6"></i>
+          <span class="text-[10px] font-medium" data-i18n="nav.ayarlar">Ayarlar</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ==================== MODAL: İşlem Ekle ==================== -->
+  <div id="modal-tx" class="modal-backdrop">
+    <div class="modal-sheet">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900" data-i18n="islem.yeniBaslik">Yeni İşlem</h3>
+        <button id="modal-tx-close" class="text-gray-400 hover:text-gray-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="flex bg-surface-dark rounded-xl p-1 mb-4">
+        <button data-type="harcama" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition" data-i18n="islem.harcamaTab">Harcama</button>
+        <button data-type="transfer" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition" data-i18n="islem.transferTab">Transfer</button>
+      </div>
+
+      <form id="form-tx" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.tutarLabel">Tutar (₺)</label>
+          <input id="tx-amount" type="number" step="0.01" min="0.01" required
+            class="input-field text-2xl font-bold text-center" data-i18n-placeholder="islem.tutarPlaceholder" placeholder="0.00" inputmode="decimal">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.odeyenLabel">Ödeyen</label>
+          <select id="tx-payer" required class="input-field"></select>
+        </div>
+        <div id="tx-receiver-group" class="hidden">
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.alanLabel">Alan Kişi</label>
+          <select id="tx-receiver" class="input-field"></select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.notLabel">Not (opsiyonel)</label>
+          <input id="tx-desc" type="text" class="input-field" data-i18n-placeholder="islem.notPlaceholder" placeholder="Açıklama...">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.tarihLabel">Tarih</label>
+          <input id="tx-date" type="date" class="input-field">
+        </div>
+        <button type="submit" class="btn-primary" data-i18n="islem.kaydetBtn">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: Davet Gönder ==================== -->
+  <div id="modal-davet" class="modal-backdrop">
+    <div class="modal-sheet">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900" data-i18n="davet.baslik">Davet Gönder</h3>
+        <button id="modal-davet-close" class="text-gray-400 hover:text-gray-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-davet" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="davet.epostaLabel">E-posta</label>
+          <input id="davet-eposta" type="email" required class="input-field" data-i18n-placeholder="davet.epostaPlaceholder" placeholder="ortak@email.com">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="davet.rolLabel">Rol</label>
+          <select id="davet-rol" class="input-field">
+            <option value="uye" data-i18n="rolAciklama.uye">Üye (harcama ekleyebilir)</option>
+            <option value="izleyici" data-i18n="rolAciklama.izleyici">İzleyici (sadece görüntüler)</option>
+            <option value="yonetici" data-i18n="rolAciklama.yonetici">Yönetici (tam yetki)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary" data-i18n="davet.gonderBtn">Davet Gönder</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>

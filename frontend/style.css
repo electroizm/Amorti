@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import 'tailwindcss';
+
+/* ─── Tailwind tema genişletme ─── */
+@theme {
+  --color-brand: #6366f1;
+  --color-brand-light: #818cf8;
+  --color-brand-dark: #4f46e5;
+  --color-surface: #ffffff;
+  --color-surface-dark: #f1f5f9;
+  --color-surface-darker: #e2e8f0;
+}
+
+/* ─── Genel ─── */
+body { font-family: 'Inter', sans-serif; }
+
+/* ─── Ekran & Sayfa geçişleri ─── */
+.page { display: none; }
+.page.active { display: block; }
+.ekran { display: none; }
+.ekran.active { display: flex; }
+
+/* ─── Navigasyon ─── */
+.nav-item.active { color: #6366f1; }
+.nav-item.active svg { stroke: #6366f1; }
+
+/* ─── Modal (bottom sheet) ─── */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 40; display: none; align-items: flex-end; justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal-sheet {
+  background: #ffffff; border-radius: 1.5rem 1.5rem 0 0;
+  width: 100%; max-width: 480px; max-height: 90vh;
+  padding: 1.5rem; overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+}
+.modal-backdrop.open .modal-sheet { transform: translateY(0); }
+
+/* ─── FAB ─── */
+.fab {
+  position: fixed; bottom: 5.5rem; right: 1.5rem;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #6366f1; color: white;
+  display: none; align-items: center; justify-content: center;
+  font-size: 1.75rem; font-weight: 700;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+  z-index: 30; cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.fab:active { transform: scale(0.9); }
+
+/* ─── Transfer kartı ─── */
+.transfer-card {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.03));
+  border: 1px solid rgba(99,102,241,0.15);
+}
+.transfer-arrow { position: relative; overflow: hidden; }
+.transfer-arrow::after {
+  content: ''; position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent);
+  animation: akis 2s ease-in-out infinite;
+}
+@keyframes akis { 0% { left: -100%; } 100% { left: 100%; } }
+
+/* ─── Toast ─── */
+.toast-container {
+  position: fixed; top: 4.5rem; left: 50%; transform: translateX(-50%);
+  z-index: 50; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+}
+.toast {
+  padding: 0.625rem 1.25rem; border-radius: 0.75rem;
+  font-size: 0.8125rem; font-weight: 600;
+  backdrop-filter: blur(12px); opacity: 0;
+  transform: translateY(-1rem) scale(0.95);
+  animation: toastIn 0.3s ease forwards, toastOut 0.3s ease 2.2s forwards;
+  pointer-events: auto;
+}
+.toast-basari { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.25); color: #059669; }
+.toast-hata { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.25); color: #dc2626; }
+.toast-bilgi { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.25); color: #4f46e5; }
+@keyframes toastIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-0.5rem) scale(0.95); } }
+
+/* ─── Form elemanları ─── */
+.input-field {
+  width: 100%; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+  padding: 0.75rem 1rem; font-size: 0.875rem;
+  background: #f8fafc; transition: border-color 0.2s;
+}
+.input-field:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+.btn-primary {
+  width: 100%; padding: 0.75rem; background: #6366f1; color: white;
+  border-radius: 0.75rem; font-weight: 700; font-size: 1rem;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #4f46e5; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── Auth ─── */
+.sifre-wrapper { position: relative; }
+.sifre-wrapper input { padding-right: 2.75rem; }
+.btn-sifre-goster {
+  position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #9ca3af; cursor: pointer; padding: 0.25rem;
+}
+.btn-sifre-goster:hover { color: #6366f1; }
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%; padding: 0.75rem; border-radius: 0.75rem;
+  border: 1px solid #e2e8f0; background: white; font-size: 0.875rem;
+  font-weight: 600; cursor: pointer; transition: background 0.2s, border-color 0.2s;
+  color: #374151;
+}
+.btn-google:hover { background: #f9fafb; border-color: #d1d5db; }
+.auth-divider {
+  display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0;
+  color: #9ca3af; font-size: 0.75rem;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e5e7eb;
+}
