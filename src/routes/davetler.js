@@ -3,7 +3,7 @@
  * Davet gonder, listele, kabul/red et
  */
 const { Router } = require('express');
-const { authGerekli, sirketBaglami, rolGerekli } = require('../middleware/auth');
+const { authGerekli, sirketBaglami, rolGerekli, supabaseService } = require('../middleware/auth');
 const { turkceHata } = require('../services/hata');
 
 const router = Router();
@@ -142,7 +142,8 @@ router.post('/:id/kabul', async (req, res) => {
 
     // Davet ortaklık payı içeriyorsa ortak kaydı oluştur ve üyeye bağla
     if (davet.pay != null && yeniUye) {
-      const { data: yeniOrtak } = await req.supabase
+      const dbClient = supabaseService || req.supabase;
+      const { data: yeniOrtak } = await dbClient
         .from('ortaklar')
         .insert({
           sirket_id: davet.sirket_id,
@@ -154,7 +155,7 @@ router.post('/:id/kabul', async (req, res) => {
         .single();
 
       if (yeniOrtak) {
-        await req.supabase
+        await dbClient
           .from('uyeler')
           .update({ ortak_id: yeniOrtak.id })
           .eq('id', yeniUye.id);

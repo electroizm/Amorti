@@ -193,6 +193,7 @@ CREATE POLICY ortaklar_select ON ortaklar FOR SELECT USING (
 );
 CREATE POLICY ortaklar_insert ON ortaklar FOR INSERT WITH CHECK (
   sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))
+  OR sirket_id IN (SELECT id FROM sirketler WHERE sahip_id = auth.uid())
 );
 CREATE POLICY ortaklar_update ON ortaklar FOR UPDATE USING (
   sirket_id IN (SELECT kullanici_sirket_idleri(auth.uid()))

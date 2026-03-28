@@ -6,9 +6,17 @@ const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Admin client: sadece token dogrulama icin
+// Admin client: token dogrulama icin (anon key)
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Service client: RLS'i bypass eder, backend mutations icin
+const supabaseService = SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+  : null;
 
 /**
  * Kullanicinin token'iyla yeni Supabase client olustur
@@ -85,4 +93,4 @@ function rolGerekli(...roller) {
   };
 }
 
-module.exports = { authGerekli, sirketBaglami, rolGerekli, supabaseAdmin };
+module.exports = { authGerekli, sirketBaglami, rolGerekli, supabaseAdmin, supabaseService };

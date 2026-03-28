@@ -3,7 +3,7 @@
  * CRUD: sirket olustur, listele, guncelle, sil
  */
 const { Router } = require('express');
-const { authGerekli } = require('../middleware/auth');
+const { authGerekli, supabaseService } = require('../middleware/auth');
 const { turkceHata } = require('../services/hata');
 
 const router = Router();
@@ -76,8 +76,9 @@ router.post('/', async (req, res) => {
 
     if (uyeErr) throw uyeErr;
 
-    // Kurucuyu otomatik ortak yap (pay null = tek ortaksa %100 etkin, yeni ortak gelince kalan hesaplanır)
-    const { data: ortak, error: ortakErr } = await req.supabase
+    // Kurucuyu otomatik ortak yap — RLS bypass gerekebilir, service client kullan
+    const dbClient = supabaseService || req.supabase;
+    const { data: ortak, error: ortakErr } = await dbClient
       .from('ortaklar')
       .insert({ sirket_id: sirket.id, isim: kullaniciIsim, renk: '#6366f1', pay: null })
       .select()
@@ -86,7 +87,7 @@ router.post('/', async (req, res) => {
     if (ortakErr) throw ortakErr;
 
     // Üye kaydını ortakla bağla
-    await req.supabase
+    await dbClient
       .from('uyeler')
       .update({ ortak_id: ortak.id })
       .eq('id', yeniUye.id);
