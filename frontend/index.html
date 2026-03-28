@@ -53,6 +53,13 @@
             <i data-lucide="eye" class="w-5 h-5"></i>
           </button>
         </div>
+        <div class="sifre-wrapper">
+          <input type="password" required minlength="6" class="input-field" id="kayit-sifre-tekrar" data-i18n-placeholder="auth.sifreTekrarPlaceholder" placeholder="Şifre tekrar">
+          <button type="button" class="btn-sifre-goster" tabindex="-1">
+            <i data-lucide="eye" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <p id="kayit-sifre-hata" class="hidden text-xs text-red-500 -mt-1" data-i18n="auth.sifreEslesmiyor">Şifreler eşleşmiyor</p>
         <button type="submit" class="btn-primary" data-i18n="auth.kayitBtn">Hesap Oluştur</button>
         <div class="auth-divider">veya</div>
         <button type="button" id="btn-google-kayit" class="btn-google">

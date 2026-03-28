@@ -7,6 +7,8 @@ export default {
     epostaPlaceholder: 'E-posta',
     sifrePlaceholder: 'Şifre',
     sifreKayitPlaceholder: 'Şifre (en az 6 karakter)',
+    sifreTekrarPlaceholder: 'Şifre tekrar',
+    sifreEslesmiyor: 'Şifreler eşleşmiyor',
     isimPlaceholder: 'İsim',
     girisBtn: 'Giriş Yap',
     kayitBtn: 'Hesap Oluştur',

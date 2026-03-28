@@ -10,6 +10,9 @@ export function authEkranKur(app) {
 
     document.getElementById('auth-kayit-goster').addEventListener('click', (e) => {
       e.preventDefault();
+      // Giriş formundaki e-postayı kayıt formuna kopyala
+      const girisEposta = document.getElementById('giris-eposta').value;
+      if (girisEposta) document.getElementById('kayit-eposta').value = girisEposta;
       formGiris.classList.add('hidden');
       formKayit.classList.remove('hidden');
       if (dogrulamaMesaji) dogrulamaMesaji.classList.add('hidden');
@@ -64,15 +67,38 @@ export function authEkranKur(app) {
       } finally { btn.disabled = false; }
     });
 
+    // Şifre eşleşme kontrolü
+    const sifreInput = document.getElementById('kayit-sifre');
+    const sifreTekrarInput = document.getElementById('kayit-sifre-tekrar');
+    const kayitBtn = formKayit.querySelector('button[type="submit"]');
+    const sifreHataEl = document.getElementById('kayit-sifre-hata');
+
+    const sifreKontrol = () => {
+      const s1 = sifreInput.value;
+      const s2 = sifreTekrarInput.value;
+      if (!s2) { sifreHataEl.classList.add('hidden'); kayitBtn.disabled = !s1 || s1.length < 6; return; }
+      const esit = s1 === s2;
+      sifreHataEl.classList.toggle('hidden', esit);
+      kayitBtn.disabled = !esit || s1.length < 6;
+    };
+    sifreInput.addEventListener('input', sifreKontrol);
+    sifreTekrarInput.addEventListener('input', sifreKontrol);
+
     formKayit.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = formKayit.querySelector('button[type="submit"]');
-      btn.disabled = true;
+      const sifre = sifreInput.value;
+      const sifreTekrar = sifreTekrarInput.value;
+      if (sifre !== sifreTekrar) {
+        app.toast(t('auth.sifreEslesmiyor'), 'hata');
+        app.titresim(100);
+        return;
+      }
+      kayitBtn.disabled = true;
       try {
         await API.kayit(
           document.getElementById('kayit-isim').value,
           document.getElementById('kayit-eposta').value,
-          document.getElementById('kayit-sifre').value
+          sifre
         );
         app.toast(t('auth.hesapOlusturuldu'), 'basari');
         app.ekranGoster('sirket');
@@ -80,7 +106,7 @@ export function authEkranKur(app) {
       } catch (err) {
         app.toast(err.message, 'hata');
         app.titresim(100);
-      } finally { btn.disabled = false; }
+      } finally { kayitBtn.disabled = false; }
     });
 
     const googleOAuth = async () => {

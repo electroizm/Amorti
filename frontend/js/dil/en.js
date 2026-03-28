@@ -7,6 +7,8 @@ export default {
     epostaPlaceholder: 'Email',
     sifrePlaceholder: 'Password',
     sifreKayitPlaceholder: 'Password (min 6 characters)',
+    sifreTekrarPlaceholder: 'Confirm password',
+    sifreEslesmiyor: 'Passwords do not match',
     isimPlaceholder: 'Name',
     girisBtn: 'Log In',
     kayitBtn: 'Create Account',
