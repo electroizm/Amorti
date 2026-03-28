@@ -13,6 +13,14 @@ export function ozetPanelKur(app) {
 
     const isOrtak = (ozet.ortaklar?.length ?? 0) > 0;
 
+    // Payların eşit olup olmadığını belirle: hepsi null ise eşit kabul et → badge gösterme
+    const hepsNull = isOrtak && list.every(o => o.pay == null);
+    const toplamBelirtilen = isOrtak
+      ? list.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0)
+      : 0;
+    const nullSayisi = isOrtak ? list.filter(o => o.pay == null).length : 0;
+    const kalanPayBasi = nullSayisi > 0 ? Math.round((100 - toplamBelirtilen) / nullSayisi * 100) / 100 : 0;
+
     container.innerHTML = list.map(entity => {
       const harcanan = isOrtak
         ? (ozet.ortakHarcamalar || {})[entity.id] || 0
@@ -20,7 +28,12 @@ export function ozetPanelKur(app) {
       const bakiye = ozet.bakiyeler[entity.id] || 0;
       const bakiyeClass = bakiye > 0 ? 'partner-badge-alacak' : bakiye < 0 ? 'partner-badge-borc' : 'partner-badge-esit';
       const bakiyeLabel = bakiye > 0 ? t('bakiye.alacakli') : bakiye < 0 ? t('bakiye.borclu') : t('bakiye.esit');
-      const payStr = isOrtak && entity.pay != null ? `<span class="partner-pay">%${entity.pay}</span>` : '';
+
+      let payStr = '';
+      if (isOrtak && !hepsNull) {
+        const payDeger = entity.pay != null ? parseFloat(entity.pay) : kalanPayBasi;
+        payStr = `<span class="partner-pay">%${payDeger}</span>`;
+      }
 
       return `
         <div class="partner-card">
