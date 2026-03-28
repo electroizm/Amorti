@@ -95,7 +95,7 @@ export function profilEkranKur(app) {
     }
   };
 
-  // ─── Profil ekranını aç ───
+  // ─── Profil sayfasını aç ───
   app.profilEkranGoster = function () {
     const k = API.getKullanici();
     if (k) {
@@ -107,12 +107,12 @@ export function profilEkranKur(app) {
     app.headerAvatarGuncelle();
     app.profilKasalariGoster();
     app.profilDavetleriGoster();
-    app.ekranGoster('profil');
+    app.navigate('profil');
   };
 
   // ─── Geri butonu ───
   document.getElementById('btn-profil-geri').addEventListener('click', () => {
-    app.ekranGoster('app');
+    app.navigate('home');
   });
 
   // ─── Avatar tıklama → dosya seç ───
@@ -201,9 +201,9 @@ export function profilEkranKur(app) {
     const btn = e.target.closest('.profil-kasa-item');
     if (!btn) return;
     const id = btn.dataset.id;
-    if (id === API.getSirketId()) { app.ekranGoster('app'); return; }
+    if (id === API.getSirketId()) { app.navigate('home'); return; }
     API.setSirketId(id);
-    app.ekranGoster('app');
+    app.navigate('home');
     await app.yenile();
   });
 
@@ -218,7 +218,7 @@ export function profilEkranKur(app) {
         if (sonuc?.sirket_id) {
           API.setSirketId(sonuc.sirket_id);
           await app.yenile();
-          app.ekranGoster('app');
+          app.navigate('home');
         } else {
           app.profilDavetleriGoster();
         }
@@ -245,7 +245,7 @@ export function profilEkranKur(app) {
       API.setSirketId(sirket.id);
       app.toast(`"${isim}" oluşturuldu`, 'basari');
       await app.yenile();
-      app.ekranGoster('app');
+      app.navigate('home');
     } catch (err) {
       app.toast(err.message, 'hata');
     } finally {

@@ -209,6 +209,80 @@
         </div>
       </section>
 
+      <!-- ===== PROFİL SAYFASI ===== -->
+      <section id="page-profil" class="page">
+        <div class="flex items-center gap-3 mb-5">
+          <button id="btn-profil-geri" class="p-2 rounded-lg hover:bg-surface-dark transition flex-shrink-0">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
+          </button>
+          <h2 class="text-lg font-bold text-gray-900">Profil Düzenle</h2>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Avatar -->
+          <div class="flex flex-col items-center gap-2 py-2">
+            <div id="profil-avatar-wrap" class="relative cursor-pointer group">
+              <div id="profil-avatar-cerceve" class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-md"></div>
+              <div class="absolute inset-0 rounded-full bg-black/25 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
+                <i data-lucide="camera" class="w-7 h-7 text-white"></i>
+              </div>
+            </div>
+            <input type="file" id="profil-foto-input" accept="image/*" class="hidden">
+            <p class="text-xs text-gray-400">Değiştirmek için tıkla</p>
+          </div>
+
+          <!-- Ad -->
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-semibold text-sm text-gray-700 mb-3">Ad</p>
+            <div class="flex gap-2">
+              <input id="profil-isim-input" type="text" class="input-field flex-1" placeholder="Adınız">
+              <button id="btn-profil-isim-kaydet" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
+            </div>
+          </div>
+
+          <!-- E-posta -->
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-semibold text-sm text-gray-700 mb-1">E-posta</p>
+            <p class="text-xs text-gray-400 mb-3">E-posta değiştirildiğinde doğrulama bağlantısı gönderilir.</p>
+            <div class="flex gap-2">
+              <input id="profil-eposta-input" type="email" class="input-field flex-1" placeholder="E-posta adresiniz">
+              <button id="btn-profil-eposta-kaydet" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
+            </div>
+          </div>
+
+          <!-- Şifre -->
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-semibold text-sm text-gray-700 mb-3">Şifre Değiştir</p>
+            <div class="space-y-2">
+              <input id="profil-sifre-yeni" type="password" class="input-field" placeholder="Yeni şifre (en az 6 karakter)">
+              <input id="profil-sifre-tekrar" type="password" class="input-field" placeholder="Yeni şifre tekrar">
+              <button id="btn-profil-sifre-kaydet" class="btn-primary">Şifreyi Değiştir</button>
+            </div>
+          </div>
+
+          <!-- Bekleyen Davetler -->
+          <div id="profil-davetler-bolum" class="hidden">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Bekleyen Davetler</p>
+            <div id="profil-davet-listesi" class="space-y-2"></div>
+          </div>
+
+          <!-- Kasalarım -->
+          <div id="profil-kasalar-bolum" class="hidden">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Kasalarım</p>
+            <div id="profil-kasa-listesi" class="space-y-2"></div>
+          </div>
+
+          <!-- Yeni Kasa Oluştur -->
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="font-semibold text-sm text-gray-700 mb-3">Yeni Kasa Oluştur</p>
+            <form id="profil-form-kasa" class="flex gap-2">
+              <input type="text" id="profil-kasa-isim" class="input-field flex-1" placeholder="Kasa adı" required>
+              <button type="submit" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Oluştur</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
       <section id="page-settings" class="page">
         <h2 class="text-lg font-bold mb-4 text-gray-900" data-i18n="ayarlar.baslik">Ayarlar</h2>
         <div class="space-y-3">
@@ -421,84 +495,6 @@
         <button type="submit" class="btn-primary" data-i18n="ortak.kaydetBtn">Kaydet</button>
       </form>
     </div>
-  </div>
-
-  <!-- ==================== PROFİL EKRANI ==================== -->
-  <div id="ekran-profil" class="ekran flex-col min-h-screen bg-surface-dark">
-    <header class="sticky top-0 z-20 bg-white/92 backdrop-blur-md border-b border-gray-100 px-4 py-3">
-      <div class="max-w-lg mx-auto flex items-center gap-3">
-        <button id="btn-profil-geri" class="p-2 rounded-lg hover:bg-surface-dark transition">
-          <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
-        </button>
-        <h1 class="font-bold text-gray-900">Profil Düzenle</h1>
-      </div>
-    </header>
-
-    <main class="max-w-lg mx-auto px-4 pt-6 pb-12 flex-1 w-full space-y-4">
-
-      <!-- Avatar -->
-      <div class="flex flex-col items-center gap-2 py-2">
-        <div id="profil-avatar-wrap" class="relative cursor-pointer group">
-          <div id="profil-avatar-cerceve" class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-md"></div>
-          <div class="absolute inset-0 rounded-full bg-black/25 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
-            <i data-lucide="camera" class="w-7 h-7 text-white"></i>
-          </div>
-        </div>
-        <input type="file" id="profil-foto-input" accept="image/*" class="hidden">
-        <p class="text-xs text-gray-400">Değiştirmek için tıkla</p>
-      </div>
-
-      <!-- Ad -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <p class="font-semibold text-sm text-gray-700 mb-3">Ad</p>
-        <div class="flex gap-2">
-          <input id="profil-isim-input" type="text" class="input-field flex-1" placeholder="Adınız">
-          <button id="btn-profil-isim-kaydet" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
-        </div>
-      </div>
-
-      <!-- E-posta -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <p class="font-semibold text-sm text-gray-700 mb-1">E-posta</p>
-        <p class="text-xs text-gray-400 mb-3">E-posta değiştirildiğinde doğrulama bağlantısı gönderilir.</p>
-        <div class="flex gap-2">
-          <input id="profil-eposta-input" type="email" class="input-field flex-1" placeholder="E-posta adresiniz">
-          <button id="btn-profil-eposta-kaydet" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
-        </div>
-      </div>
-
-      <!-- Şifre -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <p class="font-semibold text-sm text-gray-700 mb-3">Şifre Değiştir</p>
-        <div class="space-y-2">
-          <input id="profil-sifre-yeni" type="password" class="input-field" placeholder="Yeni şifre (en az 6 karakter)">
-          <input id="profil-sifre-tekrar" type="password" class="input-field" placeholder="Yeni şifre tekrar">
-          <button id="btn-profil-sifre-kaydet" class="btn-primary">Şifreyi Değiştir</button>
-        </div>
-      </div>
-
-      <!-- Bekleyen Davetler -->
-      <div id="profil-davetler-bolum" class="hidden">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Bekleyen Davetler</p>
-        <div id="profil-davet-listesi" class="space-y-2"></div>
-      </div>
-
-      <!-- Kasalarım -->
-      <div id="profil-kasalar-bolum" class="hidden">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Kasalarım</p>
-        <div id="profil-kasa-listesi" class="space-y-2"></div>
-      </div>
-
-      <!-- Yeni Kasa Oluştur -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <p class="font-semibold text-sm text-gray-700 mb-3">Yeni Kasa Oluştur</p>
-        <form id="profil-form-kasa" class="flex gap-2">
-          <input type="text" id="profil-kasa-isim" class="input-field flex-1" placeholder="Kasa adı" required>
-          <button type="submit" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Oluştur</button>
-        </form>
-      </div>
-
-    </main>
   </div>
 
   <script type="module" src="/main.js"></script>

@@ -166,7 +166,7 @@ const App = {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${sayfa}`).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelector(`.nav-item[data-page="${sayfa}"]`).classList.add('active');
+    document.querySelector(`.nav-item[data-page="${sayfa}"]`)?.classList.add('active');
 
     const fab = document.getElementById('fab');
     const izleyici = this.rol === 'izleyici';
