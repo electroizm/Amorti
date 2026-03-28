@@ -2,6 +2,30 @@ import { t } from '../dil/i18n.js';
 import { API } from '../api.js';
 import { ikonlariGuncelle } from '../ikonlar.js';
 
+function bas(isim) {
+  return (isim || '?').charAt(0).toUpperCase();
+}
+
+function formatAmountInput(input) {
+  const v = input.value;
+  const clean = v.replace(/[^\d,]/g, '');
+  const parts = clean.split(',');
+  const intRaw = parts[0].replace(/\./g, '') || '';
+  if (!intRaw) { input.value = v.endsWith(',') ? ',' : ''; return; }
+  const intNum = parseInt(intRaw, 10);
+  if (isNaN(intNum)) return;
+  const thousands = new Intl.NumberFormat('tr-TR').format(intNum);
+  if (parts.length > 1) {
+    input.value = thousands + ',' + parts[1].slice(0, 2);
+  } else {
+    input.value = thousands + (v.endsWith(',') ? ',' : '');
+  }
+}
+
+function parseAmount(str) {
+  return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+}
+
 export function islemKartiKur(app) {
   app.bindFAB = function () {
     document.getElementById('fab').addEventListener('click', () => {
@@ -21,6 +45,11 @@ export function islemKartiKur(app) {
       if (e.target === e.currentTarget) app.modalKapat('modal-tx');
     });
 
+    // ─── Tutar otomatik biçimleme ───
+    const amtInput = document.getElementById('tx-amount');
+    amtInput.addEventListener('input', () => formatAmountInput(amtInput));
+    amtInput.addEventListener('focus', () => amtInput.select());
+
     document.querySelectorAll('.tx-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         app.islemTuru = tab.dataset.type;
@@ -37,13 +66,21 @@ export function islemKartiKur(app) {
     document.getElementById('form-tx').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (app.rol === 'izleyici') return;
+
+      const tutar = parseAmount(amtInput.value);
+      if (!tutar || tutar <= 0) {
+        app.toast(t('islem.tutarHata') || 'Geçerli bir tutar girin', 'hata');
+        app.titresim(100);
+        return;
+      }
+
       const payerVal = document.getElementById('tx-payer').value;
       const kasaMi = payerVal === '__kasa__';
       const ortakModu = (app.ortaklar || []).length > 0;
       const data = {
         tur: app.islemTuru,
         odeyen_id: kasaMi ? app.uyeler[0]?.id : (ortakModu ? app.uyeler[0]?.id : payerVal),
-        tutar: parseFloat(document.getElementById('tx-amount').value),
+        tutar,
         aciklama: document.getElementById('tx-desc').value,
         tarih: document.getElementById('tx-date').value,
         kasa_mi: kasaMi
@@ -104,49 +141,64 @@ export function islemKartiKur(app) {
       const islemler = await API.getIslemler();
       if (islemler.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
       empty.classList.add('hidden');
+
       const uyeMap = {}; app.uyeler.forEach(u => { uyeMap[u.id] = u; });
       const ortakMap = {}; (app.ortaklar || []).forEach(o => { ortakMap[o.id] = o; });
       const izleyici = app.rol === 'izleyici';
 
       list.innerHTML = islemler.slice().reverse().map(i => {
         const odeyenOrtak = i.odeyen_ortak_id ? ortakMap[i.odeyen_ortak_id] : null;
-        const odeyen = odeyenOrtak || uyeMap[i.odeyen_id] || { isim: '?', renk: '#999' };
+        const odeyen = odeyenOrtak || uyeMap[i.odeyen_id] || { isim: '?', renk: '#94a3b8' };
         const transferMi = i.tur === 'transfer';
         const kasaMi = i.kasa_mi;
         const alanKasaMi = i.alan_kasa_mi;
         const alanOrtak = i.alan_ortak_id ? ortakMap[i.alan_ortak_id] : null;
-        const alan = transferMi ? (alanOrtak || uyeMap[i.alan_id] || { isim: '?', renk: '#999' }) : null;
-        let turBadge;
-        if (kasaMi || alanKasaMi) turBadge = `<span class="text-xs px-2 py-0.5 rounded-full bg-brand/10 text-brand">🏢 ${app.esc(app.sirketIsim)}</span>`;
-        else if (transferMi) turBadge = `<span class="text-xs px-2 py-0.5 rounded-full bg-brand/10 text-brand">${t('tur.transfer')}</span>`;
-        else turBadge = `<span class="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">${t('tur.harcama')}</span>`;
+        const alan = transferMi ? (alanOrtak || uyeMap[i.alan_id] || { isim: '?', renk: '#94a3b8' }) : null;
+
         const odeyenIsim = kasaMi ? app.sirketIsim : odeyen.isim;
         const odeyenRenk = kasaMi ? '#6366f1' : odeyen.renk;
-        const alanIsim = alanKasaMi ? app.sirketIsim : alan?.isim;
-        const alanRenk = alanKasaMi ? '#6366f1' : alan?.renk;
+        const alanIsim  = alanKasaMi ? app.sirketIsim : alan?.isim;
+        const alanRenk  = alanKasaMi ? '#6366f1' : alan?.renk;
+
+        let typePill;
+        if (kasaMi || alanKasaMi) {
+          typePill = `<span class="tx-pill tx-pill-kasa">🏢 ${app.esc(app.sirketIsim)}</span>`;
+        } else if (transferMi) {
+          typePill = `<span class="tx-pill tx-pill-transfer">${t('tur.transfer')}</span>`;
+        } else {
+          typePill = `<span class="tx-pill tx-pill-harcama">${t('tur.harcama')}</span>`;
+        }
+
+        const aciklama = i.aciklama
+          ? `<span class="tx-aciklama">${app.esc(i.aciklama)}</span>`
+          : '';
+
+        const avatarLeft = kasaMi
+          ? `<div class="amort-avatar" style="background:#6366f1"><i data-lucide="building-2" class="w-4 h-4"></i></div>`
+          : `<div class="amort-avatar" style="background:${odeyenRenk}">${bas(odeyenIsim)}</div>`;
+
+        const transferArrow = transferMi ? `
+          <div class="tx-transfer-row">
+            <div class="amort-avatar amort-avatar-sm" style="background:${odeyenRenk}">${kasaMi ? '🏢' : bas(odeyenIsim)}</div>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-brand/60 shrink-0"></i>
+            <div class="amort-avatar amort-avatar-sm" style="background:${alanRenk}">${alanKasaMi ? '🏢' : bas(alanIsim)}</div>
+            <span class="tx-transfer-names">${app.esc(odeyenIsim)} → ${app.esc(alanIsim)}</span>
+          </div>` : `<div class="tx-odeyen">${app.esc(odeyenIsim)}</div>`;
+
         return `
-          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div class="flex items-center justify-between mb-1">
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 rounded-full" style="background: ${odeyenRenk}"></div>
-                <span class="font-medium text-sm text-gray-700">${app.esc(odeyenIsim)}</span>
-                ${transferMi ? `
-                  <i data-lucide="arrow-right" class="w-4 h-4 text-brand"></i>
-                  <div class="w-3 h-3 rounded-full" style="background: ${alanRenk}"></div>
-                  <span class="font-medium text-sm text-gray-700">${app.esc(alanIsim)}</span>
-                ` : ''}
+          <div class="tx-item">
+            <div class="tx-item-body">
+              ${!transferMi ? avatarLeft : ''}
+              <div class="tx-item-content">
+                ${aciklama}
+                ${transferArrow}
+                <div class="tx-item-meta">
+                  ${typePill}
+                  <span class="tx-tarih">${i.tarih}</span>
+                  ${!izleyici ? `<button class="islem-sil" data-id="${i.id}" title="${t('islem.sil') || 'Sil'}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>` : ''}
+                </div>
               </div>
-              <span class="font-bold text-gray-900">${app.formatPara(i.tutar)} ₺</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                ${turBadge}
-                ${i.aciklama ? `<span class="text-xs text-gray-400">${app.esc(i.aciklama)}</span>` : ''}
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-gray-400">${i.tarih}</span>
-                ${!izleyici ? `<button class="islem-sil p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${i.id}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>` : ''}
-              </div>
+              <span class="tx-tutar ${transferMi ? 'tx-tutar-transfer' : ''}">${app.formatPara(i.tutar)} <span class="tx-tl">₺</span></span>
             </div>
           </div>`;
       }).join('');

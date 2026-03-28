@@ -82,10 +82,10 @@ export function uyeKartiKur(app) {
         empty.classList.add('hidden');
         const ortakOptions = ortaklar.length > 0 ? `<option value="">${t('uye.ortakYok')}</option>` + ortaklar.map(o => `<option value="${o.id}">${app.esc(o.isim)}</option>`).join('') : '';
         list.innerHTML = uyeler.map(u => `
-          <div class="bg-white rounded-xl p-4 flex items-center justify-between shadow-sm border border-gray-100">
+          <div class="uye-row">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-full" style="background: ${u.renk}"></div>
-              <div><p class="font-semibold text-gray-900">${app.esc(u.isim)}</p><p class="text-xs text-gray-400">${app.rolGoster(u.rol)}</p></div>
+              <div class="amort-avatar" style="background:${u.renk}">${(u.isim || '?').charAt(0).toUpperCase()}</div>
+              <div><p class="font-semibold text-sm text-gray-900">${app.esc(u.isim)}</p><p class="text-xs text-brand/70 font-medium">${app.rolGoster(u.rol)}</p></div>
             </div>
             ${yonetici ? `
               <div class="flex gap-1 items-center">
@@ -95,11 +95,12 @@ export function uyeKartiKur(app) {
                   <option value="uye" ${u.rol === 'uye' ? 'selected' : ''}>${t('rol.uye')}</option>
                   <option value="izleyici" ${u.rol === 'izleyici' ? 'selected' : ''}>${t('rol.izleyici')}</option>
                 </select>
-                <button class="uye-sil p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${u.id}" data-isim="${app.esc(u.isim)}">
+                <button class="uye-sil p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition" data-id="${u.id}" data-isim="${app.esc(u.isim)}">
                   <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
               </div>` : ''}
-          </div>`).join('');
+          </div>
+          `).join('');
         ikonlariGuncelle();
 
         if (!list._delegated) {
@@ -149,8 +150,8 @@ export function uyeKartiKur(app) {
           <div class="ortak-wrapper" data-id="${o.id}">
             <div class="bg-white rounded-xl p-4 flex items-center justify-between shadow-sm border border-gray-100">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full" style="background: ${o.renk}"></div>
-                <div><p class="font-semibold text-gray-900">${app.esc(o.isim)}</p><p class="text-xs text-gray-400">${o.pay != null ? `${t('ortak.payLabel')}: %${o.pay}` : t('ortak.payPlaceholder')}</p></div>
+                <div class="amort-avatar" style="background:${o.renk}">${(o.isim || '?').charAt(0).toUpperCase()}</div>
+                <div><p class="font-semibold text-sm text-gray-900">${app.esc(o.isim)}</p><p class="text-xs text-gray-400">${o.pay != null ? `%${o.pay} pay` : t('ortak.payPlaceholder')}</p></div>
               </div>
               ${yonetici ? `<div class="flex gap-1">
                 <button class="ortak-duzenle p-2 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition" data-id="${o.id}"><i data-lucide="pencil" class="w-4 h-4"></i></button>

@@ -20,6 +20,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// UptimeRobot / health check — statik dosyalardan önce gelsin
+app.get('/health', (req, res) => res.json({ status: 'ok', ts: Date.now() }));
 // Production: dist/ (Vite build), Fallback: public/ (eski CDN sürüm)
 const fs = require('fs');
 const distDir = path.join(__dirname, 'dist');
