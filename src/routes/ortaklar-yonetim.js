@@ -36,17 +36,21 @@ router.post('/', rolGerekli('yonetici'), async (req, res) => {
   try {
     let hesaplananPay = pay != null ? parseFloat(pay) : null;
 
-    // Pay boşsa ve mevcut ortakların yüzde toplamı varsa kalanı ata
-    if (hesaplananPay === null) {
-      const { data: mevcutOrtaklar } = await req.supabase
-        .from('ortaklar')
-        .select('pay')
-        .eq('sirket_id', req.sirketId);
+    const { data: mevcutOrtaklar } = await req.supabase
+      .from('ortaklar')
+      .select('pay')
+      .eq('sirket_id', req.sirketId);
 
-      const toplamPay = (mevcutOrtaklar || []).reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
-      if (toplamPay > 0 && toplamPay < 100) {
-        hesaplananPay = Math.round((100 - toplamPay) * 100) / 100;
-      }
+    const toplamBelirtilen = (mevcutOrtaklar || []).reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+
+    // Pay verilmişse %100 aşım kontrolü
+    if (hesaplananPay != null && toplamBelirtilen + hesaplananPay > 100) {
+      return res.status(400).json({ hata: `Paylar %100'ü aşamaz. Mevcut toplam: %${toplamBelirtilen}` });
+    }
+
+    // Pay boşsa kalan yüzdeyi ata
+    if (hesaplananPay === null && toplamBelirtilen > 0 && toplamBelirtilen < 100) {
+      hesaplananPay = Math.round((100 - toplamBelirtilen) * 100) / 100;
     }
 
     const row = {
@@ -79,6 +83,22 @@ router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
 
   if (Object.keys(guncellemeler).length === 0) {
     return res.status(400).json({ hata: 'Güncellenecek alan belirtilmedi' });
+  }
+
+  // Pay güncelleniyorsa %100 aşım kontrolü (kendi payı hariç)
+  if (guncellemeler.pay != null) {
+    try {
+      const { data: digerOrtaklar } = await req.supabase
+        .from('ortaklar')
+        .select('pay')
+        .eq('sirket_id', req.sirketId)
+        .neq('id', req.params.id);
+
+      const digerToplam = (digerOrtaklar || []).reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+      if (digerToplam + guncellemeler.pay > 100) {
+        return res.status(400).json({ hata: `Paylar %100'ü aşamaz. Diğer ortakların toplamı: %${digerToplam}` });
+      }
+    } catch (_) {}
   }
 
   try {

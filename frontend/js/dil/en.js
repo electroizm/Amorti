@@ -135,6 +135,8 @@ export default {
     epostaLabel: 'Email',
     epostaPlaceholder: 'partner@email.com',
     rolLabel: 'Role',
+    payLabel: 'Partnership Share (%) — optional',
+    payPlaceholder: 'e.g. 60 → 60% partner',
     gonderBtn: 'Send Invitation',
     gonderildi: 'Invitation sent'
   },

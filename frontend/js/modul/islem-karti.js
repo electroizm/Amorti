@@ -87,7 +87,6 @@ export function islemKartiKur(app) {
         return;
       }
 
-      const bireysel = app.sirketTip === 'bireysel';
       const ortakModu = (app.ortaklar || []).length > 0;
 
       // Gelir işlemi: payer yok, sadece tutar + açıklama + tarih
@@ -118,7 +117,7 @@ export function islemKartiKur(app) {
       const kasaMi = payerVal === '__kasa__';
       const data = {
         tur: app.islemTuru,
-        odeyen_id: kasaMi ? app.uyeler[0]?.id : (ortakModu ? app.uyeler[0]?.id : (bireysel ? app.uyeler[0]?.id : payerVal)),
+        odeyen_id: kasaMi ? app.uyeler[0]?.id : (ortakModu ? app.uyeler[0]?.id : payerVal),
         tutar,
         aciklama: document.getElementById('tx-desc').value,
         tarih: document.getElementById('tx-date').value,
@@ -153,26 +152,15 @@ export function islemKartiKur(app) {
   };
 
   app.tablarGuncelle = function () {
-    const bireysel = app.sirketTip === 'bireysel';
-    const gelirTab = document.querySelector('.tx-tab[data-type="gelir"]');
-    const transferTab = document.querySelector('.tx-tab[data-type="transfer"]');
-    if (gelirTab) gelirTab.classList.toggle('hidden', !bireysel);
-    if (transferTab) transferTab.classList.toggle('hidden', bireysel);
-    // Bireysel modda varsayılan tab 'harcama', gelir tab göster
-    // Eğer mevcut islemTuru ortaklık modunda geçersizse sıfırla
-    if (bireysel && app.islemTuru === 'transfer') {
-      app.islemTuru = 'harcama';
-      document.querySelector('.tx-tab[data-type="harcama"]')?.click();
-    }
+    // Gelir sekmesi her zaman görünür
+    document.querySelector('.tx-tab[data-type="gelir"]')?.classList.remove('hidden');
   };
 
   app.selectGuncelle = function () {
     const kullanici = API.getKullanici();
     const kullaniciId = kullanici?.id;
     const ortaklar = app.ortaklar || [];
-    const kasaOption = !app.sirketTip || app.sirketTip === 'ortaklik'
-      ? (app.sirketIsim ? `<option value="__kasa__">🏢 ${app.esc(app.sirketIsim)}</option>` : '')
-      : '';
+    const kasaOption = app.sirketIsim ? `<option value="__kasa__">🏢 ${app.esc(app.sirketIsim)}</option>` : '';
 
     const payerSel = document.getElementById('tx-payer');
     const receiverSel = document.getElementById('tx-receiver');

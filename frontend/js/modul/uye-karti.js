@@ -13,7 +13,9 @@ export function uyeKartiKur(app) {
     document.getElementById('form-davet').addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
-        await API.davetGonder(document.getElementById('davet-eposta').value, document.getElementById('davet-rol').value);
+        const payVal = document.getElementById('davet-pay')?.value;
+        const pay = payVal ? parseFloat(payVal) : null;
+        await API.davetGonder(document.getElementById('davet-eposta').value, document.getElementById('davet-rol').value, pay);
         app.titresim(); app.modalKapat('modal-davet'); document.getElementById('form-davet').reset();
         app.toast(t('davet.gonderildi'), 'basari');
         if (app.mevcutSayfa === 'partners') app.uyeListesiGoster();

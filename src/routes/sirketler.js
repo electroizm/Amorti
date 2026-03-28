@@ -45,25 +45,24 @@ router.get('/', async (req, res) => {
 
 // POST /api/sirketler — yeni sirket olustur
 router.post('/', async (req, res) => {
-  const { isim, tip } = req.body;
+  const { isim } = req.body;
   if (!isim || !isim.trim()) {
     return res.status(400).json({ hata: 'Şirket ismi zorunludur' });
   }
 
-  const gecerliTipler = ['bireysel', 'ortaklik'];
-  const sirketTip = gecerliTipler.includes(tip) ? tip : 'ortaklik';
-
   try {
     const { data: sirket, error: sirketErr } = await req.supabase
       .from('sirketler')
-      .insert({ isim: isim.trim(), tip: sirketTip, sahip_id: req.kullanici.id })
+      .insert({ isim: isim.trim(), tip: 'ortaklik', sahip_id: req.kullanici.id })
       .select()
       .single();
 
     if (sirketErr) throw sirketErr;
 
     const kullaniciIsim = req.kullanici.user_metadata?.isim || req.kullanici.email.split('@')[0];
-    const { error: uyeErr } = await req.supabase
+
+    // Üye ekle
+    const { data: yeniUye, error: uyeErr } = await req.supabase
       .from('uyeler')
       .insert({
         sirket_id: sirket.id,
@@ -71,9 +70,26 @@ router.post('/', async (req, res) => {
         isim: kullaniciIsim,
         renk: '#6366f1',
         rol: 'yonetici'
-      });
+      })
+      .select()
+      .single();
 
     if (uyeErr) throw uyeErr;
+
+    // Kurucuyu otomatik ortak yap (pay null = tek ortaksa %100 etkin, yeni ortak gelince kalan hesaplanır)
+    const { data: ortak, error: ortakErr } = await req.supabase
+      .from('ortaklar')
+      .insert({ sirket_id: sirket.id, isim: kullaniciIsim, renk: '#6366f1', pay: null })
+      .select()
+      .single();
+
+    if (ortakErr) throw ortakErr;
+
+    // Üye kaydını ortakla bağla
+    await req.supabase
+      .from('uyeler')
+      .update({ ortak_id: ortak.id })
+      .eq('id', yeniUye.id);
 
     res.status(201).json({ ...sirket, rol: 'yonetici' });
   } catch (err) {

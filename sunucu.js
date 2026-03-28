@@ -88,34 +88,7 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
 
     if (islemErr) throw islemErr;
 
-    // BİREYSEL kasa: gelir/gider/bakiye hesapla, borç yok
-    if (sirket.tip === 'bireysel') {
-      let toplamGelir = 0;
-      let toplamGider = 0;
-      islemler.forEach(i => {
-        if (i.tur === 'gelir') toplamGelir += parseFloat(i.tutar);
-        else if (i.tur === 'harcama') toplamGider += parseFloat(i.tutar);
-      });
-
-      return res.json({
-        sirketIsim: sirket.isim,
-        sirketTip: 'bireysel',
-        uyeler,
-        ortaklar: [],
-        bakiyeler: {},
-        harcamalar: {},
-        ortakHarcamalar: {},
-        kasaHarcama: 0,
-        toplamHarcama: toplamGider,
-        toplamGelir,
-        toplamGider,
-        netBakiye: toplamGelir - toplamGider,
-        onerilen_transferler: [],
-        rol: req.uye.rol
-      });
-    }
-
-    // ORTAKLIK kasa: borc hesaplama (kasa haric) — ortaklar varsa ortak bazlı
+    // Borc hesaplama (kasa haric) — ortaklar varsa ortak bazlı
     const { bakiyeler, transferler } = borclariSadelestir(uyeler, islemler, ortaklar || []);
 
     // Toplam harcama (kasa dahil — raporlama icin)
@@ -146,9 +119,11 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
       });
     }
 
+    // Gelir toplamı (bireysel kullanım için)
+    const toplamGelir = islemler.filter(i => i.tur === 'gelir').reduce((s, i) => s + parseFloat(i.tutar), 0);
+
     res.json({
       sirketIsim: sirket.isim,
-      sirketTip: 'ortaklik',
       uyeler,
       ortaklar: ortaklar || [],
       bakiyeler,
@@ -156,6 +131,7 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
       ortakHarcamalar,
       kasaHarcama,
       toplamHarcama,
+      toplamGelir,
       onerilen_transferler: transferler,
       rol: req.uye.rol
     });

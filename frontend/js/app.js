@@ -24,7 +24,6 @@ const App = {
   rol: null,
   sirketSayisi: 0,
   sirketIsim: '',
-  sirketTip: 'ortaklik',
 
   async init() {
     i18n.init();
@@ -164,12 +163,7 @@ const App = {
     const izleyici = this.rol === 'izleyici';
     fab.style.display = (!izleyici && (sayfa === 'home' || sayfa === 'transactions')) ? 'flex' : 'none';
 
-    if (sayfa === 'partners') {
-      // Bireysel kasada ortaklar sekmesi yok
-      const ortaklarTab = document.querySelector('.partner-tab[data-tab="ortaklar"]');
-      if (ortaklarTab) ortaklarTab.classList.toggle('hidden', this.sirketTip === 'bireysel');
-      this.uyeListesiGoster();
-    }
+    if (sayfa === 'partners') this.uyeListesiGoster();
     if (sayfa === 'transactions') this.islemListesiGoster();
   },
 
@@ -181,50 +175,22 @@ const App = {
       this.ortaklar = ozet.ortaklar || [];
       this.rol = ozet.rol;
       this.sirketIsim = ozet.sirketIsim || '';
-      this.sirketTip = ozet.sirketTip || 'ortaklik';
 
       // Özet kartı
       const kasaBadge = document.getElementById('ozet-kasa-badge');
-      const ozetLabel = document.getElementById('ozet-toplam-label');
-
-      if (this.sirketTip === 'bireysel') {
-        const bakiye = ozet.netBakiye || 0;
-        document.getElementById('ozet-toplam').textContent = this.formatPara(bakiye) + ' ₺';
-        document.getElementById('ozet-toplam').style.color = bakiye < 0 ? '#ef4444' : '';
-        if (ozetLabel) ozetLabel.textContent = t('bireysel.netBakiye');
-        kasaBadge.classList.add('hidden');
-        document.getElementById('ozet-alt').textContent = '';
-
-        // Bireysel stat kartları
-        const bs = document.getElementById('bireysel-section');
-        if (bs) {
-          bs.classList.remove('hidden');
-          document.getElementById('bireysel-gelir').textContent = this.formatPara(ozet.toplamGelir) + ' ₺';
-          document.getElementById('bireysel-gider').textContent = this.formatPara(ozet.toplamGider) + ' ₺';
-          const bakiyeEl = document.getElementById('bireysel-bakiye');
-          if (bakiyeEl) {
-            bakiyeEl.textContent = (bakiye >= 0 ? '+' : '') + this.formatPara(bakiye) + ' ₺';
-            bakiyeEl.className = `text-base font-black ${bakiye >= 0 ? 'text-green-600' : 'text-red-500'}`;
-          }
-        }
+      document.getElementById('ozet-toplam').textContent = this.formatPara(ozet.toplamHarcama) + ' ₺';
+      if (ozet.kasaHarcama > 0) {
+        kasaBadge.classList.remove('hidden');
+        kasaBadge.textContent = t('ozet.kasaFormat', { isim: this.sirketIsim, tutar: this.formatPara(ozet.kasaHarcama) });
       } else {
-        document.getElementById('ozet-toplam').textContent = this.formatPara(ozet.toplamHarcama) + ' ₺';
-        document.getElementById('ozet-toplam').style.color = '';
-        if (ozetLabel) ozetLabel.textContent = t('ozet.toplamHarcama');
-        if (ozet.kasaHarcama > 0) {
-          kasaBadge.classList.remove('hidden');
-          kasaBadge.textContent = t('ozet.kasaFormat', { isim: this.sirketIsim, tutar: this.formatPara(ozet.kasaHarcama) });
-        } else {
-          kasaBadge.classList.add('hidden');
-        }
-        const kisisel = ozet.toplamHarcama - (ozet.kasaHarcama || 0);
-        const altKey = ozet.uyeler.length <= 1 ? 'ozet.altBilgiTek' : 'ozet.altBilgi';
-        document.getElementById('ozet-alt').textContent = t(altKey, {
-          sayi: ozet.uyeler.length,
-          tutar: this.formatPara(kisisel)
-        });
-        document.getElementById('bireysel-section')?.classList.add('hidden');
+        kasaBadge.classList.add('hidden');
       }
+      const kisisel = ozet.toplamHarcama - (ozet.kasaHarcama || 0);
+      const altKey = ozet.uyeler.length <= 1 ? 'ozet.altBilgiTek' : 'ozet.altBilgi';
+      document.getElementById('ozet-alt').textContent = t(altKey, {
+        sayi: ozet.uyeler.length,
+        tutar: this.formatPara(kisisel)
+      });
 
       this.ortakKartlariGoster(ozet);
       this.borcBolumuGoster(ozet);
@@ -238,9 +204,7 @@ const App = {
 
       // Boş durum
       const bos = document.getElementById('empty-state');
-      const bireyselBos = this.sirketTip === 'bireysel' && (ozet.toplamGelir || 0) === 0 && (ozet.toplamGider || 0) === 0;
-      const ortaklikBos = this.sirketTip !== 'bireysel' && !(ozet.uyeler.length > 0 && ozet.toplamHarcama > 0);
-      const bosGoster = bireyselBos || ortaklikBos;
+      const bosGoster = !(ozet.uyeler.length > 0 && (ozet.toplamHarcama > 0 || (ozet.toplamGelir || 0) > 0));
       bos.classList.toggle('hidden', !bosGoster);
       if (bosGoster) {
         const tekKisi = ozet.uyeler.length <= 1;
@@ -292,9 +256,7 @@ const App = {
     svg.querySelectorAll('.o-arc').forEach(el => el.remove());
 
     const slash = svg.querySelector('.o-slash');
-    const toplam = ozet.sirketTip === 'bireysel'
-      ? (ozet.toplamGelir || 0) + (ozet.toplamGider || 0)
-      : (ozet.toplamHarcama || 0);
+    const toplam = ozet.toplamHarcama || 0;
 
     if (toplam <= 0) {
       if (slash) slash.setAttribute('opacity', '0.25');
@@ -306,25 +268,20 @@ const App = {
     let offset = 0;
 
     const parcalar = [];
-    if (ozet.sirketTip === 'bireysel') {
-      if ((ozet.toplamGelir || 0) > 0) parcalar.push({ renk: '#10b981', tutar: ozet.toplamGelir });
-      if ((ozet.toplamGider || 0) > 0) parcalar.push({ renk: '#ef4444', tutar: ozet.toplamGider });
+    const ortaklar = ozet.ortaklar || [];
+    if (ortaklar.length > 0) {
+      ortaklar.forEach(o => {
+        const tutar = (ozet.ortakHarcamalar || {})[o.id] || 0;
+        if (tutar > 0) parcalar.push({ renk: o.renk, tutar });
+      });
     } else {
-      const ortaklar = ozet.ortaklar || [];
-      if (ortaklar.length > 0) {
-        ortaklar.forEach(o => {
-          const tutar = (ozet.ortakHarcamalar || {})[o.id] || 0;
-          if (tutar > 0) parcalar.push({ renk: o.renk, tutar });
-        });
-      } else {
-        ozet.uyeler.forEach(u => {
-          const tutar = ozet.harcamalar[u.id] || 0;
-          if (tutar > 0) parcalar.push({ renk: u.renk, tutar });
-        });
-      }
-      if (ozet.kasaHarcama > 0) {
-        parcalar.push({ renk: '#6366f1', tutar: ozet.kasaHarcama });
-      }
+      ozet.uyeler.forEach(u => {
+        const tutar = ozet.harcamalar[u.id] || 0;
+        if (tutar > 0) parcalar.push({ renk: u.renk, tutar });
+      });
+    }
+    if (ozet.kasaHarcama > 0) {
+      parcalar.push({ renk: '#6366f1', tutar: ozet.kasaHarcama });
     }
 
     const gap = parcalar.length > 1 ? 3 : 0;

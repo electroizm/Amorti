@@ -45,7 +45,7 @@ router.get('/bekleyen', async (req, res) => {
 
 // POST /api/davetler — davet gonder (yonetici)
 router.post('/', sirketBaglami, rolGerekli('yonetici'), async (req, res) => {
-  const { eposta, rol } = req.body;
+  const { eposta, rol, pay } = req.body;
   if (!eposta) {
     return res.status(400).json({ hata: 'E-posta zorunludur' });
   }
@@ -53,6 +53,11 @@ router.post('/', sirketBaglami, rolGerekli('yonetici'), async (req, res) => {
   const davetRol = rol || 'uye';
   if (!['yonetici', 'uye', 'izleyici'].includes(davetRol)) {
     return res.status(400).json({ hata: 'Geçersiz rol' });
+  }
+
+  const davetPay = pay != null && pay !== '' ? parseFloat(pay) : null;
+  if (davetPay != null && (davetPay <= 0 || davetPay > 100)) {
+    return res.status(400).json({ hata: 'Pay 0 ile 100 arasında olmalıdır' });
   }
 
   try {
@@ -69,12 +74,26 @@ router.post('/', sirketBaglami, rolGerekli('yonetici'), async (req, res) => {
       return res.status(400).json({ hata: 'Bu e-postaya zaten bekleyen bir davet var' });
     }
 
+    // Pay verilmişse mevcut toplam pay kontrolü
+    if (davetPay != null) {
+      const { data: mevcutOrtaklar } = await req.supabase
+        .from('ortaklar')
+        .select('pay')
+        .eq('sirket_id', req.sirketId);
+
+      const toplamBelirtilen = (mevcutOrtaklar || []).reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+      if (toplamBelirtilen + davetPay > 100) {
+        return res.status(400).json({ hata: `Paylar %100'ü aşamaz. Mevcut toplam: %${toplamBelirtilen}` });
+      }
+    }
+
     const { data, error } = await req.supabase
       .from('davetler')
       .insert({
         sirket_id: req.sirketId,
         eposta: eposta.toLowerCase(),
         rol: davetRol,
+        pay: davetPay,
         davet_eden_id: req.kullanici.id
       })
       .select()
@@ -107,7 +126,7 @@ router.post('/:id/kabul', async (req, res) => {
     const renkler = ['#FDE047', '#10B981', '#F97316', '#EC4899', '#8B5CF6', '#06B6D4', '#EF4444'];
     const rastgeleRenk = renkler[Math.floor(Math.random() * renkler.length)];
 
-    const { error: uyeErr } = await req.supabase
+    const { data: yeniUye, error: uyeErr } = await req.supabase
       .from('uyeler')
       .insert({
         sirket_id: davet.sirket_id,
@@ -115,9 +134,32 @@ router.post('/:id/kabul', async (req, res) => {
         isim: kullaniciIsim,
         renk: rastgeleRenk,
         rol: davet.rol
-      });
+      })
+      .select()
+      .single();
 
     if (uyeErr) throw uyeErr;
+
+    // Davet ortaklık payı içeriyorsa ortak kaydı oluştur ve üyeye bağla
+    if (davet.pay != null && yeniUye) {
+      const { data: yeniOrtak } = await req.supabase
+        .from('ortaklar')
+        .insert({
+          sirket_id: davet.sirket_id,
+          isim: kullaniciIsim,
+          renk: rastgeleRenk,
+          pay: parseFloat(davet.pay)
+        })
+        .select()
+        .single();
+
+      if (yeniOrtak) {
+        await req.supabase
+          .from('uyeler')
+          .update({ ortak_id: yeniOrtak.id })
+          .eq('id', yeniUye.id);
+      }
+    }
 
     // Daveti guncelle
     const { error: guncelleErr } = await req.supabase

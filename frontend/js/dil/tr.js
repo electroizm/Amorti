@@ -144,6 +144,8 @@ export default {
     epostaLabel: 'E-posta',
     epostaPlaceholder: 'ortak@email.com',
     rolLabel: 'Rol',
+    payLabel: 'Ortaklık Payı (%) — opsiyonel',
+    payPlaceholder: 'Örn: 60 → %60 ortak',
     gonderBtn: 'Davet Gönder',
     gonderildi: 'Davet gönderildi'
   },

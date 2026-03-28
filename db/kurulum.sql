@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS davetler (
   eposta TEXT NOT NULL,
   rol TEXT NOT NULL DEFAULT 'uye' CHECK (rol IN ('yonetici', 'uye', 'izleyici')),
   durum TEXT NOT NULL DEFAULT 'bekliyor' CHECK (durum IN ('bekliyor', 'kabul', 'red')),
+  pay NUMERIC(5,2) DEFAULT NULL,
   davet_eden_id UUID NOT NULL REFERENCES auth.users(id),
   olusturma_tarihi TIMESTAMPTZ DEFAULT NOW()
 );

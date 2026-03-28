@@ -85,7 +85,7 @@ export const API = {
   },
 
   getSirketler() { return this.request('/sirketler'); },
-  sirketOlustur(isim, tip) { return this.request('/sirketler', { method: 'POST', body: { isim, tip } }); },
+  sirketOlustur(isim) { return this.request('/sirketler', { method: 'POST', body: { isim } }); },
   sirketGuncelle(id, isim) { return this.request(`/sirketler/${id}`, { method: 'PATCH', body: { isim } }); },
   sirketSil(id) { return this.request(`/sirketler/${id}`, { method: 'DELETE' }); },
   sirketGizle(id) { return this.request(`/sirketler/${id}/gizle`, { method: 'PATCH' }); },
@@ -97,7 +97,7 @@ export const API = {
   ortakGuncelle(id, data) { return this.request(`/ortaklar/${id}`, { method: 'PATCH', body: data }); },
   ortakSil(id, hedefOrtakId) { return this.request(`/ortaklar/${id}`, { method: 'DELETE', body: { hedef_ortak_id: hedefOrtakId || null } }); },
 
-  davetGonder(eposta, rol) { return this.request('/davetler', { method: 'POST', body: { eposta, rol } }); },
+  davetGonder(eposta, rol, pay) { return this.request('/davetler', { method: 'POST', body: { eposta, rol, pay: pay || null } }); },
   davetListele() { return this.request('/davetler'); },
   bekleyenDavetler() { return this.request('/davetler/bekleyen'); },
   davetKabul(id) { return this.request(`/davetler/${id}/kabul`, { method: 'POST' }); },

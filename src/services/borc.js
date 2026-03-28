@@ -48,18 +48,24 @@ function _ortakBazliBakiye(ortaklar, islemler) {
   const n = ortaklar.length;
   if (n === 0) return bakiyeler;
 
-  // Pay yüzdeleri: null ise eşit bölüşüm
+  // Pay yüzdeleri:
+  // - Hepsi null → eşit bölüşüm (1/n)
+  // - Bazıları null → null olanlar kalan yüzdeyi paylaşır
+  // - Örnek: İsmail null, Sevde %60 → İsmail = %40, Sevde = %60
   const paylar = {};
-  const toplamPay = ortaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
   const hepsiNull = ortaklar.every(o => o.pay == null);
 
-  ortaklar.forEach(o => {
-    if (hepsiNull) {
-      paylar[o.id] = 1 / n;
-    } else {
-      paylar[o.id] = (o.pay != null ? parseFloat(o.pay) : 0) / (toplamPay || 100);
-    }
-  });
+  if (hepsiNull) {
+    ortaklar.forEach(o => { paylar[o.id] = 1 / n; });
+  } else {
+    const toplamBelirtilen = ortaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+    const nullOrtaklar = ortaklar.filter(o => o.pay == null);
+    const kalan = Math.max(0, 100 - toplamBelirtilen);
+    const nullPayBasi = nullOrtaklar.length > 0 ? kalan / nullOrtaklar.length : 0;
+    ortaklar.forEach(o => {
+      paylar[o.id] = (o.pay != null ? parseFloat(o.pay) : nullPayBasi) / 100;
+    });
+  }
 
   for (const i of aktifler) {
     const odeyenOrtakId = i.odeyen_ortak_id || null;
