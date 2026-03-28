@@ -59,13 +59,28 @@ const App = {
   },
 
   // ─── Toast & Titreşim ───
+  _toastKilidi: {},
+
   toast(mesaj, tip = 'basari') {
+    // Aynı hata mesajı 5sn içinde tekrar gösterilmesin
+    if (tip === 'hata') {
+      const anahtar = mesaj.trim();
+      if (this._toastKilidi[anahtar]) return;
+      this._toastKilidi[anahtar] = true;
+      setTimeout(() => { delete this._toastKilidi[anahtar]; }, 5200);
+    }
+
+    const sure = tip === 'hata' ? 5200 : 2600;
+    const animSure = (sure - 400) / 1000;
+
     const container = document.getElementById('toast-container');
     const el = document.createElement('div');
     el.className = `toast toast-${tip}`;
+    el.style.animationDuration = `0.3s, 0.3s`;
+    el.style.animationDelay = `0s, ${animSure}s`;
     el.textContent = mesaj;
     container.appendChild(el);
-    setTimeout(() => el.remove(), 2600);
+    setTimeout(() => el.remove(), sure);
   },
 
   titresim(ms = 50) {

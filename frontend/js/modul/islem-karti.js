@@ -50,6 +50,17 @@ export function islemKartiKur(app) {
     amtInput.addEventListener('input', () => formatAmountInput(amtInput));
     amtInput.addEventListener('focus', () => amtInput.select());
 
+    // ─── Transfer: payer değişince receiver otomatik farklı biri ───
+    const payerSel = document.getElementById('tx-payer');
+    const receiverSel = document.getElementById('tx-receiver');
+    payerSel.addEventListener('change', () => {
+      if (app.islemTuru !== 'transfer') return;
+      if (receiverSel.value === payerSel.value) {
+        const baska = Array.from(receiverSel.options).find(o => o.value !== payerSel.value);
+        if (baska) receiverSel.value = baska.value;
+      }
+    });
+
     document.querySelectorAll('.tx-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         app.islemTuru = tab.dataset.type;
@@ -119,18 +130,27 @@ export function islemKartiKur(app) {
     const ortaklar = app.ortaklar || [];
     const kasaOption = app.sirketIsim ? `<option value="__kasa__">🏢 ${app.esc(app.sirketIsim)}</option>` : '';
 
+    const payerSel = document.getElementById('tx-payer');
+    const receiverSel = document.getElementById('tx-receiver');
+
     if (ortaklar.length > 0) {
       const mevcutUye = app.uyeler.find(u => u.kullanici_id === kullaniciId);
       const varsayilanOrtakId = mevcutUye?.ortak_id;
       const odeyenOptions = ortaklar.map(o => `<option value="${o.id}" ${o.id === varsayilanOrtakId ? 'selected' : ''}>${app.esc(o.isim)}</option>`).join('');
-      document.getElementById('tx-payer').innerHTML = kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+      payerSel.innerHTML = kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
       const alanOptions = ortaklar.map(o => `<option value="${o.id}">${app.esc(o.isim)}</option>`).join('');
-      document.getElementById('tx-receiver').innerHTML = kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+      receiverSel.innerHTML = kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
     } else {
       const odeyenOptions = app.uyeler.map(u => `<option value="${u.id}" ${u.kullanici_id === kullaniciId ? 'selected' : ''}>${app.esc(u.isim)}</option>`).join('');
-      document.getElementById('tx-payer').innerHTML = kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+      payerSel.innerHTML = kasaOption + (odeyenOptions || `<option value="">${t('islem.uyeYok')}</option>`);
       const alanOptions = app.uyeler.map(u => `<option value="${u.id}">${app.esc(u.isim)}</option>`).join('');
-      document.getElementById('tx-receiver').innerHTML = kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+      receiverSel.innerHTML = kasaOption + (alanOptions || `<option value="">${t('islem.uyeYok')}</option>`);
+    }
+
+    // Receiver, payer ile aynıysa otomatik farklı biri seç
+    if (receiverSel.value === payerSel.value) {
+      const baska = Array.from(receiverSel.options).find(o => o.value !== payerSel.value);
+      if (baska) receiverSel.value = baska.value;
     }
   };
 

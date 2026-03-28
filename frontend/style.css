@@ -81,6 +81,9 @@ body { font-family: 'Inter', sans-serif; }
   animation: toastIn 0.3s ease forwards, toastOut 0.3s ease 2.2s forwards;
   pointer-events: auto;
 }
+.toast-hata {
+  animation: toastIn 0.3s ease forwards, toastOut 0.3s ease 4.9s forwards !important;
+}
 .toast-basari { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.25); color: #059669; }
 .toast-hata { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.25); color: #dc2626; }
 .toast-bilgi { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.25); color: #4f46e5; }
