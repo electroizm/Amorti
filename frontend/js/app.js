@@ -46,8 +46,19 @@ const App = {
       await this.yenile();
       this.realtimeBaslat();
     } else if (API.girisYapildiMi()) {
-      this.ekranGoster('sirket');
-      this.bindSirketSecici();
+      this.ekranGoster('app');
+      this.bindApp();
+      try {
+        const sirketler = await API.getSirketler();
+        this.tumSirketler = sirketler;
+        if (sirketler.length >= 1) {
+          API.setSirketId(sirketler[0].id);
+          await this.yenile();
+          this.realtimeBaslat();
+        } else {
+          this.navigate('profil');
+        }
+      } catch (e) { console.warn('Sirket yuklenemedi:', e); this.navigate('profil'); }
     } else {
       this.ekranGoster('auth');
       this.bindAuth();
@@ -244,10 +255,9 @@ const App = {
       ikonlariGuncelle();
     } catch (err) {
       console.error('Veri yukleme hatasi:', err);
-      if (err.message.includes('erişim') || err.message.includes('access')) {
+      if (err.message.includes('erişim') || err.message.includes('access') || err.message.includes('Şirket ID')) {
         API.setSirketId(null);
-        this.ekranGoster('sirket');
-        this.bindSirketSecici();
+        this.navigate('profil');
       }
     }
   },

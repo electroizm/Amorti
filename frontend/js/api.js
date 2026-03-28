@@ -105,6 +105,20 @@ export const API = {
   getSirketler() { return this.request('/sirketler'); },
   sirketOlustur(isim) { return this.request('/sirketler', { method: 'POST', body: { isim } }); },
   sirketGuncelle(id, isim) { return this.request(`/sirketler/${id}`, { method: 'PATCH', body: { isim } }); },
+  async uploadKasaLogo(id, file) {
+    const formData = new FormData();
+    formData.append('logo', file);
+    const headers = {};
+    const token = this.getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const sirketId = this.getSirketId();
+    if (sirketId) headers['X-Sirket-Id'] = sirketId;
+    let res;
+    try { res = await fetch(this.base + `/sirketler/${id}/logo`, { method: 'POST', headers, body: formData }); }
+    catch (err) { throw new Error(err.message); }
+    if (!res.ok) { const e = await res.json().catch(() => ({ hata: 'Hata' })); throw new Error(e.hata); }
+    return res.json();
+  },
   sirketSil(id) { return this.request(`/sirketler/${id}`, { method: 'DELETE' }); },
   sirketGizle(id) { return this.request(`/sirketler/${id}/gizle`, { method: 'PATCH' }); },
   sirketGoster(id) { return this.request(`/sirketler/${id}/goster`, { method: 'PATCH' }); },

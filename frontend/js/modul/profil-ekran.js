@@ -20,11 +20,9 @@ export function profilEkranKur(app) {
   app.headerAvatarGuncelle = function () {
     const k = API.getKullanici();
 
-    // Header buton
     const hAvatar = document.getElementById('btn-profil-avatar');
     if (hAvatar) hAvatar.innerHTML = app.avatarIcerik(k, 'kucuk');
 
-    // Profil menü üst bölüm
     const mAvatar = document.getElementById('profil-menu-avatar');
     const mIsim = document.getElementById('profil-menu-isim');
     const mEposta = document.getElementById('profil-menu-eposta');
@@ -32,7 +30,6 @@ export function profilEkranKur(app) {
     if (mIsim) mIsim.textContent = k?.isim || '';
     if (mEposta) mEposta.textContent = k?.eposta || '';
 
-    // Profil ekranı avatar
     const pCerceve = document.getElementById('profil-avatar-cerceve');
     if (pCerceve) pCerceve.innerHTML = app.avatarIcerik(k, 'buyuk');
 
@@ -41,35 +38,367 @@ export function profilEkranKur(app) {
 
   // ─── Kasalar listesi ───
   app.profilKasalariGoster = function () {
+    const kullaniciId = API.getKullanici()?.id;
     const sirketler = app.tumSirketler || [];
     const bolum = document.getElementById('profil-kasalar-bolum');
     const liste = document.getElementById('profil-kasa-listesi');
     if (!bolum || !liste) return;
 
-    // Sadece 2+ kasada göster
-    if (sirketler.length < 2) { bolum.classList.add('hidden'); return; }
+    if (sirketler.length < 1) { bolum.classList.add('hidden'); return; }
     bolum.classList.remove('hidden');
 
     const aktifId = API.getSirketId();
-    liste.innerHTML = sirketler.map(s => `
-      <button class="profil-kasa-item w-full bg-white rounded-xl px-4 py-3 shadow-sm border flex items-center gap-3 transition
-        ${s.id === aktifId ? 'border-brand/40 bg-brand/5' : 'border-gray-100 hover:border-brand/20'}"
-        data-id="${s.id}">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm text-white"
-          style="background:${s.id === aktifId ? '#6366f1' : '#94a3b8'}">
-          ${(s.isim || '?').charAt(0).toUpperCase()}
+    liste.innerHTML = sirketler.map(s => {
+      const sahip = s.sahip_id === kullaniciId;
+      const aktif = s.id === aktifId;
+      return `
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <button class="profil-kasa-item flex-1 bg-white rounded-xl px-4 py-3 shadow-sm border flex items-center gap-3 transition
+              ${aktif ? 'border-brand/40 bg-brand/5' : 'border-gray-100 hover:border-brand/20'}"
+              data-id="${s.id}">
+              <div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-white text-sm font-bold"
+                style="background:${aktif ? '#6366f1' : '#94a3b8'}">
+                ${s.logo_url ? `<img src="${s.logo_url}" class="w-full h-full object-cover" alt="">` : basHarf(s.isim)}
+              </div>
+              <div class="flex-1 text-left min-w-0">
+                <p class="font-semibold text-sm text-gray-900 truncate">${app.esc(s.isim)}</p>
+                <p class="text-xs ${aktif ? 'text-brand' : 'text-gray-400'}">${app.rolGoster(s.rol)}</p>
+              </div>
+              ${aktif
+                ? '<i data-lucide="check" class="w-4 h-4 text-brand flex-shrink-0"></i>'
+                : '<i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 flex-shrink-0"></i>'}
+            </button>
+            ${sahip ? `
+              <button class="kasa-duzenle-btn flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-brand transition"
+                data-kasa-id="${s.id}" title="Kasayı düzenle">
+                <i data-lucide="settings-2" class="w-4 h-4"></i>
+              </button>
+            ` : ''}
+          </div>
+          ${sahip ? `<div id="kd-panel-${s.id}" class="hidden"></div>` : ''}
         </div>
-        <div class="flex-1 text-left min-w-0">
-          <p class="font-semibold text-sm text-gray-900 truncate">${app.esc(s.isim)}</p>
-          <p class="text-xs ${s.id === aktifId ? 'text-brand' : 'text-gray-400'}">${app.rolGoster(s.rol)}</p>
-        </div>
-        ${s.id === aktifId ? '<i data-lucide="check" class="w-4 h-4 text-brand flex-shrink-0"></i>' : '<i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 flex-shrink-0"></i>'}
-      </button>
-    `).join('');
+      `;
+    }).join('');
     ikonlariGuncelle();
   };
 
-  // ─── Bekleyen davetler ───
+  // ─── Kasa düzenle paneli aç/kapat ───
+  app.kasaDuzenleToggle = async function (kasaId) {
+    const panel = document.getElementById(`kd-panel-${kasaId}`);
+    if (!panel) return;
+
+    if (!panel.classList.contains('hidden')) {
+      panel.classList.add('hidden');
+      panel.innerHTML = '';
+      return;
+    }
+
+    // Diğer açık panelleri kapat
+    document.querySelectorAll('[id^="kd-panel-"]').forEach(p => {
+      if (p.id !== `kd-panel-${kasaId}`) { p.classList.add('hidden'); p.innerHTML = ''; }
+    });
+
+    // Bu kasaya geç
+    API.setSirketId(kasaId);
+    panel.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">Yükleniyor...</p>';
+    panel.classList.remove('hidden');
+
+    await app._kasaDuzenleYukle(kasaId);
+  };
+
+  app._kasaDuzenleYukle = async function (kasaId) {
+    const panel = document.getElementById(`kd-panel-${kasaId}`);
+    if (!panel) return;
+    try {
+      const [uyeler, ortaklar, davetler] = await Promise.all([
+        API.getUyeler(),
+        API.getOrtaklar(),
+        API.davetListele()
+      ]);
+      const kasa = (app.tumSirketler || []).find(s => s.id === kasaId) || {};
+      panel.innerHTML = app._kasaDuzenlePanelHTML(kasa, uyeler, ortaklar, davetler);
+      app._kasaDuzenleEventleriKur(kasaId, uyeler, ortaklar);
+      ikonlariGuncelle();
+    } catch (err) {
+      panel.innerHTML = `<p class="text-center text-red-500 text-sm py-2">${app.esc(err.message)}</p>`;
+    }
+  };
+
+  // ─── Kasa düzenle panel HTML ───
+  app._kasaDuzenlePanelHTML = function (kasa, uyeler, ortaklar, davetler) {
+    const toplamPay = ortaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+    const payRenk = toplamPay > 100 ? 'text-red-500' : toplamPay === 100 ? 'text-green-600' : 'text-gray-400';
+
+    return `
+      <div class="bg-brand/5 border border-brand/15 rounded-xl p-4 space-y-5 mt-1">
+
+        <!-- Kasa İsmi -->
+        <div>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kasa İsmi</p>
+          <div class="flex gap-2">
+            <input id="kd-isim" type="text" class="input-field flex-1 text-sm" value="${app.esc(kasa.isim || '')}">
+            <button id="kd-isim-kaydet" class="px-3 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
+          </div>
+        </div>
+
+        <!-- Kasa Görseli -->
+        <div>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kasa Görseli</p>
+          <div id="kd-logo-wrap" class="flex items-center gap-3 cursor-pointer group w-fit">
+            <div id="kd-logo-cerceve" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center text-white text-xl font-bold ring-2 ring-white shadow-sm relative"
+              style="background:#6366f1">
+              ${kasa.logo_url
+                ? `<img src="${kasa.logo_url}?t=${Date.now()}" class="w-full h-full object-cover" alt="">`
+                : `<span>${basHarf(kasa.isim)}</span>`}
+              <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
+                <i data-lucide="camera" class="w-5 h-5 text-white"></i>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400">Tıkla, görsel yükle</p>
+          </div>
+          <input type="file" id="kd-logo-input" accept="image/*" class="hidden">
+        </div>
+
+        <!-- Üyeler -->
+        <div>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Üyeler (${uyeler.length})</p>
+          <div id="kd-uyeler-listesi" class="space-y-2 mb-3">
+            ${uyeler.map(u => `
+              <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  style="background:${u.renk || '#94a3b8'}">${basHarf(u.isim)}</div>
+                <span class="flex-1 text-sm text-gray-800 truncate min-w-0">${app.esc(u.isim)}</span>
+                <select class="kd-uye-rol text-xs border border-gray-200 rounded-lg px-1.5 py-1 text-gray-600 bg-white flex-shrink-0"
+                  data-uye-id="${u.id}">
+                  <option value="yonetici" ${u.rol === 'yonetici' ? 'selected' : ''}>Yönetici</option>
+                  <option value="uye" ${u.rol === 'uye' ? 'selected' : ''}>Üye</option>
+                  <option value="izleyici" ${u.rol === 'izleyici' ? 'selected' : ''}>İzleyici</option>
+                </select>
+                <button class="kd-uye-cikar p-1 text-gray-300 hover:text-red-500 transition flex-shrink-0" data-uye-id="${u.id}">
+                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+
+          ${davetler.length > 0 ? `
+            <p class="text-xs text-gray-400 mb-1">Bekleyen davetler (${davetler.length})</p>
+            <div class="space-y-1 mb-3">
+              ${davetler.map(d => `
+                <div class="flex items-center gap-2 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">
+                  <i data-lucide="mail" class="w-3.5 h-3.5 text-yellow-500 flex-shrink-0"></i>
+                  <span class="flex-1 text-xs text-gray-600 truncate">${app.esc(d.eposta)}</span>
+                  <span class="text-xs text-gray-400 flex-shrink-0">${app.rolGoster(d.rol)}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <p class="text-xs text-gray-400 mb-1">Yeni üye davet et</p>
+          <div class="flex gap-2 flex-wrap">
+            <input id="kd-davet-eposta" type="email" class="input-field flex-1 min-w-0 text-sm" placeholder="E-posta adresi">
+            <select id="kd-davet-rol" class="input-field text-sm flex-shrink-0" style="width:110px">
+              <option value="uye">Üye</option>
+              <option value="yonetici">Yönetici</option>
+              <option value="izleyici">İzleyici</option>
+            </select>
+            <button id="kd-davet-gonder" class="px-3 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold whitespace-nowrap hover:bg-brand-dark transition">Davet Et</button>
+          </div>
+        </div>
+
+        <!-- Ortaklar -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ortaklar</p>
+            <p class="text-xs font-semibold ${payRenk}">Toplam: %${Math.round(toplamPay * 10) / 10}</p>
+          </div>
+          <div id="kd-ortaklar-listesi" class="space-y-2 mb-3">
+            ${ortaklar.length === 0
+              ? '<p class="text-xs text-gray-400 text-center py-2">Henüz ortak yok</p>'
+              : ortaklar.map(o => `
+                <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100">
+                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                    style="background:${o.renk || '#94a3b8'}">${basHarf(o.isim)}</div>
+                  <input class="kd-ortak-isim flex-1 min-w-0 text-sm bg-transparent outline-none text-gray-800 font-medium border-b border-transparent focus:border-brand transition"
+                    value="${app.esc(o.isim)}" data-ortak-id="${o.id}">
+                  <div class="flex items-center gap-0.5 flex-shrink-0">
+                    <span class="text-xs text-gray-400">%</span>
+                    <input class="kd-ortak-pay w-14 text-sm text-right border border-gray-200 rounded-lg px-1.5 py-1 bg-white focus:border-brand outline-none transition"
+                      type="number" min="0" max="100" step="1"
+                      value="${o.pay != null ? o.pay : ''}" placeholder="—"
+                      data-ortak-id="${o.id}">
+                  </div>
+                  <button class="kd-ortak-kaydet px-2 py-1 bg-brand/10 text-brand rounded-lg text-xs font-bold hover:bg-brand/20 transition flex-shrink-0"
+                    data-ortak-id="${o.id}" title="Kaydet">✓</button>
+                  <button class="kd-ortak-sil p-1 text-gray-300 hover:text-red-500 transition flex-shrink-0"
+                    data-ortak-id="${o.id}">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              `).join('')}
+          </div>
+
+          <p class="text-xs text-gray-400 mb-1">Yeni ortak ekle</p>
+          <div class="flex gap-2">
+            <input id="kd-ortak-isim-yeni" type="text" class="input-field flex-1 text-sm" placeholder="İsim">
+            <div class="flex items-center gap-0.5 flex-shrink-0">
+              <span class="text-xs text-gray-400">%</span>
+              <input id="kd-ortak-pay-yeni" type="number" class="input-field w-16 text-sm" min="0" max="100" step="1" placeholder="Pay">
+            </div>
+            <button id="kd-ortak-ekle" class="px-3 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold whitespace-nowrap hover:bg-brand-dark transition">Ekle</button>
+          </div>
+        </div>
+
+      </div>
+    `;
+  };
+
+  // ─── Kasa düzenle event listeners ───
+  app._kasaDuzenleEventleriKur = function (kasaId, uyeler, ortaklar) {
+    const panel = document.getElementById(`kd-panel-${kasaId}`);
+    if (!panel) return;
+
+    // Kasa ismi kaydet
+    panel.querySelector('#kd-isim-kaydet').addEventListener('click', async () => {
+      const isim = panel.querySelector('#kd-isim').value.trim();
+      if (!isim) return app.toast('Kasa ismi boş olamaz', 'hata');
+      const btn = panel.querySelector('#kd-isim-kaydet');
+      btn.disabled = true;
+      try {
+        await API.sirketGuncelle(kasaId, isim);
+        const kasa = (app.tumSirketler || []).find(s => s.id === kasaId);
+        if (kasa) kasa.isim = isim;
+        app.toast('Kasa ismi güncellendi', 'basari');
+        app.profilKasalariGoster();
+        app.profilMenuGuncelle();
+        await app._kasaDuzenleYukle(kasaId);
+      } catch (err) { app.toast(err.message, 'hata'); } finally { btn.disabled = false; }
+    });
+
+    // Kasa logo upload
+    panel.querySelector('#kd-logo-wrap').addEventListener('click', () => {
+      panel.querySelector('#kd-logo-input').click();
+    });
+    panel.querySelector('#kd-logo-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      e.target.value = '';
+      try {
+        app.toast('Yükleniyor...', 'bilgi');
+        const sonuc = await API.uploadKasaLogo(kasaId, file);
+        const kasa = (app.tumSirketler || []).find(s => s.id === kasaId);
+        if (kasa) kasa.logo_url = sonuc.logo_url;
+        const cerceve = panel.querySelector('#kd-logo-cerceve');
+        if (cerceve) {
+          cerceve.innerHTML = `<img src="${sonuc.logo_url}?t=${Date.now()}" class="w-full h-full object-cover" alt="">
+            <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
+              <i data-lucide="camera" class="w-5 h-5 text-white"></i>
+            </div>`;
+          ikonlariGuncelle();
+        }
+        app.profilKasalariGoster();
+        app.toast('Görsel güncellendi', 'basari');
+      } catch (err) { app.toast(err.message, 'hata'); }
+    });
+
+    // Üye rol değiştir
+    panel.querySelectorAll('.kd-uye-rol').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const uyeId = sel.dataset.uyeId;
+        const eskiRol = sel.dataset.eskiRol || uyeler.find(u => u.id === uyeId)?.rol;
+        try {
+          await API.uyeRolDegistir(uyeId, sel.value);
+          app.toast('Rol güncellendi', 'basari');
+        } catch (err) {
+          app.toast(err.message, 'hata');
+          if (eskiRol) sel.value = eskiRol;
+        }
+      });
+    });
+
+    // Üye çıkar
+    panel.querySelectorAll('.kd-uye-cikar').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uyeId = btn.dataset.uyeId;
+        const uye = uyeler.find(u => u.id === uyeId);
+        if (!confirm(`"${uye?.isim}" kasadan çıkarılsın mı?`)) return;
+        try {
+          await API.uyeSil(uyeId);
+          app.toast('Üye çıkarıldı', 'bilgi');
+          btn.closest('.flex.items-center').remove();
+        } catch (err) { app.toast(err.message, 'hata'); }
+      });
+    });
+
+    // Davet gönder
+    panel.querySelector('#kd-davet-gonder').addEventListener('click', async () => {
+      const eposta = panel.querySelector('#kd-davet-eposta').value.trim();
+      const rol = panel.querySelector('#kd-davet-rol').value;
+      if (!eposta || !eposta.includes('@')) return app.toast('Geçerli bir e-posta girin', 'hata');
+      const btn = panel.querySelector('#kd-davet-gonder');
+      btn.disabled = true;
+      try {
+        await API.davetGonder(eposta, rol, null);
+        panel.querySelector('#kd-davet-eposta').value = '';
+        app.toast(`${eposta} adresine davet gönderildi`, 'basari');
+        await app._kasaDuzenleYukle(kasaId);
+      } catch (err) { app.toast(err.message, 'hata'); } finally { btn.disabled = false; }
+    });
+
+    // Ortak kaydet (satır içi)
+    panel.querySelectorAll('.kd-ortak-kaydet').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const ortakId = btn.dataset.ortakId;
+        const row = btn.closest('.flex.items-center');
+        const isim = row.querySelector('.kd-ortak-isim').value.trim();
+        const payVal = row.querySelector('.kd-ortak-pay').value;
+        const pay = payVal !== '' ? parseFloat(payVal) : null;
+        if (!isim) return app.toast('Ortak ismi boş olamaz', 'hata');
+        btn.disabled = true;
+        try {
+          await API.ortakGuncelle(ortakId, { isim, pay });
+          app.toast('Ortak güncellendi', 'basari');
+          await app._kasaDuzenleYukle(kasaId);
+        } catch (err) { app.toast(err.message, 'hata'); } finally { btn.disabled = false; }
+      });
+    });
+
+    // Ortak sil
+    panel.querySelectorAll('.kd-ortak-sil').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const ortakId = btn.dataset.ortakId;
+        const ortak = ortaklar.find(o => o.id === ortakId);
+        if (!confirm(`"${ortak?.isim}" ortaklar listesinden çıkarılsın mı?`)) return;
+        try {
+          await API.ortakSil(ortakId);
+          app.toast('Ortak çıkarıldı', 'bilgi');
+          await app._kasaDuzenleYukle(kasaId);
+          await app.yenile();
+        } catch (err) { app.toast(err.message, 'hata'); }
+      });
+    });
+
+    // Ortak ekle
+    panel.querySelector('#kd-ortak-ekle').addEventListener('click', async () => {
+      const isim = panel.querySelector('#kd-ortak-isim-yeni').value.trim();
+      const payVal = panel.querySelector('#kd-ortak-pay-yeni').value;
+      const pay = payVal !== '' ? parseFloat(payVal) : null;
+      if (!isim) return app.toast('Ortak ismi gerekli', 'hata');
+      const btn = panel.querySelector('#kd-ortak-ekle');
+      btn.disabled = true;
+      try {
+        await API.ortakEkle({ isim, pay, renk: '#94a3b8' });
+        panel.querySelector('#kd-ortak-isim-yeni').value = '';
+        panel.querySelector('#kd-ortak-pay-yeni').value = '';
+        app.toast(`"${isim}" ortak olarak eklendi`, 'basari');
+        await app._kasaDuzenleYukle(kasaId);
+        await app.yenile();
+      } catch (err) { app.toast(err.message, 'hata'); } finally { btn.disabled = false; }
+    });
+  };
+
+  // ─── Bekleyen davetler (profil sayfası üstü) ───
   app.profilDavetleriGoster = async function () {
     const bolum = document.getElementById('profil-davetler-bolum');
     const liste = document.getElementById('profil-davet-listesi');
@@ -125,7 +454,6 @@ export function profilEkranKur(app) {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = '';
-
     try {
       app.toast('Yükleniyor...', 'bilgi');
       const sonuc = await API.uploadAvatar(file);
@@ -196,8 +524,16 @@ export function profilEkranKur(app) {
     }
   });
 
-  // ─── Kasa listesi: kasa tıklama ───
+  // ─── Kasa listesi: kasa tıklama (geçiş) ───
   document.getElementById('profil-kasa-listesi').addEventListener('click', async (e) => {
+    // Düzenle butonu
+    const duzenleBtn = e.target.closest('.kasa-duzenle-btn');
+    if (duzenleBtn) {
+      e.stopPropagation();
+      await app.kasaDuzenleToggle(duzenleBtn.dataset.kasaId);
+      return;
+    }
+    // Kasa seç
     const btn = e.target.closest('.profil-kasa-item');
     if (!btn) return;
     const id = btn.dataset.id;
@@ -245,7 +581,7 @@ export function profilEkranKur(app) {
       API.setSirketId(sirket.id);
       app.toast(`"${isim}" oluşturuldu`, 'basari');
       await app.yenile();
-      app.navigate('home');
+      app.profilKasalariGoster();
     } catch (err) {
       app.toast(err.message, 'hata');
     } finally {

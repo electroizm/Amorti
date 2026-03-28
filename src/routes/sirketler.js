@@ -3,10 +3,12 @@
  * CRUD: sirket olustur, listele, guncelle, sil
  */
 const { Router } = require('express');
+const multer = require('multer');
 const { authGerekli, supabaseService } = require('../middleware/auth');
 const { turkceHata } = require('../services/hata');
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 router.use(authGerekli);
 
@@ -15,7 +17,7 @@ router.get('/', async (req, res) => {
   try {
     let { data: uyeler, error: uyeErr } = await req.supabase
       .from('uyeler')
-      .select('sirket_id, rol, gizli, sirketler(id, isim, tip, sahip_id, olusturma_tarihi)')
+      .select('sirket_id, rol, gizli, sirketler(id, isim, tip, sahip_id, logo_url, olusturma_tarihi)')
       .eq('kullanici_id', req.kullanici.id)
       .eq('silinmis', false);
 
@@ -105,6 +107,47 @@ router.post('/', async (req, res) => {
     res.status(201).json({ ...sirket, rol: 'yonetici' });
   } catch (err) {
     console.error('[sirketler POST] genel hata:', err.message);
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// POST /api/sirketler/:id/logo — kasa logo yükle
+router.post('/:id/logo', upload.single('logo'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ hata: 'Dosya gerekli' });
+
+  try {
+    const { data: sirket } = await req.supabase
+      .from('sirketler')
+      .select('sahip_id')
+      .eq('id', req.params.id)
+      .single();
+
+    if (!sirket || sirket.sahip_id !== req.kullanici.id) {
+      return res.status(403).json({ hata: 'Sadece şirket sahibi logo yükleyebilir' });
+    }
+
+    const db = supabaseService || req.supabase;
+    const mime = req.file.mimetype;
+    const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+    const dosyaYolu = `kasalar/${req.params.id}/logo.${ext}`;
+
+    const { error: uploadErr } = await db.storage
+      .from('avatars')
+      .upload(dosyaYolu, req.file.buffer, { contentType: mime, upsert: true });
+
+    if (uploadErr) throw uploadErr;
+
+    const { data: { publicUrl } } = db.storage.from('avatars').getPublicUrl(dosyaYolu);
+
+    const { error: updateErr } = await req.supabase
+      .from('sirketler')
+      .update({ logo_url: publicUrl })
+      .eq('id', req.params.id);
+
+    if (updateErr) throw updateErr;
+
+    res.json({ logo_url: publicUrl });
+  } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });
   }
 });

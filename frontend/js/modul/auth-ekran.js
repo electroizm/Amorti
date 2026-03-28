@@ -59,8 +59,19 @@ export function authEkranKur(app) {
           document.getElementById('giris-sifre').value
         );
         app.toast(t('auth.girisBasarili'), 'basari');
-        app.ekranGoster('sirket');
-        app.bindSirketSecici();
+        app.ekranGoster('app');
+        app.bindApp();
+        try {
+          const sirketler = await API.getSirketler();
+          app.tumSirketler = sirketler;
+          if (sirketler.length >= 1) {
+            API.setSirketId(sirketler[0].id);
+            await app.yenile();
+            app.realtimeBaslat();
+          } else {
+            app.navigate('profil');
+          }
+        } catch (e) { console.warn(e); app.navigate('profil'); }
       } catch (err) {
         app.toast(err.message, 'hata');
         app.titresim(100);
@@ -101,8 +112,19 @@ export function authEkranKur(app) {
           sifre
         );
         app.toast(t('auth.hesapOlusturuldu'), 'basari');
-        app.ekranGoster('sirket');
-        app.bindSirketSecici();
+        app.ekranGoster('app');
+        app.bindApp();
+        try {
+          const sirketler = await API.getSirketler();
+          app.tumSirketler = sirketler;
+          if (sirketler.length >= 1) {
+            API.setSirketId(sirketler[0].id);
+            await app.yenile();
+            app.realtimeBaslat();
+          } else {
+            app.navigate('profil');
+          }
+        } catch (e) { console.warn(e); app.navigate('profil'); }
       } catch (err) {
         app.toast(err.message, 'hata');
         app.titresim(100);
@@ -148,8 +170,19 @@ export function authEkranKur(app) {
       const kullanici = await API.request('/auth/ben');
       API.setKullanici(kullanici);
       app.toast(t('auth.girisBasarili'), 'basari');
-      app.ekranGoster('sirket');
-      app.bindSirketSecici();
+      app.ekranGoster('app');
+      app.bindApp();
+      try {
+        const sirketler = await API.getSirketler();
+        app.tumSirketler = sirketler;
+        if (sirketler.length >= 1) {
+          API.setSirketId(sirketler[0].id);
+          await app.yenile();
+          app.realtimeBaslat();
+        } else {
+          app.navigate('profil');
+        }
+      } catch (e) { console.warn(e); app.navigate('profil'); }
     } catch (err) {
       API.temizleOturum();
       app.toast(err.message, 'hata');

@@ -26,6 +26,46 @@ router.get('/', async (req, res) => {
   }
 });
 
+// POST /api/ortaklar — ortak ekle (yönetici)
+router.post('/', rolGerekli('yonetici'), async (req, res) => {
+  const { isim, renk, pay } = req.body;
+  if (!isim || !isim.trim()) {
+    return res.status(400).json({ hata: 'Ortak ismi zorunludur' });
+  }
+
+  const ortakPay = pay != null && pay !== '' ? parseFloat(pay) : null;
+
+  if (ortakPay != null) {
+    if (ortakPay <= 0 || ortakPay > 100) {
+      return res.status(400).json({ hata: 'Pay 0 ile 100 arasında olmalıdır' });
+    }
+    try {
+      const { data: mevcutOrtaklar } = await req.supabase
+        .from('ortaklar')
+        .select('pay')
+        .eq('sirket_id', req.sirketId);
+
+      const toplam = (mevcutOrtaklar || []).reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
+      if (toplam + ortakPay > 100) {
+        return res.status(400).json({ hata: `Paylar %100'ü aşamaz. Mevcut toplam: %${toplam}` });
+      }
+    } catch (_) {}
+  }
+
+  try {
+    const { data, error } = await req.supabase
+      .from('ortaklar')
+      .insert({ sirket_id: req.sirketId, isim: isim.trim(), renk: renk || '#94a3b8', pay: ortakPay })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
 // PATCH /api/ortaklar/:id — ortak güncelle (yönetici)
 router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
   const { isim, renk, pay } = req.body;
