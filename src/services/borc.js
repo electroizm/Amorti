@@ -62,23 +62,30 @@ function _ortakBazliBakiye(ortaklar, islemler) {
   });
 
   for (const i of aktifler) {
-    const odeyenOrtakId = i.odeyen_ortak_id || i.odeyen_id;
+    const odeyenOrtakId = i.odeyen_ortak_id || null;
     if (i.tur === 'harcama') {
       const tutar = parseFloat(i.tutar);
-      // Ödeyene tam tutar ekle
-      if (bakiyeler[odeyenOrtakId] !== undefined) {
+      if (odeyenOrtakId && bakiyeler[odeyenOrtakId] !== undefined) {
+        // Normal: ortak ID var
         bakiyeler[odeyenOrtakId] += tutar;
+      } else {
+        // Eski işlem: ortak ID yok, tutarı ortakların payına göre dağıt
+        ortaklar.forEach(o => { bakiyeler[o.id] += tutar * paylar[o.id]; });
+        // Net etkisi: her ortak kendi payını ödemiş gibi → fark yok, yani bu işlem görmezden geliniyor
+        // Bu en güvenli davranış — eski işlemler toplam gidere yansır ama borç değiştirmez
+        ortaklar.forEach(o => { bakiyeler[o.id] -= tutar * paylar[o.id]; });
+        continue;
       }
       // Her ortaktan payını düş
       ortaklar.forEach(o => {
         bakiyeler[o.id] -= tutar * paylar[o.id];
       });
     } else if (i.tur === 'transfer') {
-      const alanOrtakId = i.alan_ortak_id || i.alan_id;
-      if (bakiyeler[odeyenOrtakId] !== undefined) {
+      const alanOrtakId = i.alan_ortak_id || null;
+      if (odeyenOrtakId && bakiyeler[odeyenOrtakId] !== undefined) {
         bakiyeler[odeyenOrtakId] += parseFloat(i.tutar);
       }
-      if (bakiyeler[alanOrtakId] !== undefined) {
+      if (alanOrtakId && bakiyeler[alanOrtakId] !== undefined) {
         bakiyeler[alanOrtakId] -= parseFloat(i.tutar);
       }
     }

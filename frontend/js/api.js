@@ -24,8 +24,12 @@ export const API = {
   },
   getKullanici() { return JSON.parse(this._getDepo().getItem('amort-kullanici') || 'null'); },
   setKullanici(k) { this._getDepo().setItem('amort-kullanici', JSON.stringify(k)); },
-  getSirketId() { return this._getDepo().getItem('amort-sirket') || null; },
-  setSirketId(id) { this._getDepo().setItem('amort-sirket', id); },
+  // Sirket ID her zaman localStorage'da — auth modu ne olursa olsun
+  getSirketId() { return localStorage.getItem('amort-sirket') || null; },
+  setSirketId(id) {
+    if (id == null) localStorage.removeItem('amort-sirket');
+    else localStorage.setItem('amort-sirket', String(id));
+  },
 
   girisYapildiMi() {
     const local = JSON.parse(localStorage.getItem('amort-oturum') || 'null');
