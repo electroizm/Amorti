@@ -15,6 +15,7 @@ import { islemKartiKur } from './modul/islem-karti.js';
 import { uyeKartiKur } from './modul/uye-karti.js';
 import { ayarlarEkranKur } from './modul/ayarlar-ekran.js';
 import { copKutusuKur } from './modul/cop-kutusu.js';
+import { profilEkranKur } from './modul/profil-ekran.js';
 
 const App = {
   mevcutSayfa: 'home',
@@ -100,6 +101,7 @@ const App = {
     this.bindDavetModal();
     this.bindAyarlar();
     this.varsayilanTarih();
+    profilEkranKur(this);
 
     // Profil menü
     if (!this._profilMenuBound) {
@@ -110,6 +112,13 @@ const App = {
         e.stopPropagation();
         this.profilMenuGuncelle();
         profilMenu.classList.toggle('hidden');
+      });
+
+      // Profil menü üst kısma (kullanıcı bilgisi) tıkla → profil ekranı
+      document.getElementById('profil-menu-kisi').addEventListener('click', (e) => {
+        e.stopPropagation();
+        profilMenu.classList.add('hidden');
+        this.profilEkranGoster();
       });
 
       profilMenu.addEventListener('click', (e) => {
@@ -170,7 +179,8 @@ const App = {
   // ─── Veri Yenileme ───
   async yenile() {
     try {
-      const ozet = await API.getOzet();
+      const [ozet, sirketler] = await Promise.all([API.getOzet(), API.getSirketler()]);
+      this.tumSirketler = sirketler;
       this.uyeler = ozet.uyeler;
       this.ortaklar = ozet.ortaklar || [];
       this.rol = ozet.rol;
@@ -226,6 +236,7 @@ const App = {
       this.profilMenuGuncelle();
       this.ayarlariYukle();
       if (this.copKutusuYukle) this.copKutusuYukle();
+      if (this.headerAvatarGuncelle) this.headerAvatarGuncelle();
 
       ikonlariGuncelle();
     } catch (err) {
@@ -316,17 +327,18 @@ const App = {
     const sirketler = this.tumSirketler || [];
     const aktifId = API.getSirketId();
 
+    // Şirket listesi
     if (sirketler.length <= 1) {
       container.classList.add('hidden');
-      return;
+    } else {
+      container.classList.remove('hidden');
+      container.innerHTML = sirketler.map(s => `
+        <button class="sirket-menu-item w-full text-left px-4 py-2 text-sm transition flex items-center gap-2 ${s.id === aktifId ? 'text-brand font-semibold bg-brand/5' : 'text-gray-600 hover:bg-gray-50'}" data-id="${s.id}">
+          ${s.id === aktifId ? '<i data-lucide="check" class="w-3.5 h-3.5 flex-shrink-0"></i>' : '<span class="w-3.5"></span>'}
+          <span class="truncate">${this.esc(s.isim)}</span>
+        </button>
+      `).join('');
     }
-    container.classList.remove('hidden');
-    container.innerHTML = sirketler.map(s => `
-      <button class="sirket-menu-item w-full text-left px-4 py-2 text-sm transition flex items-center gap-2 ${s.id === aktifId ? 'text-brand font-semibold bg-brand/5' : 'text-gray-600 hover:bg-gray-50'}" data-id="${s.id}">
-        ${s.id === aktifId ? '<i data-lucide="check" class="w-3.5 h-3.5 flex-shrink-0"></i>' : '<span class="w-3.5"></span>'}
-        <span class="truncate">${this.esc(s.isim)}</span>
-      </button>
-    `).join('');
     ikonlariGuncelle();
   },
 

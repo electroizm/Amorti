@@ -105,6 +105,10 @@ body { font-family: 'Inter', sans-serif; }
 .btn-primary:hover { background: #4f46e5; }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ─── Profil avatar upload wrapper ─── */
+#profil-avatar-wrap { display: inline-block; }
+#profil-avatar-cerceve img { width: 100%; height: 100%; object-fit: cover; }
+
 /* ─── Auth ─── */
 .sifre-wrapper { position: relative; }
 .sifre-wrapper input { padding-right: 2.75rem; }

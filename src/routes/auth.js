@@ -1,11 +1,14 @@
 /**
  * Auth Route'lari
- * Kayit, giris, cikis, mevcut kullanici
+ * Kayit, giris, cikis, mevcut kullanici, profil, avatar
  */
 const { Router } = require('express');
 const { createClient } = require('@supabase/supabase-js');
+const multer = require('multer');
 const { turkceHata } = require('../services/hata');
 const { authGerekli, supabaseService } = require('../middleware/auth');
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -47,7 +50,8 @@ router.post('/kayit', async (req, res) => {
       kullanici: {
         id: data.user.id,
         eposta: data.user.email,
-        isim: data.user.user_metadata?.isim
+        isim: data.user.user_metadata?.isim,
+        avatar_url: data.user.user_metadata?.avatar_url || null
       },
       oturum: data.session
     });
@@ -77,7 +81,8 @@ router.post('/giris', async (req, res) => {
       kullanici: {
         id: data.user.id,
         eposta: data.user.email,
-        isim: data.user.user_metadata?.isim
+        isim: data.user.user_metadata?.isim,
+        avatar_url: data.user.user_metadata?.avatar_url || null
       },
       oturum: data.session
     });
@@ -153,6 +158,67 @@ router.patch('/profil', authGerekli, async (req, res) => {
     res.json({ tamam: true, isim: isim.trim() });
   } catch (err) {
     console.error('[profil guncelle hatasi]', err.message);
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// POST /api/auth/avatar — profil fotoğrafı yükle
+router.post('/avatar', authGerekli, upload.single('avatar'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ hata: 'Dosya seçilmedi' });
+
+  const mime = req.file.mimetype;
+  if (!mime.startsWith('image/')) return res.status(400).json({ hata: 'Sadece resim dosyası yüklenebilir' });
+
+  const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+  const dosyaYolu = `${req.kullanici.id}/avatar.${ext}`;
+
+  try {
+    if (!supabaseService) throw new Error('Depolama servisi yapılandırılmamış');
+
+    const { error: uploadErr } = await supabaseService.storage
+      .from('avatars')
+      .upload(dosyaYolu, req.file.buffer, { contentType: mime, upsert: true });
+    if (uploadErr) throw uploadErr;
+
+    const { data: { publicUrl } } = supabaseService.storage.from('avatars').getPublicUrl(dosyaYolu);
+
+    await supabaseService.auth.admin.updateUserById(req.kullanici.id, {
+      user_metadata: { avatar_url: publicUrl }
+    });
+
+    res.json({ avatar_url: publicUrl });
+  } catch (err) {
+    console.error('[avatar upload hatasi]', err.message);
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// PATCH /api/auth/eposta — e-posta değiştir
+router.patch('/eposta', authGerekli, async (req, res) => {
+  const { eposta } = req.body;
+  if (!eposta || !eposta.includes('@')) return res.status(400).json({ hata: 'Geçerli bir e-posta girin' });
+
+  try {
+    if (!supabaseService) throw new Error('Servis yapılandırılmamış');
+    const { error } = await supabaseService.auth.admin.updateUserById(req.kullanici.id, { email: eposta });
+    if (error) throw error;
+    res.json({ tamam: true });
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// PATCH /api/auth/sifre — şifre değiştir
+router.patch('/sifre', authGerekli, async (req, res) => {
+  const { sifre } = req.body;
+  if (!sifre || sifre.length < 6) return res.status(400).json({ hata: 'Şifre en az 6 karakter olmalıdır' });
+
+  try {
+    if (!supabaseService) throw new Error('Servis yapılandırılmamış');
+    const { error } = await supabaseService.auth.admin.updateUserById(req.kullanici.id, { password: sifre });
+    if (error) throw error;
+    res.json({ tamam: true });
+  } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });
   }
 });

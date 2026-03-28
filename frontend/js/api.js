@@ -85,6 +85,22 @@ export const API = {
   },
 
   profilGuncelle(isim) { return this.request('/auth/profil', { method: 'PATCH', body: { isim } }); },
+  epostaDegistir(eposta) { return this.request('/auth/eposta', { method: 'PATCH', body: { eposta } }); },
+  sifreDegistir(sifre) { return this.request('/auth/sifre', { method: 'PATCH', body: { sifre } }); },
+  async uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const headers = {};
+    const token = this.getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const sirketId = this.getSirketId();
+    if (sirketId) headers['X-Sirket-Id'] = sirketId;
+    let res;
+    try { res = await fetch(this.base + '/auth/avatar', { method: 'POST', headers, body: formData }); }
+    catch (err) { throw new Error(err.message); }
+    if (!res.ok) { const e = await res.json().catch(() => ({ hata: 'Hata' })); throw new Error(e.hata); }
+    return res.json();
+  },
 
   getSirketler() { return this.request('/sirketler'); },
   sirketOlustur(isim) { return this.request('/sirketler', { method: 'POST', body: { isim } }); },

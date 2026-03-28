@@ -108,11 +108,24 @@
           <h1 class="text-xl font-black tracking-tight">AM<span class="text-brand">Ø</span>RT!</h1>
         </div>
         <div class="relative">
-          <button id="btn-profil" class="p-2 rounded-lg hover:bg-surface-dark transition" data-i18n-title="header.profilTitle" title="Profil">
-            <i data-lucide="user" class="w-5 h-5 text-gray-500"></i>
+          <button id="btn-profil" class="rounded-full hover:opacity-80 transition" title="Profil">
+            <div id="btn-profil-avatar" class="w-8 h-8 rounded-full bg-brand flex items-center justify-center overflow-hidden flex-shrink-0">
+              <i data-lucide="user" class="w-4 h-4 text-white"></i>
+            </div>
           </button>
-          <div id="profil-menu" class="hidden absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[180px] z-30">
+          <div id="profil-menu" class="hidden absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden min-w-[220px] z-30">
+            <!-- Kullanıcı bilgisi -->
+            <div id="profil-menu-kisi" class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition" id="btn-profil-duzenle-menu">
+              <div id="profil-menu-avatar" class="w-10 h-10 rounded-full bg-brand flex items-center justify-center overflow-hidden flex-shrink-0"></div>
+              <div class="min-w-0 flex-1">
+                <p id="profil-menu-isim" class="font-semibold text-sm text-gray-900 truncate"></p>
+                <p id="profil-menu-eposta" class="text-xs text-gray-400 truncate"></p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 flex-shrink-0"></i>
+            </div>
+            <!-- Şirket listesi -->
             <div id="sirket-menu-listesi" class="border-b border-gray-100 py-1"></div>
+            <!-- Ayarlar -->
             <button id="btn-ayarlar-menu" class="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition flex items-center gap-2">
               <i data-lucide="settings" class="w-4 h-4"></i>
               <span data-i18n="header.ayarlar">Ayarlar</span>
@@ -408,6 +421,63 @@
         <button type="submit" class="btn-primary" data-i18n="ortak.kaydetBtn">Kaydet</button>
       </form>
     </div>
+  </div>
+
+  <!-- ==================== PROFİL EKRANI ==================== -->
+  <div id="ekran-profil" class="ekran flex-col min-h-screen bg-surface-dark">
+    <header class="sticky top-0 z-20 bg-white/92 backdrop-blur-md border-b border-gray-100 px-4 py-3">
+      <div class="max-w-lg mx-auto flex items-center gap-3">
+        <button id="btn-profil-geri" class="p-2 rounded-lg hover:bg-surface-dark transition">
+          <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
+        </button>
+        <h1 class="font-bold text-gray-900">Profil Düzenle</h1>
+      </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-4 pt-6 pb-12 flex-1 w-full space-y-4">
+
+      <!-- Avatar -->
+      <div class="flex flex-col items-center gap-2 py-2">
+        <div id="profil-avatar-wrap" class="relative cursor-pointer group">
+          <div id="profil-avatar-cerceve" class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-md"></div>
+          <div class="absolute inset-0 rounded-full bg-black/25 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
+            <i data-lucide="camera" class="w-7 h-7 text-white"></i>
+          </div>
+        </div>
+        <input type="file" id="profil-foto-input" accept="image/*" class="hidden">
+        <p class="text-xs text-gray-400">Değiştirmek için tıkla</p>
+      </div>
+
+      <!-- Ad -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <p class="font-semibold text-sm text-gray-700 mb-3">Ad</p>
+        <div class="flex gap-2">
+          <input id="profil-isim-input" type="text" class="input-field flex-1" placeholder="Adınız">
+          <button id="btn-profil-isim-kaydet" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
+        </div>
+      </div>
+
+      <!-- E-posta -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <p class="font-semibold text-sm text-gray-700 mb-1">E-posta</p>
+        <p class="text-xs text-gray-400 mb-3">E-posta değiştirildiğinde doğrulama bağlantısı gönderilir.</p>
+        <div class="flex gap-2">
+          <input id="profil-eposta-input" type="email" class="input-field flex-1" placeholder="E-posta adresiniz">
+          <button id="btn-profil-eposta-kaydet" class="px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
+        </div>
+      </div>
+
+      <!-- Şifre -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <p class="font-semibold text-sm text-gray-700 mb-3">Şifre Değiştir</p>
+        <div class="space-y-2">
+          <input id="profil-sifre-yeni" type="password" class="input-field" placeholder="Yeni şifre (en az 6 karakter)">
+          <input id="profil-sifre-tekrar" type="password" class="input-field" placeholder="Yeni şifre tekrar">
+          <button id="btn-profil-sifre-kaydet" class="btn-primary">Şifreyi Değiştir</button>
+        </div>
+      </div>
+
+    </main>
   </div>
 
   <script type="module" src="/main.js"></script>
