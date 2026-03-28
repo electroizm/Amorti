@@ -18,6 +18,11 @@ const HATA_ESLEMELERI = {
   'token has expired or is invalid': 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.',
   'jwt expired': 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.',
 
+  // Auth hataları (devam)
+  'auth session missing': 'Oturum bilgisi eksik. Lütfen tekrar giriş yapın.',
+  'session missing': 'Oturum bilgisi eksik. Lütfen tekrar giriş yapın.',
+  'not authenticated': 'Giriş yapmanız gerekiyor.',
+
   // DB / RLS hataları
   'infinite recursion detected in policy for relation': 'Veritabanı politika hatası. Lütfen yöneticiyle iletişime geçin.',
   'new row violates row-level security policy': 'Bu işlemi yapmaya yetkiniz yok.',

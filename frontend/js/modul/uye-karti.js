@@ -6,9 +6,25 @@ export function uyeKartiKur(app) {
   app._partnerTab = 'uyeler';
 
   app.bindDavetModal = function () {
-    document.getElementById('btn-davet-gonder').addEventListener('click', () => app.modalAc('modal-davet'));
-    document.getElementById('modal-davet-close').addEventListener('click', () => app.modalKapat('modal-davet'));
-    document.getElementById('modal-davet').addEventListener('click', (e) => { if (e.target === e.currentTarget) app.modalKapat('modal-davet'); });
+    document.getElementById('btn-davet-gonder').addEventListener('click', () => {
+      app.modalAc('modal-davet');
+      // Ortaklar sekmesinden açılıyorsa pay alanını vurgula
+      const payGroup = document.getElementById('davet-pay-group');
+      if (payGroup) {
+        const ortakTab = app._partnerTab === 'ortaklar';
+        payGroup.classList.toggle('ring-2', ortakTab);
+        payGroup.classList.toggle('ring-brand', ortakTab);
+        payGroup.classList.toggle('ring-offset-2', ortakTab);
+        payGroup.classList.toggle('rounded-xl', ortakTab);
+        if (ortakTab) document.getElementById('davet-pay').focus();
+      }
+    });
+    const temizleDavetVurgu = () => {
+      const g = document.getElementById('davet-pay-group');
+      if (g) g.classList.remove('ring-2', 'ring-brand', 'ring-offset-2', 'rounded-xl');
+    };
+    document.getElementById('modal-davet-close').addEventListener('click', () => { temizleDavetVurgu(); app.modalKapat('modal-davet'); });
+    document.getElementById('modal-davet').addEventListener('click', (e) => { if (e.target === e.currentTarget) { temizleDavetVurgu(); app.modalKapat('modal-davet'); } });
 
     document.getElementById('form-davet').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -29,7 +45,8 @@ export function uyeKartiKur(app) {
         tab.classList.add('bg-brand', 'text-white'); tab.classList.remove('text-gray-400');
         document.getElementById('tab-uyeler').classList.toggle('hidden', app._partnerTab !== 'uyeler');
         document.getElementById('tab-ortaklar').classList.toggle('hidden', app._partnerTab !== 'ortaklar');
-        document.getElementById('btn-davet-gonder').classList.toggle('hidden', app._partnerTab !== 'uyeler' || app.rol !== 'yonetici');
+        // Davet Et butonu her iki sekmede yönetici için görünür
+        document.getElementById('btn-davet-gonder').classList.toggle('hidden', app.rol !== 'yonetici');
         if (app._partnerTab === 'ortaklar') app.ortakListesiGoster();
       });
     });

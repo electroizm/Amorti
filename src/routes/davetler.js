@@ -108,7 +108,11 @@ router.post('/', sirketBaglami, rolGerekli('yonetici'), async (req, res) => {
 
 // POST /api/davetler/:id/kabul — daveti kabul et
 router.post('/:id/kabul', async (req, res) => {
+  // Kabul işlemi için service client — kabul eden kullanıcı henüz o şirkette üye değil
+  const db = supabaseService || req.supabase;
+
   try {
+    // Daveti kullanıcı JWT'siyle oku (RLS: eposta = auth.jwt()->>'email')
     const { data: davet, error: davetErr } = await req.supabase
       .from('davetler')
       .select('*')
@@ -121,12 +125,12 @@ router.post('/:id/kabul', async (req, res) => {
       return res.status(404).json({ hata: 'Davet bulunamadı veya zaten işlendi' });
     }
 
-    // Uyeyi ekle
     const kullaniciIsim = req.kullanici.user_metadata?.isim || req.kullanici.email.split('@')[0];
     const renkler = ['#FDE047', '#10B981', '#F97316', '#EC4899', '#8B5CF6', '#06B6D4', '#EF4444'];
     const rastgeleRenk = renkler[Math.floor(Math.random() * renkler.length)];
 
-    const { data: yeniUye, error: uyeErr } = await req.supabase
+    // Üye ekle (service client ile — RLS bypass)
+    const { data: yeniUye, error: uyeErr } = await db
       .from('uyeler')
       .insert({
         sirket_id: davet.sirket_id,
@@ -140,10 +144,9 @@ router.post('/:id/kabul', async (req, res) => {
 
     if (uyeErr) throw uyeErr;
 
-    // Davet ortaklık payı içeriyorsa ortak kaydı oluştur ve üyeye bağla
+    // Davet pay içeriyorsa ortak kaydı oluştur ve üyeye bağla
     if (davet.pay != null && yeniUye) {
-      const dbClient = supabaseService || req.supabase;
-      const { data: yeniOrtak } = await dbClient
+      const { data: yeniOrtak } = await db
         .from('ortaklar')
         .insert({
           sirket_id: davet.sirket_id,
@@ -155,15 +158,12 @@ router.post('/:id/kabul', async (req, res) => {
         .single();
 
       if (yeniOrtak) {
-        await dbClient
-          .from('uyeler')
-          .update({ ortak_id: yeniOrtak.id })
-          .eq('id', yeniUye.id);
+        await db.from('uyeler').update({ ortak_id: yeniOrtak.id }).eq('id', yeniUye.id);
       }
     }
 
-    // Daveti guncelle
-    const { error: guncelleErr } = await req.supabase
+    // Daveti kapat (service client ile)
+    const { error: guncelleErr } = await db
       .from('davetler')
       .update({ durum: 'kabul' })
       .eq('id', req.params.id);
@@ -172,6 +172,7 @@ router.post('/:id/kabul', async (req, res) => {
 
     res.json({ tamam: true, mesaj: 'Davet kabul edildi' });
   } catch (err) {
+    console.error('[davet kabul hatasi]', err.message);
     res.status(500).json({ hata: turkceHata(err.message) });
   }
 });

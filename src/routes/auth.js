@@ -132,11 +132,15 @@ router.patch('/profil', authGerekli, async (req, res) => {
   }
 
   try {
-    // Supabase auth metadata güncelle
-    const { error: authErr } = await req.supabase.auth.updateUser({
-      data: { isim: isim.trim() }
-    });
-    if (authErr) throw authErr;
+    // Supabase auth metadata güncelle (service admin API gerektirir)
+    const { supabaseAdmin } = require('../middleware/auth');
+    if (supabaseService) {
+      const { error: authErr } = await supabaseService.auth.admin.updateUserById(
+        req.kullanici.id,
+        { user_metadata: { isim: isim.trim() } }
+      );
+      if (authErr) throw authErr;
+    }
 
     // Tüm aktif üye kayıtlarındaki ismi de güncelle
     const db = supabaseService || req.supabase;
@@ -148,6 +152,7 @@ router.patch('/profil', authGerekli, async (req, res) => {
 
     res.json({ tamam: true, isim: isim.trim() });
   } catch (err) {
+    console.error('[profil guncelle hatasi]', err.message);
     res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
