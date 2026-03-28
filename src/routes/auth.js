@@ -5,6 +5,7 @@
 const { Router } = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const { turkceHata } = require('../services/hata');
+const { authGerekli, supabaseService } = require('../middleware/auth');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -118,6 +119,34 @@ router.get('/ben', async (req, res) => {
       eposta: user.email,
       isim: user.user_metadata?.isim
     });
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
+// PATCH /api/auth/profil — isim guncelle
+router.patch('/profil', authGerekli, async (req, res) => {
+  const { isim } = req.body;
+  if (!isim || !isim.trim()) {
+    return res.status(400).json({ hata: 'İsim zorunludur' });
+  }
+
+  try {
+    // Supabase auth metadata güncelle
+    const { error: authErr } = await req.supabase.auth.updateUser({
+      data: { isim: isim.trim() }
+    });
+    if (authErr) throw authErr;
+
+    // Tüm aktif üye kayıtlarındaki ismi de güncelle
+    const db = supabaseService || req.supabase;
+    await db
+      .from('uyeler')
+      .update({ isim: isim.trim() })
+      .eq('kullanici_id', req.kullanici.id)
+      .eq('silinmis', false);
+
+    res.json({ tamam: true, isim: isim.trim() });
   } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });
   }

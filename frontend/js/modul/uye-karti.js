@@ -34,41 +34,25 @@ export function uyeKartiKur(app) {
       });
     });
 
-    app.bindOrtakForm();
-  };
-
-  app.bindOrtakForm = function () {
-    const toggleBtn = document.getElementById('btn-ortak-ekle-toggle');
-    const formDiv = document.getElementById('ortak-ekle-form');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        const mevcutOrtaklar = app.ortaklar || [];
-        const toplamPay = mevcutOrtaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
-        if (toplamPay >= 100) { app.toast(t('ortak.payDolu'), 'hata'); return; }
-        formDiv.classList.toggle('hidden'); toggleBtn.classList.add('hidden');
-        const payInput = document.getElementById('ortak-pay');
-        if (toplamPay > 0 && toplamPay < 100) payInput.placeholder = `Kalan: %${Math.round((100 - toplamPay) * 100) / 100}`;
-        else payInput.placeholder = t('ortak.payPlaceholder');
-      });
-    }
-    document.getElementById('form-ortak').addEventListener('submit', async (e) => {
+    // Ortak düzenle modal
+    document.getElementById('modal-ortak-duzenle-close').addEventListener('click', () => app.modalKapat('modal-ortak-duzenle'));
+    document.getElementById('modal-ortak-duzenle').addEventListener('click', (e) => { if (e.target === e.currentTarget) app.modalKapat('modal-ortak-duzenle'); });
+    document.getElementById('form-ortak-duzenle').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const isim = document.getElementById('ortak-isim').value.trim();
-      const renk = document.getElementById('ortak-renk').value;
-      const payVal = document.getElementById('ortak-pay').value;
-      let pay = payVal ? parseFloat(payVal) : null;
-      if (pay === null) {
-        const mevcutOrtaklar = app.ortaklar || [];
-        const toplamPay = mevcutOrtaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
-        if (toplamPay > 0 && toplamPay < 100) pay = Math.round((100 - toplamPay) * 100) / 100;
-      }
-      if (pay != null && pay <= 0) { app.toast('Kalan pay %0, yeni ortak eklenemez', 'hata'); return; }
+      const id = document.getElementById('ortak-duzenle-id').value;
+      const isim = document.getElementById('ortak-duzenle-isim').value.trim();
+      const renk = document.getElementById('ortak-duzenle-renk').value;
+      const payVal = document.getElementById('ortak-duzenle-pay').value;
+      const pay = payVal ? parseFloat(payVal) : null;
+      const btn = e.target.querySelector('[type="submit"]');
+      btn.disabled = true;
       try {
-        await API.ortakEkle({ isim, renk, pay }); app.titresim(); app.toast(t('ortak.eklendi'), 'basari');
-        document.getElementById('form-ortak').reset(); document.getElementById('ortak-renk').value = '#6366f1';
-        formDiv.classList.add('hidden'); toggleBtn.classList.remove('hidden');
+        await API.ortakGuncelle(id, { isim, renk, pay });
+        app.titresim(); app.toast(t('ortak.guncellendi'), 'basari');
+        app.modalKapat('modal-ortak-duzenle');
         app.ortakListesiGoster(); await app.yenile();
       } catch (err) { app.toast(err.message, 'hata'); }
+      finally { btn.disabled = false; }
     });
   };
 
@@ -141,71 +125,82 @@ export function uyeKartiKur(app) {
   app.ortakListesiGoster = async function () {
     const list = document.getElementById('ortak-list');
     const empty = document.getElementById('ortak-empty');
-    const toggleBtn = document.getElementById('btn-ortak-ekle-toggle');
     const yonetici = app.rol === 'yonetici';
     try {
       const ortaklar = await API.getOrtaklar(); app.ortaklar = ortaklar;
-      if (ortaklar.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); }
-      else {
-        empty.classList.add('hidden');
-        list.innerHTML = ortaklar.map(o => `
-          <div class="ortak-wrapper" data-id="${o.id}">
-            <div class="bg-white rounded-xl p-4 flex items-center justify-between shadow-sm border border-gray-100">
-              <div class="flex items-center gap-3">
-                <div class="amort-avatar" style="background:${o.renk}">${(o.isim || '?').charAt(0).toUpperCase()}</div>
-                <div><p class="font-semibold text-sm text-gray-900">${app.esc(o.isim)}</p><p class="text-xs text-gray-400">${o.pay != null ? `%${o.pay} pay` : t('ortak.payPlaceholder')}</p></div>
+      if (ortaklar.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+
+      empty.classList.add('hidden');
+      list.innerHTML = ortaklar.map(o => `
+        <div class="ortak-wrapper" data-id="${o.id}">
+          <div class="bg-white rounded-xl p-4 flex items-center justify-between shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="amort-avatar" style="background:${o.renk}">${(o.isim || '?').charAt(0).toUpperCase()}</div>
+              <div>
+                <p class="font-semibold text-sm text-gray-900">${app.esc(o.isim)}</p>
+                <p class="text-xs text-gray-400">${o.pay != null ? `%${o.pay}` : '— kalan pay'}</p>
               </div>
-              ${yonetici ? `<div class="flex gap-1">
-                <button class="ortak-duzenle p-2 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition" data-id="${o.id}"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                <button class="ortak-sil p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${o.id}" data-isim="${app.esc(o.isim)}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>` : ''}
             </div>
-            <div class="ortak-edit-panel hidden"></div>
-          </div>`).join('');
-        ikonlariGuncelle();
-      }
-      if (toggleBtn) toggleBtn.classList.toggle('hidden', !yonetici);
+            ${yonetici ? `<div class="flex gap-1">
+              <button class="ortak-duzenle p-2 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition" data-id="${o.id}" data-isim="${app.esc(o.isim)}" data-renk="${o.renk}" data-pay="${o.pay != null ? o.pay : ''}">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+              <button class="ortak-sil p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition" data-id="${o.id}" data-isim="${app.esc(o.isim)}">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>` : ''}
+          </div>
+          <div class="ortak-sil-panel hidden"></div>
+        </div>`).join('');
+      ikonlariGuncelle();
 
       if (!list._ortakDelegated) {
         list._ortakDelegated = true;
         list.addEventListener('click', async (e) => {
+          // Düzenle → modal aç
           const duzenleBtn = e.target.closest('.ortak-duzenle');
           if (duzenleBtn) {
-            const id = duzenleBtn.dataset.id;
-            const wrapper = list.querySelector(`.ortak-wrapper[data-id="${id}"]`);
-            const panel = wrapper.querySelector('.ortak-edit-panel');
-            if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
-            list.querySelectorAll('.ortak-edit-panel').forEach(p => p.classList.add('hidden'));
-            const o = app.ortaklar.find(x => x.id === id);
-            panel.innerHTML = `<div class="bg-gray-50 rounded-b-xl p-3 border border-t-0 border-gray-100 space-y-2"><div class="flex gap-2"><input type="text" class="ortak-edit-isim flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5" value="${app.esc(o.isim)}" placeholder="${t('ortak.isimLabel')}"><input type="color" class="ortak-edit-renk w-9 h-9 rounded-lg border border-gray-200 cursor-pointer" value="${o.renk}"></div><div class="flex gap-2 items-center"><input type="number" class="ortak-edit-pay flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5" value="${o.pay != null ? o.pay : ''}" placeholder="${t('ortak.payPlaceholder')}" step="0.01" min="0" max="100"><span class="text-xs text-gray-400">%</span></div><div class="flex gap-2"><button class="ortak-duzenle-kaydet flex-1 py-1.5 bg-brand text-white text-xs rounded-lg font-semibold" data-id="${id}">${t('ortak.kaydetBtn')}</button><button class="ortak-duzenle-iptal flex-1 py-1.5 bg-gray-100 text-gray-500 text-xs rounded-lg font-semibold">${t('ortak.iptalBtn')}</button></div></div>`;
-            panel.classList.remove('hidden'); return;
+            document.getElementById('ortak-duzenle-id').value = duzenleBtn.dataset.id;
+            document.getElementById('ortak-duzenle-isim').value = duzenleBtn.dataset.isim;
+            document.getElementById('ortak-duzenle-renk').value = duzenleBtn.dataset.renk || '#6366f1';
+            document.getElementById('ortak-duzenle-pay').value = duzenleBtn.dataset.pay || '';
+            app.modalAc('modal-ortak-duzenle');
+            return;
           }
-          const kaydetBtn = e.target.closest('.ortak-duzenle-kaydet');
-          if (kaydetBtn) {
-            const id = kaydetBtn.dataset.id; const wrapper = list.querySelector(`.ortak-wrapper[data-id="${id}"]`);
-            const isim = wrapper.querySelector('.ortak-edit-isim').value.trim(); const renk = wrapper.querySelector('.ortak-edit-renk').value;
-            const payVal = wrapper.querySelector('.ortak-edit-pay').value; const pay = payVal ? parseFloat(payVal) : null;
-            try { await API.ortakGuncelle(id, { isim, renk, pay }); app.toast(t('ortak.guncellendi'), 'basari'); app.ortakListesiGoster(); await app.yenile(); }
-            catch (err) { app.toast(err.message, 'hata'); } return;
-          }
-          if (e.target.closest('.ortak-duzenle-iptal')) { e.target.closest('.ortak-edit-panel').classList.add('hidden'); return; }
+
+          // Sil → inline onay paneli
           const silBtn = e.target.closest('.ortak-sil');
           if (silBtn) {
-            const id = silBtn.dataset.id; const wrapper = list.querySelector(`.ortak-wrapper[data-id="${id}"]`); const panel = wrapper.querySelector('.ortak-edit-panel');
-            if (!panel.classList.contains('hidden') && panel.querySelector('.ortak-devir-select')) { panel.classList.add('hidden'); return; }
-            list.querySelectorAll('.ortak-edit-panel').forEach(p => p.classList.add('hidden'));
+            const id = silBtn.dataset.id;
+            const wrapper = list.querySelector(`.ortak-wrapper[data-id="${id}"]`);
+            const panel = wrapper.querySelector('.ortak-sil-panel');
+            if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+            list.querySelectorAll('.ortak-sil-panel').forEach(p => p.classList.add('hidden'));
             const digerOrtaklar = app.ortaklar.filter(o => o.id !== id);
             if (digerOrtaklar.length === 0) {
               if (!confirm(t('ortak.silOnay', { isim: silBtn.dataset.isim }))) return;
               try { await API.ortakSil(id); app.titresim(); app.toast(t('ortak.silindi'), 'bilgi'); app.ortakListesiGoster(); await app.yenile(); }
-              catch (err) { app.toast(err.message, 'hata'); } return;
+              catch (err) { app.toast(err.message, 'hata'); }
+              return;
             }
-            panel.innerHTML = `<div class="bg-red-50 rounded-b-xl p-3 border border-t-0 border-red-100 space-y-2"><p class="text-xs text-red-600 font-medium">${t('ortak.devirSecim')}</p><select class="ortak-devir-select w-full text-sm border border-red-200 rounded-lg px-3 py-1.5">${digerOrtaklar.map(o => `<option value="${o.id}">${app.esc(o.isim)}</option>`).join('')}</select><div class="flex gap-2"><button class="ortak-sil-onayla flex-1 py-1.5 bg-red-500 text-white text-xs rounded-lg font-semibold" data-id="${id}">${t('ortak.silVeDevret')}</button><button class="ortak-duzenle-iptal flex-1 py-1.5 bg-gray-100 text-gray-500 text-xs rounded-lg font-semibold">${t('ortak.iptalBtn')}</button></div></div>`;
-            panel.classList.remove('hidden'); return;
+            panel.innerHTML = `<div class="bg-red-50 rounded-b-xl p-3 border border-t-0 border-red-100 space-y-2">
+              <p class="text-xs text-red-600 font-medium">${t('ortak.devirSecim')}</p>
+              <select class="ortak-devir-select w-full text-sm border border-red-200 rounded-lg px-3 py-1.5">${digerOrtaklar.map(o => `<option value="${o.id}">${app.esc(o.isim)}</option>`).join('')}</select>
+              <div class="flex gap-2">
+                <button class="ortak-sil-onayla flex-1 py-1.5 bg-red-500 text-white text-xs rounded-lg font-semibold" data-id="${id}">${t('ortak.silVeDevret')}</button>
+                <button class="ortak-sil-iptal flex-1 py-1.5 bg-gray-100 text-gray-500 text-xs rounded-lg font-semibold">${t('ortak.iptalBtn')}</button>
+              </div></div>`;
+            panel.classList.remove('hidden');
+            return;
           }
+
+          if (e.target.closest('.ortak-sil-iptal')) { e.target.closest('.ortak-sil-panel').classList.add('hidden'); return; }
+
           const onaylaBtn = e.target.closest('.ortak-sil-onayla');
           if (onaylaBtn) {
-            const id = onaylaBtn.dataset.id; const wrapper = list.querySelector(`.ortak-wrapper[data-id="${id}"]`); const hedefId = wrapper.querySelector('.ortak-devir-select').value;
+            const id = onaylaBtn.dataset.id;
+            const wrapper = list.querySelector(`.ortak-wrapper[data-id="${id}"]`);
+            const hedefId = wrapper.querySelector('.ortak-devir-select').value;
             try { await API.ortakSil(id, hedefId); app.titresim(); app.toast(t('ortak.silindi'), 'bilgi'); app.ortakListesiGoster(); await app.yenile(); }
             catch (err) { app.toast(err.message, 'hata'); }
           }

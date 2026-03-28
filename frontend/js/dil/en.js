@@ -73,6 +73,7 @@ export default {
     isimPlaceholder: 'Partner name',
     payLabel: 'Share (%)',
     payPlaceholder: 'Empty = equal',
+    duzenleBaslik: 'Edit Partner',
     duzenleBtn: 'Edit',
     kaydetBtn: 'Save',
     iptalBtn: 'Cancel',
@@ -163,6 +164,8 @@ export default {
     trTemizle: 'Remove Turkish characters',
     trTemizleAciklama: 'ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u',
     ayarKaydedildi: 'Settings saved',
+    isimGuncelle: 'Update Name',
+    isimGuncellendi: 'Name updated',
     kisiselKasaAc: 'Restore Personal Workspace'
   },
   cop: {

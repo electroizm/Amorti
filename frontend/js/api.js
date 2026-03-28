@@ -84,6 +84,8 @@ export const API = {
     this.temizleOturum();
   },
 
+  profilGuncelle(isim) { return this.request('/auth/profil', { method: 'PATCH', body: { isim } }); },
+
   getSirketler() { return this.request('/sirketler'); },
   sirketOlustur(isim) { return this.request('/sirketler', { method: 'POST', body: { isim } }); },
   sirketGuncelle(id, isim) { return this.request(`/sirketler/${id}`, { method: 'PATCH', body: { isim } }); },

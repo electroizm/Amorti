@@ -79,11 +79,15 @@ export function islemKartiKur(app) {
     document.getElementById('form-tx').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (app.rol === 'izleyici') return;
+      const submitBtn = e.target.querySelector('[type="submit"]');
+      if (submitBtn.disabled) return;
+      submitBtn.disabled = true;
 
       const tutar = parseAmount(amtInput.value);
       if (!tutar || tutar <= 0) {
         app.toast(t('islem.tutarHata'), 'hata');
         app.titresim(100);
+        submitBtn.disabled = false;
         return;
       }
 
@@ -109,7 +113,11 @@ export function islemKartiKur(app) {
           if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
           else { app.toast(t('islem.gelirEklendi'), 'basari'); }
           await app.yenile();
-        } catch (err) { app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata'); app.titresim(100); }
+        } catch (err) {
+          app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
+          app.titresim(100);
+          submitBtn.disabled = false;
+        }
         return;
       }
 
@@ -128,12 +136,12 @@ export function islemKartiKur(app) {
       if (app.islemTuru === 'transfer') {
         const receiverVal = document.getElementById('tx-receiver').value;
         const alanKasaMi = receiverVal === '__kasa__';
-        if (kasaMi && alanKasaMi) { app.toast(t('islem.kasaKasaHata'), 'hata'); app.titresim(100); return; }
+        if (kasaMi && alanKasaMi) { app.toast(t('islem.kasaKasaHata'), 'hata'); app.titresim(100); submitBtn.disabled = false; return; }
         data.alan_id = alanKasaMi ? app.uyeler[0]?.id : (ortakModu ? app.uyeler[0]?.id : receiverVal);
         data.alan_kasa_mi = alanKasaMi;
         if (ortakModu && !alanKasaMi) data.alan_ortak_id = receiverVal;
         if (!kasaMi && !alanKasaMi && data.odeyen_id === data.alan_id) {
-          app.toast(t('islem.ayniKisiHata'), 'hata'); app.titresim(100); return;
+          app.toast(t('islem.ayniKisiHata'), 'hata'); app.titresim(100); submitBtn.disabled = false; return;
         }
       }
 
@@ -147,7 +155,11 @@ export function islemKartiKur(app) {
         if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
         else { app.toast(kasaMi ? t('islem.kasaEklendi') : app.islemTuru === 'transfer' ? t('islem.transferKaydedildi') : t('islem.harcamaEklendi'), 'basari'); }
         await app.yenile();
-      } catch (err) { app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata'); app.titresim(100); }
+      } catch (err) {
+        app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
+        app.titresim(100);
+        submitBtn.disabled = false;
+      }
     });
   };
 

@@ -82,6 +82,7 @@ export default {
     isimPlaceholder: 'Ortak ismi',
     payLabel: 'Pay (%)',
     payPlaceholder: 'Boş = eşit',
+    duzenleBaslik: 'Ortak Düzenle',
     duzenleBtn: 'Düzenle',
     kaydetBtn: 'Kaydet',
     iptalBtn: 'İptal',
@@ -172,6 +173,8 @@ export default {
     trTemizle: 'Türkçe karakterleri kaldır',
     trTemizleAciklama: 'ş→s, ç→c, ğ→g, ı→i, ö→o, ü→u',
     ayarKaydedildi: 'Ayarlar kaydedildi',
+    isimGuncelle: 'İsim Güncelle',
+    isimGuncellendi: 'İsim güncellendi',
     kisiselKasaAc: 'Bireysel Kasayı Tekrar Aç'
   },
   cop: {

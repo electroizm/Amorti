@@ -26,53 +26,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/ortaklar — yeni ortak (yönetici)
-router.post('/', rolGerekli('yonetici'), async (req, res) => {
-  const { isim, renk, pay } = req.body;
-  if (!isim || !isim.trim()) {
-    return res.status(400).json({ hata: 'Ortak ismi zorunludur' });
-  }
-
-  try {
-    let hesaplananPay = pay != null ? parseFloat(pay) : null;
-
-    const { data: mevcutOrtaklar } = await req.supabase
-      .from('ortaklar')
-      .select('pay')
-      .eq('sirket_id', req.sirketId);
-
-    const toplamBelirtilen = (mevcutOrtaklar || []).reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
-
-    // Pay verilmişse %100 aşım kontrolü
-    if (hesaplananPay != null && toplamBelirtilen + hesaplananPay > 100) {
-      return res.status(400).json({ hata: `Paylar %100'ü aşamaz. Mevcut toplam: %${toplamBelirtilen}` });
-    }
-
-    // Pay boşsa kalan yüzdeyi ata
-    if (hesaplananPay === null && toplamBelirtilen > 0 && toplamBelirtilen < 100) {
-      hesaplananPay = Math.round((100 - toplamBelirtilen) * 100) / 100;
-    }
-
-    const row = {
-      sirket_id: req.sirketId,
-      isim: isim.trim(),
-      renk: renk || '#6366f1',
-      pay: hesaplananPay
-    };
-
-    const { data, error } = await req.supabase
-      .from('ortaklar')
-      .insert(row)
-      .select()
-      .single();
-
-    if (error) throw error;
-    res.status(201).json(data);
-  } catch (err) {
-    res.status(500).json({ hata: turkceHata(err.message) });
-  }
-});
-
 // PATCH /api/ortaklar/:id — ortak güncelle (yönetici)
 router.patch('/:id', rolGerekli('yonetici'), async (req, res) => {
   const { isim, renk, pay } = req.body;

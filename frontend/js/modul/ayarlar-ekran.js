@@ -7,6 +7,26 @@ import { API } from '../api.js';
 export function ayarlarEkranKur(app) {
 
   app.bindAyarlar = function () {
+    // İsim güncelleme
+    const isimInput = document.getElementById('ayar-isim');
+    const isimBtn = document.getElementById('btn-isim-guncelle');
+    if (isimBtn && !isimBtn._bound) {
+      isimBtn._bound = true;
+      isimBtn.addEventListener('click', async () => {
+        const yeniIsim = isimInput?.value?.trim();
+        if (!yeniIsim) return;
+        isimBtn.disabled = true;
+        try {
+          const sonuc = await API.profilGuncelle(yeniIsim);
+          const kullanici = API.getKullanici();
+          if (kullanici) { kullanici.isim = sonuc.isim; API.setKullanici(kullanici); }
+          app.toast(t('ayarlar.isimGuncellendi'), 'basari');
+          await app.yenile();
+        } catch (err) { app.toast(err.message, 'hata'); }
+        finally { isimBtn.disabled = false; }
+      });
+    }
+
     const harfSelect = document.getElementById('ayar-harf-bicimi');
     const trCheckbox = document.getElementById('ayar-tr-temizle');
 
@@ -31,6 +51,11 @@ export function ayarlarEkranKur(app) {
       document.getElementById('ayar-harf-bicimi').value = ayar.harf_bicimi || 'oldugu_gibi';
       document.getElementById('ayar-tr-temizle').checked = !!ayar.tr_temizle;
     } catch (err) { console.error('Ayarlar yuklenemedi:', err); }
+
+    // Mevcut ismi input'a doldur
+    const kullanici = API.getKullanici();
+    const isimInput = document.getElementById('ayar-isim');
+    if (isimInput && kullanici?.isim) isimInput.value = kullanici.isim;
 
     app.kisiselKasaAyarGuncelle();
   };
