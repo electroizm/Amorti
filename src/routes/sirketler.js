@@ -50,19 +50,26 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ hata: 'Şirket ismi zorunludur' });
   }
 
+  // Workspace olusturma: tum adimlar service client ile (RLS bypass)
+  // Service key yoksa user client'a fall back (migration v2_4 gerekir)
+  const db = supabaseService || req.supabase;
+  console.log('[sirketler POST] service client aktif:', !!supabaseService);
+
   try {
-    const { data: sirket, error: sirketErr } = await req.supabase
+    const { data: sirket, error: sirketErr } = await db
       .from('sirketler')
       .insert({ isim: isim.trim(), tip: 'ortaklik', sahip_id: req.kullanici.id })
       .select()
       .single();
 
-    if (sirketErr) throw sirketErr;
+    if (sirketErr) {
+      console.error('[sirketler POST] sirket insert hatasi:', sirketErr.message, sirketErr.code);
+      throw sirketErr;
+    }
 
     const kullaniciIsim = req.kullanici.user_metadata?.isim || req.kullanici.email.split('@')[0];
 
-    // Üye ekle
-    const { data: yeniUye, error: uyeErr } = await req.supabase
+    const { data: yeniUye, error: uyeErr } = await db
       .from('uyeler')
       .insert({
         sirket_id: sirket.id,
@@ -74,26 +81,30 @@ router.post('/', async (req, res) => {
       .select()
       .single();
 
-    if (uyeErr) throw uyeErr;
+    if (uyeErr) {
+      console.error('[sirketler POST] uye insert hatasi:', uyeErr.message, uyeErr.code);
+      throw uyeErr;
+    }
 
-    // Kurucuyu otomatik ortak yap — RLS bypass gerekebilir, service client kullan
-    const dbClient = supabaseService || req.supabase;
-    const { data: ortak, error: ortakErr } = await dbClient
+    const { data: ortak, error: ortakErr } = await db
       .from('ortaklar')
       .insert({ sirket_id: sirket.id, isim: kullaniciIsim, renk: '#6366f1', pay: null })
       .select()
       .single();
 
-    if (ortakErr) throw ortakErr;
+    if (ortakErr) {
+      console.error('[sirketler POST] ortak insert hatasi:', ortakErr.message, ortakErr.code);
+      throw ortakErr;
+    }
 
-    // Üye kaydını ortakla bağla
-    await dbClient
+    await db
       .from('uyeler')
       .update({ ortak_id: ortak.id })
       .eq('id', yeniUye.id);
 
     res.status(201).json({ ...sirket, rol: 'yonetici' });
   } catch (err) {
+    console.error('[sirketler POST] genel hata:', err.message);
     res.status(500).json({ hata: turkceHata(err.message) });
   }
 });
