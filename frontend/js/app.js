@@ -186,20 +186,23 @@ const App = {
       this.rol = ozet.rol;
       this.sirketIsim = ozet.sirketIsim || '';
 
-      // Özet kartı
+      // Özet kartı — netHarcama = harcama − gelir
       const kasaBadge = document.getElementById('ozet-kasa-badge');
-      document.getElementById('ozet-toplam').textContent = this.formatPara(ozet.toplamHarcama) + ' ₺';
+      const netHarcama = ozet.netHarcama ?? ozet.toplamHarcama;
+      document.getElementById('ozet-toplam').textContent = this.formatPara(netHarcama) + ' ₺';
+      const toplamLabel = document.getElementById('ozet-toplam-label');
+      if (toplamLabel) toplamLabel.textContent = ozet.toplamGelir > 0 ? 'Net Harcama' : t('ozet.toplamHarcama');
       if (ozet.kasaHarcama > 0) {
         kasaBadge.classList.remove('hidden');
         kasaBadge.textContent = t('ozet.kasaFormat', { isim: this.sirketIsim, tutar: this.formatPara(ozet.kasaHarcama) });
       } else {
         kasaBadge.classList.add('hidden');
       }
-      const kisisel = ozet.toplamHarcama - (ozet.kasaHarcama || 0);
+      const kisisel = netHarcama - (ozet.kasaHarcama || 0);
       const altKey = ozet.uyeler.length <= 1 ? 'ozet.altBilgiTek' : 'ozet.altBilgi';
       document.getElementById('ozet-alt').textContent = t(altKey, {
         sayi: ozet.uyeler.length,
-        tutar: this.formatPara(kisisel)
+        tutar: this.formatPara(Math.max(0, kisisel))
       });
 
       this.ortakKartlariGoster(ozet);

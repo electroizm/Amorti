@@ -122,6 +122,8 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
     // Gelir toplamı (bireysel kullanım için)
     const toplamGelir = islemler.filter(i => i.tur === 'gelir').reduce((s, i) => s + parseFloat(i.tutar), 0);
 
+    const netHarcama = Math.max(0, toplamHarcama - toplamGelir);
+
     res.json({
       sirketIsim: sirket.isim,
       uyeler,
@@ -132,6 +134,7 @@ app.get('/api/ozet', authGerekli, sirketBaglami, async (req, res) => {
       kasaHarcama,
       toplamHarcama,
       toplamGelir,
+      netHarcama,
       onerilen_transferler: transferler,
       rol: req.uye.rol
     });

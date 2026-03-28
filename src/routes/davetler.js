@@ -170,7 +170,7 @@ router.post('/:id/kabul', async (req, res) => {
 
     if (guncelleErr) throw guncelleErr;
 
-    res.json({ tamam: true, mesaj: 'Davet kabul edildi' });
+    res.json({ tamam: true, mesaj: 'Davet kabul edildi', sirket_id: davet.sirket_id });
   } catch (err) {
     console.error('[davet kabul hatasi]', err.message);
     res.status(500).json({ hata: turkceHata(err.message) });

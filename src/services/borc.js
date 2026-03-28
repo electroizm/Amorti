@@ -31,6 +31,10 @@ function _uyeBazliBakiye(uyeler, islemler) {
     } else if (i.tur === 'transfer') {
       bakiyeler[i.odeyen_id] += parseFloat(i.tutar);
       bakiyeler[i.alan_id] -= parseFloat(i.tutar);
+    } else if (i.tur === 'gelir') {
+      // Dışarıdan gelen gelir, her üyenin borcunu eşit oranda düşürür
+      const pay = parseFloat(i.tutar) / n;
+      uyeler.forEach(u => { bakiyeler[u.id] += pay; });
     }
   }
 
@@ -94,6 +98,10 @@ function _ortakBazliBakiye(ortaklar, islemler) {
       if (alanOrtakId && bakiyeler[alanOrtakId] !== undefined) {
         bakiyeler[alanOrtakId] -= parseFloat(i.tutar);
       }
+    } else if (i.tur === 'gelir') {
+      // Dışarıdan gelen gelir, her ortağın borcunu pay oranında düşürür
+      const tutar = parseFloat(i.tutar);
+      ortaklar.forEach(o => { bakiyeler[o.id] += tutar * paylar[o.id]; });
     }
   }
 

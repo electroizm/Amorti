@@ -39,6 +39,62 @@ export function profilEkranKur(app) {
     ikonlariGuncelle();
   };
 
+  // ─── Kasalar listesi ───
+  app.profilKasalariGoster = function () {
+    const sirketler = app.tumSirketler || [];
+    const bolum = document.getElementById('profil-kasalar-bolum');
+    const liste = document.getElementById('profil-kasa-listesi');
+    if (!bolum || !liste) return;
+
+    // Sadece 2+ kasada göster
+    if (sirketler.length < 2) { bolum.classList.add('hidden'); return; }
+    bolum.classList.remove('hidden');
+
+    const aktifId = API.getSirketId();
+    liste.innerHTML = sirketler.map(s => `
+      <button class="profil-kasa-item w-full bg-white rounded-xl px-4 py-3 shadow-sm border flex items-center gap-3 transition
+        ${s.id === aktifId ? 'border-brand/40 bg-brand/5' : 'border-gray-100 hover:border-brand/20'}"
+        data-id="${s.id}">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm text-white"
+          style="background:${s.id === aktifId ? '#6366f1' : '#94a3b8'}">
+          ${(s.isim || '?').charAt(0).toUpperCase()}
+        </div>
+        <div class="flex-1 text-left min-w-0">
+          <p class="font-semibold text-sm text-gray-900 truncate">${app.esc(s.isim)}</p>
+          <p class="text-xs ${s.id === aktifId ? 'text-brand' : 'text-gray-400'}">${app.rolGoster(s.rol)}</p>
+        </div>
+        ${s.id === aktifId ? '<i data-lucide="check" class="w-4 h-4 text-brand flex-shrink-0"></i>' : '<i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 flex-shrink-0"></i>'}
+      </button>
+    `).join('');
+    ikonlariGuncelle();
+  };
+
+  // ─── Bekleyen davetler ───
+  app.profilDavetleriGoster = async function () {
+    const bolum = document.getElementById('profil-davetler-bolum');
+    const liste = document.getElementById('profil-davet-listesi');
+    if (!bolum || !liste) return;
+    try {
+      const davetler = await API.bekleyenDavetler();
+      if (!davetler.length) { bolum.classList.add('hidden'); return; }
+      bolum.classList.remove('hidden');
+      liste.innerHTML = davetler.map(d => `
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-brand/20 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-gray-900 truncate">${app.esc(d.sirketler?.isim || '?')}</p>
+            <p class="text-xs text-gray-400">${app.rolGoster(d.rol)}</p>
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
+            <button class="profil-davet-kabul px-3 py-1.5 bg-brand text-white text-xs rounded-lg font-semibold" data-id="${d.id}">Kabul</button>
+            <button class="profil-davet-red px-3 py-1.5 bg-gray-100 text-gray-500 text-xs rounded-lg font-semibold" data-id="${d.id}">Reddet</button>
+          </div>
+        </div>
+      `).join('');
+    } catch {
+      bolum.classList.add('hidden');
+    }
+  };
+
   // ─── Profil ekranını aç ───
   app.profilEkranGoster = function () {
     const k = API.getKullanici();
@@ -49,6 +105,8 @@ export function profilEkranKur(app) {
       document.getElementById('profil-sifre-tekrar').value = '';
     }
     app.headerAvatarGuncelle();
+    app.profilKasalariGoster();
+    app.profilDavetleriGoster();
     app.ekranGoster('profil');
   };
 
@@ -131,6 +189,63 @@ export function profilEkranKur(app) {
       document.getElementById('profil-sifre-yeni').value = '';
       document.getElementById('profil-sifre-tekrar').value = '';
       app.toast('Şifre değiştirildi', 'basari');
+    } catch (err) {
+      app.toast(err.message, 'hata');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ─── Kasa listesi: kasa tıklama ───
+  document.getElementById('profil-kasa-listesi').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.profil-kasa-item');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (id === API.getSirketId()) { app.ekranGoster('app'); return; }
+    API.setSirketId(id);
+    app.ekranGoster('app');
+    await app.yenile();
+  });
+
+  // ─── Davet kabul / red ───
+  document.getElementById('profil-davet-listesi').addEventListener('click', async (e) => {
+    const kabulBtn = e.target.closest('.profil-davet-kabul');
+    const redBtn = e.target.closest('.profil-davet-red');
+    if (kabulBtn) {
+      try {
+        const sonuc = await API.davetKabul(kabulBtn.dataset.id);
+        app.toast('Davet kabul edildi', 'basari');
+        if (sonuc?.sirket_id) {
+          API.setSirketId(sonuc.sirket_id);
+          await app.yenile();
+          app.ekranGoster('app');
+        } else {
+          app.profilDavetleriGoster();
+        }
+      } catch (err) { app.toast(err.message, 'hata'); }
+    } else if (redBtn) {
+      try {
+        await API.davetRed(redBtn.dataset.id);
+        app.toast('Davet reddedildi', 'bilgi');
+        app.profilDavetleriGoster();
+      } catch (err) { app.toast(err.message, 'hata'); }
+    }
+  });
+
+  // ─── Yeni kasa oluştur ───
+  document.getElementById('profil-form-kasa').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const isim = document.getElementById('profil-kasa-isim').value.trim();
+    if (!isim) return;
+    const btn = e.target.querySelector('[type="submit"]');
+    btn.disabled = true;
+    try {
+      const sirket = await API.sirketOlustur(isim);
+      document.getElementById('profil-kasa-isim').value = '';
+      API.setSirketId(sirket.id);
+      app.toast(`"${isim}" oluşturuldu`, 'basari');
+      await app.yenile();
+      app.ekranGoster('app');
     } catch (err) {
       app.toast(err.message, 'hata');
     } finally {
