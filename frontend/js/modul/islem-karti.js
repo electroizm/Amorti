@@ -107,15 +107,14 @@ export function islemKartiKur(app) {
           const sonuc = await API.addIslem(data);
           app.titresim();
           app.modalKapat('modal-tx');
-          document.getElementById('form-tx').reset();
-          app.varsayilanTarih();
-          app.selectGuncelle();
+          app.formTxTemizle();
           if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
           else { app.toast(t('islem.gelirEklendi'), 'basari'); }
           await app.yenile();
         } catch (err) {
           app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
           app.titresim(100);
+        } finally {
           submitBtn.disabled = false;
         }
         return;
@@ -149,18 +148,34 @@ export function islemKartiKur(app) {
         const sonuc = await API.addIslem(data);
         app.titresim();
         app.modalKapat('modal-tx');
-        document.getElementById('form-tx').reset();
-        app.varsayilanTarih();
-        app.selectGuncelle();
+        app.formTxTemizle();
         if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
         else { app.toast(kasaMi ? t('islem.kasaEklendi') : app.islemTuru === 'transfer' ? t('islem.transferKaydedildi') : t('islem.harcamaEklendi'), 'basari'); }
         await app.yenile();
       } catch (err) {
         app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
         app.titresim(100);
+      } finally {
         submitBtn.disabled = false;
       }
     });
+  };
+
+  app.formTxTemizle = function () {
+    document.getElementById('tx-amount').value = '';
+    document.getElementById('tx-desc').value = '';
+    app.varsayilanTarih();
+    app.selectGuncelle();
+    // Gider tabına sıfırla
+    app.islemTuru = 'harcama';
+    document.querySelectorAll('.tx-tab').forEach(tab => {
+      const aktif = tab.dataset.type === 'harcama';
+      tab.classList.toggle('bg-brand', aktif);
+      tab.classList.toggle('text-white', aktif);
+      tab.classList.toggle('text-gray-400', !aktif);
+    });
+    document.getElementById('tx-receiver-group').classList.add('hidden');
+    document.getElementById('tx-payer-group').classList.remove('hidden');
   };
 
   app.tablarGuncelle = function () {

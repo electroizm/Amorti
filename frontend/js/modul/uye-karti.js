@@ -155,7 +155,7 @@ export function uyeKartiKur(app) {
               <div class="amort-avatar" style="background:${o.renk}">${(o.isim || '?').charAt(0).toUpperCase()}</div>
               <div>
                 <p class="font-semibold text-sm text-gray-900">${app.esc(o.isim)}</p>
-                <p class="text-xs text-gray-400">${o.pay != null ? `%${o.pay}` : '— kalan pay'}</p>
+                <p class="text-xs text-gray-400">${o.pay != null ? `%${o.pay}` : (() => { const toplamBelirtilen = ortaklar.reduce((s, x) => s + (x.pay != null ? parseFloat(x.pay) : 0), 0); const kalan = Math.round((100 - toplamBelirtilen) * 100) / 100; return `%${kalan}`; })()}</p>
               </div>
             </div>
             ${yonetici ? `<div class="flex gap-1">
