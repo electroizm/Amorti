@@ -27,31 +27,8 @@ router.get('/', async (req, res) => {
       uyeler = uyeler.filter(u => !u.gizli);
     }
 
-    // Hic sirketi yoksa otomatik kisisel alan olustur
     if (!uyeler || uyeler.length === 0) {
-      const kullaniciIsim = req.kullanici.user_metadata?.isim || req.kullanici.email.split('@')[0];
-
-      const { data: yeniSirket, error: sirketErr } = await req.supabase
-        .from('sirketler')
-        .insert({ isim: kullaniciIsim, tip: 'bireysel', sahip_id: req.kullanici.id })
-        .select()
-        .single();
-
-      if (sirketErr) throw sirketErr;
-
-      const { error: uyeEklErr } = await req.supabase
-        .from('uyeler')
-        .insert({
-          sirket_id: yeniSirket.id,
-          kullanici_id: req.kullanici.id,
-          isim: kullaniciIsim,
-          renk: '#6366f1',
-          rol: 'yonetici'
-        });
-
-      if (uyeEklErr) throw uyeEklErr;
-
-      return res.json([{ ...yeniSirket, rol: 'yonetici' }]);
+      return res.json([]);
     }
 
     const sirketler = uyeler.map(u => ({
