@@ -83,6 +83,46 @@ router.post('/', rolGerekli('yonetici', 'uye'), async (req, res) => {
   }
 });
 
+// PATCH /api/islemler/:id — güncelle (tutar, aciklama, tarih, odeyen)
+router.patch('/:id', rolGerekli('yonetici', 'uye'), async (req, res) => {
+  const { tutar, aciklama, tarih, odeyen_id, odeyen_ortak_id } = req.body;
+  const guncellemeler = {};
+
+  if (tutar !== undefined) {
+    const t = parseFloat(tutar);
+    if (isNaN(t) || t <= 0) return res.status(400).json({ hata: 'Geçerli bir tutar girin' });
+    guncellemeler.tutar = t;
+  }
+  if (aciklama !== undefined) {
+    const { data: ayar } = await req.supabase.from('ayarlar').select('harf_bicimi, tr_temizle').eq('kullanici_id', req.kullanici.id).eq('sirket_id', req.sirketId).single();
+    guncellemeler.aciklama = aciklama ? formatla(aciklama, ayar || {}) : '';
+  }
+  if (tarih !== undefined) guncellemeler.tarih = tarih;
+  if (odeyen_id !== undefined) guncellemeler.odeyen_id = odeyen_id;
+  if (odeyen_ortak_id !== undefined) guncellemeler.odeyen_ortak_id = odeyen_ortak_id || null;
+
+  if (Object.keys(guncellemeler).length === 0) {
+    return res.status(400).json({ hata: 'Güncellenecek alan belirtilmedi' });
+  }
+
+  try {
+    const { data, error } = await req.supabase
+      .from('islemler')
+      .update(guncellemeler)
+      .eq('id', parseInt(req.params.id))
+      .eq('sirket_id', req.sirketId)
+      .eq('silinmis', false)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ hata: 'İşlem bulunamadı' });
+    res.json(mapIslem(data));
+  } catch (err) {
+    res.status(500).json({ hata: turkceHata(err.message) });
+  }
+});
+
 // DELETE /api/islemler/:id — soft delete
 router.delete('/:id', rolGerekli('yonetici', 'uye'), async (req, res) => {
   try {

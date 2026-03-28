@@ -120,6 +120,7 @@ export const API = {
     }
     return this.request('/islemler', { method: 'POST', body: data });
   },
+  updateIslem(id, data) { return this.request(`/islemler/${id}`, { method: 'PATCH', body: data }); },
   deleteIslem(id) { return this.request(`/islemler/${id}`, { method: 'DELETE' }); },
   silinmisIslemler() { return this.request('/islemler/cop'); },
   islemGeriAl(id) { return this.request(`/islemler/${id}/geriAl`, { method: 'PATCH' }); },

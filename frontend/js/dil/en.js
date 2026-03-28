@@ -112,6 +112,8 @@ export default {
     tutarHata: 'Enter a valid amount',
     silOnay: 'Are you sure you want to delete this transaction?',
     silindi: 'Transaction deleted',
+    duzenleBaslik: 'Edit Transaction',
+    guncellendi: 'Transaction updated',
     fabTitle: 'New Transaction'
   },
   tur: { kasa: 'Fund', transfer: 'Transfer', harcama: 'Expense', gelir: 'Income' },

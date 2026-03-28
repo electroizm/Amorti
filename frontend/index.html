@@ -354,6 +354,37 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL: İşlem Düzenle ==================== -->
+  <div id="modal-islem-duzenle" class="modal-backdrop">
+    <div class="modal-sheet">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900" data-i18n="islem.duzenleBaslik">İşlemi Düzenle</h3>
+        <button id="modal-islem-duzenle-close" class="text-gray-400 hover:text-gray-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-islem-duzenle" class="space-y-3">
+        <input type="hidden" id="islem-duzenle-id">
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.tutarLabel">Tutar (₺)</label>
+          <input id="islem-duzenle-tutar" type="text" inputmode="decimal" required autocomplete="off"
+            class="input-field text-2xl font-bold text-center" placeholder="0,00">
+        </div>
+        <div id="islem-duzenle-odeyen-group">
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.odeyenLabel">Ödeyen</label>
+          <select id="islem-duzenle-odeyen" class="input-field"></select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.notLabel">Not (opsiyonel)</label>
+          <input id="islem-duzenle-aciklama" type="text" class="input-field" data-i18n-placeholder="islem.notPlaceholder" placeholder="Açıklama...">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.tarihLabel">Tarih</label>
+          <input id="islem-duzenle-tarih" type="date" class="input-field">
+        </div>
+        <button type="submit" class="btn-primary" data-i18n="islem.kaydetBtn">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== MODAL: Ortak Düzenle ==================== -->
   <div id="modal-ortak-duzenle" class="modal-backdrop">
     <div class="modal-sheet">

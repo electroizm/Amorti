@@ -35,6 +35,7 @@ export function islemKartiKur(app) {
         app.titresim(100);
         return;
       }
+      app.formTxTemizle();
       app.tablarGuncelle();
       app.modalAc('modal-tx');
     });
@@ -111,6 +112,7 @@ export function islemKartiKur(app) {
           if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
           else { app.toast(t('islem.gelirEklendi'), 'basari'); }
           await app.yenile();
+          if (app.mevcutSayfa === 'transactions') app.islemListesiGoster();
         } catch (err) {
           app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
           app.titresim(100);
@@ -152,12 +154,47 @@ export function islemKartiKur(app) {
         if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
         else { app.toast(kasaMi ? t('islem.kasaEklendi') : app.islemTuru === 'transfer' ? t('islem.transferKaydedildi') : t('islem.harcamaEklendi'), 'basari'); }
         await app.yenile();
+        if (app.mevcutSayfa === 'transactions') app.islemListesiGoster();
       } catch (err) {
         app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
         app.titresim(100);
       } finally {
         submitBtn.disabled = false;
       }
+    });
+
+    // ─── İşlem Düzenleme Modalı ───
+    document.getElementById('modal-islem-duzenle-close').addEventListener('click', () => app.modalKapat('modal-islem-duzenle'));
+    document.getElementById('modal-islem-duzenle').addEventListener('click', (e) => { if (e.target === e.currentTarget) app.modalKapat('modal-islem-duzenle'); });
+
+    const duzenleAmtInput = document.getElementById('islem-duzenle-tutar');
+    duzenleAmtInput.addEventListener('input', () => formatAmountInput(duzenleAmtInput));
+    duzenleAmtInput.addEventListener('focus', () => duzenleAmtInput.select());
+
+    document.getElementById('form-islem-duzenle').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('islem-duzenle-id').value;
+      const tutar = parseAmount(duzenleAmtInput.value);
+      if (!tutar || tutar <= 0) { app.toast(t('islem.tutarHata'), 'hata'); return; }
+      const btn = e.target.querySelector('[type="submit"]');
+      btn.disabled = true;
+      try {
+        const ortakModu = (app.ortaklar || []).length > 0;
+        const odeyenVal = document.getElementById('islem-duzenle-odeyen').value;
+        const patchData = {
+          tutar,
+          aciklama: document.getElementById('islem-duzenle-aciklama').value,
+          tarih: document.getElementById('islem-duzenle-tarih').value,
+          odeyen_id: ortakModu ? app.uyeler[0]?.id : odeyenVal,
+          ...(ortakModu ? { odeyen_ortak_id: odeyenVal } : {})
+        };
+        await API.updateIslem(parseInt(id), patchData);
+        app.titresim(); app.toast(t('islem.guncellendi'), 'basari');
+        app.modalKapat('modal-islem-duzenle');
+        await app.yenile();
+        app.islemListesiGoster();
+      } catch (err) { app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata'); }
+      finally { btn.disabled = false; }
     });
   };
 
@@ -281,6 +318,7 @@ export function islemKartiKur(app) {
                 <div class="tx-item-meta">
                   ${typePill}
                   <span class="tx-tarih">${i.tarih}</span>
+                  ${!izleyici ? `<button class="islem-duzenle" data-id="${i.id}" data-tur="${i.tur}" data-tutar="${i.tutar}" data-aciklama="${app.esc(i.aciklama || '')}" data-tarih="${i.tarih}" data-odeyen="${i.odeyen_ortak_id || i.odeyen_id || ''}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>` : ''}
                   ${!izleyici ? `<button class="islem-sil" data-id="${i.id}" title="${t('islem.sil') || 'Sil'}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>` : ''}
                 </div>
               </div>
@@ -293,6 +331,31 @@ export function islemKartiKur(app) {
       if (!list._delegated) {
         list._delegated = true;
         list.addEventListener('click', async (e) => {
+          const duzenleBtn = e.target.closest('.islem-duzenle');
+          if (duzenleBtn) {
+            const d = duzenleBtn.dataset;
+            document.getElementById('islem-duzenle-id').value = d.id;
+            // Tutar formatla
+            const tutarNum = parseFloat(d.tutar);
+            const tutarStr = new Intl.NumberFormat('tr-TR').format(tutarNum);
+            document.getElementById('islem-duzenle-tutar').value = tutarStr;
+            document.getElementById('islem-duzenle-aciklama').value = d.aciklama || '';
+            document.getElementById('islem-duzenle-tarih').value = d.tarih;
+            // Ödeyen select doldur
+            const ortakModu = (app.ortaklar || []).length > 0;
+            const odeyenSel = document.getElementById('islem-duzenle-odeyen');
+            const kasaOption = app.sirketIsim ? `<option value="__kasa__">🏢 ${app.esc(app.sirketIsim)}</option>` : '';
+            const seciliId = d.odeyen;
+            if (ortakModu) {
+              odeyenSel.innerHTML = kasaOption + app.ortaklar.map(o => `<option value="${o.id}" ${o.id === seciliId ? 'selected' : ''}>${app.esc(o.isim)}</option>`).join('');
+            } else {
+              odeyenSel.innerHTML = kasaOption + app.uyeler.map(u => `<option value="${u.id}" ${u.id === seciliId ? 'selected' : ''}>${app.esc(u.isim)}</option>`).join('');
+            }
+            // Transfer ise ödeyen grubunu gizle
+            document.getElementById('islem-duzenle-odeyen-group').classList.toggle('hidden', d.tur === 'transfer');
+            app.modalAc('modal-islem-duzenle');
+            return;
+          }
           const btn = e.target.closest('.islem-sil');
           if (!btn) return;
           app.islemSil(parseInt(btn.dataset.id));

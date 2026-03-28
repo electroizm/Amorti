@@ -121,6 +121,8 @@ export default {
     tutarHata: 'Geçerli bir tutar girin',
     silOnay: 'Bu işlemi silmek istediğinize emin misiniz?',
     silindi: 'İşlem silindi',
+    duzenleBaslik: 'İşlemi Düzenle',
+    guncellendi: 'İşlem güncellendi',
     fabTitle: 'Yeni İşlem'
   },
   tur: { kasa: 'Kasa', transfer: 'Transfer', harcama: 'Gider', gelir: 'Gelir' },

@@ -187,12 +187,13 @@ body { font-family: 'Inter', sans-serif; }
 .tx-tutar-transfer { color: #6366f1; }
 .tx-tutar-gelir { color: #10b981; }
 .tx-tl { font-weight: 600; font-size: 0.75rem; color: #94a3b8; }
-.islem-sil {
+.islem-sil, .islem-duzenle {
   padding: 3px; border-radius: 6px; color: #cbd5e1;
   transition: color 0.15s, background 0.15s;
   display: flex; align-items: center;
 }
 .islem-sil:hover { color: #ef4444; background: #fef2f2; }
+.islem-duzenle:hover { color: #6366f1; background: #eef2ff; }
 
 /* Badge'ler */
 .tx-pill {
