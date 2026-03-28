@@ -4,6 +4,7 @@ dist/
 .DS_Store
 .claude/
 Promt_AMØRT!.md
+Amorti Promt.md
 public/icons/
 .vscode/
 .gitignore
