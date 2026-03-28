@@ -82,9 +82,32 @@
       <div id="sirket-listesi" class="space-y-2 mb-4"></div>
 
       <div class="border-t border-gray-200 pt-4">
-        <form id="form-sirket" class="flex gap-2">
-          <input type="text" required class="input-field flex-1" id="sirket-isim" data-i18n-placeholder="sirket.yeniPlaceholder" placeholder="Yeni şirket ismi">
-          <button type="submit" class="px-4 py-3 bg-brand text-white rounded-xl font-semibold text-sm hover:bg-brand-dark transition" data-i18n="sirket.olusturBtn">Oluştur</button>
+        <form id="form-sirket" class="space-y-3">
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2" data-i18n="sirket.tipBaslik">Kasa Tipi</p>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="cursor-pointer">
+                <input type="radio" name="sirket-tip" value="bireysel" class="sr-only peer">
+                <div class="peer-checked:border-brand peer-checked:bg-brand/5 border-2 border-gray-200 rounded-xl p-3 text-center transition">
+                  <div class="text-xl mb-0.5">🏠</div>
+                  <p class="font-semibold text-sm text-gray-800" data-i18n="sirket.bireyselIsim">Bireysel</p>
+                  <p class="text-xs text-gray-400 leading-tight" data-i18n="sirket.bireyselAciklama">Ev, kişisel bütçe</p>
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="sirket-tip" value="ortaklik" class="sr-only peer" checked>
+                <div class="peer-checked:border-brand peer-checked:bg-brand/5 border-2 border-gray-200 rounded-xl p-3 text-center transition">
+                  <div class="text-xl mb-0.5">🤝</div>
+                  <p class="font-semibold text-sm text-gray-800" data-i18n="sirket.ortaklikIsim">Ortaklık</p>
+                  <p class="text-xs text-gray-400 leading-tight" data-i18n="sirket.ortaklikAciklama">Şirket, ortak gider</p>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" required class="input-field flex-1" id="sirket-isim" data-i18n-placeholder="sirket.yeniPlaceholder" placeholder="Kasa ismi">
+            <button type="submit" class="px-4 py-3 bg-brand text-white rounded-xl font-semibold text-sm hover:bg-brand-dark transition whitespace-nowrap" data-i18n="sirket.olusturBtn">Oluştur</button>
+          </div>
         </form>
       </div>
 
@@ -133,13 +156,31 @@
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span id="ozet-toplam" class="text-2xl font-black text-gray-900 leading-none">0 ₺</span>
-                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5" data-i18n="ozet.toplamHarcama">Toplam Harcama</span>
+                <span id="ozet-toplam-label" class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5" data-i18n="ozet.toplamHarcama">Toplam Harcama</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
               <span id="ozet-kasa-badge" class="text-xs bg-brand/10 text-brand px-2 py-0.5 rounded-full hidden"></span>
             </div>
             <p id="ozet-alt" class="text-xs text-gray-400 mt-1"></p>
+          </div>
+        </div>
+
+        <!-- Bireysel kasa: Gelir/Gider/Bakiye -->
+        <div id="bireysel-section" class="hidden mb-4">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm text-center">
+              <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1" data-i18n="bireysel.gelir">Gelir</p>
+              <p id="bireysel-gelir" class="text-base font-black text-green-600 leading-tight">0 ₺</p>
+            </div>
+            <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm text-center">
+              <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1" data-i18n="bireysel.gider">Gider</p>
+              <p id="bireysel-gider" class="text-base font-black text-red-500 leading-tight">0 ₺</p>
+            </div>
+            <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm text-center">
+              <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1" data-i18n="bireysel.bakiye">Bakiye</p>
+              <p id="bireysel-bakiye" class="text-base font-black text-gray-900 leading-tight">0 ₺</p>
+            </div>
           </div>
         </div>
 
@@ -293,7 +334,8 @@
       </div>
 
       <div class="flex bg-surface-dark rounded-xl p-1 mb-4">
-        <button data-type="harcama" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition" data-i18n="islem.harcamaTab">Harcama</button>
+        <button data-type="harcama" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold bg-brand text-white transition" data-i18n="islem.harcamaTab">Gider</button>
+        <button data-type="gelir" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition hidden" data-i18n="islem.gelirTab">Gelir</button>
         <button data-type="transfer" class="tx-tab flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition" data-i18n="islem.transferTab">Transfer</button>
       </div>
 
@@ -303,7 +345,7 @@
           <input id="tx-amount" type="text" inputmode="decimal" required autocomplete="off"
             class="input-field text-2xl font-bold text-center" placeholder="0,00">
         </div>
-        <div>
+        <div id="tx-payer-group">
           <label class="text-xs text-gray-500 block mb-1" data-i18n="islem.odeyenLabel">Ödeyen</label>
           <select id="tx-payer" required class="input-field"></select>
         </div>

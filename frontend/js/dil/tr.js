@@ -23,11 +23,11 @@ export default {
     dogrulamaDetay: 'Hesabınızı doğrulamak için gönderilen bağlantıya tıklayın. (27 dakika geçerli)'
   },
   sirket: {
-    baslik: 'Şirket seçin veya yeni oluşturun',
-    yeniPlaceholder: 'Yeni şirket ismi',
+    baslik: 'Kasanı seç veya yeni oluştur',
+    yeniPlaceholder: 'Kasa ismi',
     olusturBtn: 'Oluştur',
     cikisBtn: 'Çıkış Yap',
-    henuzYok: 'Henüz şirketiniz yok.',
+    henuzYok: 'Henüz kasanız yok.',
     olusturuldu: '{isim} oluşturuldu',
     bekleyenDavetler: 'Bekleyen Davetler',
     davetKabulBtn: 'Kabul',
@@ -36,7 +36,12 @@ export default {
     davetReddedildi: 'Davet reddedildi',
     gizleOnay: 'Bireysel kasayı gizlemek istiyor musunuz?',
     gizlendi: 'Bireysel kasa gizlendi',
-    gosterildi: 'Bireysel kasa tekrar aktif edildi'
+    gosterildi: 'Bireysel kasa tekrar aktif edildi',
+    tipBaslik: 'Kasa Tipi',
+    bireyselIsim: 'Bireysel',
+    bireyselAciklama: 'Ev, kişisel bütçe',
+    ortaklikIsim: 'Ortaklık',
+    ortaklikAciklama: 'Şirket, ortak gider'
   },
   nav: {
     anaSayfa: 'Ana Sayfa',
@@ -89,7 +94,8 @@ export default {
   islem: {
     baslik: 'İşlemler',
     yeniBaslik: 'Yeni İşlem',
-    harcamaTab: 'Harcama',
+    harcamaTab: 'Gider',
+    gelirTab: 'Gelir',
     transferTab: 'Transfer',
     tutarLabel: 'Tutar (₺)',
     tutarPlaceholder: '0.00',
@@ -104,15 +110,23 @@ export default {
     henuzYok: 'Henüz işlem yok.',
     kasaEklendi: 'Kasa harcaması eklendi',
     transferKaydedildi: 'Transfer kaydedildi',
-    harcamaEklendi: 'Harcama eklendi',
+    harcamaEklendi: 'Gider eklendi',
+    gelirEklendi: 'Gelir eklendi',
     ayniKisiHata: 'Ödeyen ve alan aynı kişi olamaz!',
     kasaKasaHata: 'Kasadan kasaya transfer yapılamaz!',
     henuzUyeYok: 'Henüz üye yok!',
+    tutarHata: 'Geçerli bir tutar girin',
     silOnay: 'Bu işlemi silmek istediğinize emin misiniz?',
     silindi: 'İşlem silindi',
     fabTitle: 'Yeni İşlem'
   },
-  tur: { kasa: 'Kasa', transfer: 'Transfer', harcama: 'Harcama' },
+  tur: { kasa: 'Kasa', transfer: 'Transfer', harcama: 'Gider', gelir: 'Gelir' },
+  bireysel: {
+    netBakiye: 'Net Bakiye',
+    gelir: 'Gelir',
+    gider: 'Gider',
+    bakiye: 'Bakiye'
+  },
   uye: {
     baslik: 'Üyeler',
     davetBtn: '+ Davet Et',

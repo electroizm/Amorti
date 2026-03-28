@@ -35,6 +35,7 @@ export function islemKartiKur(app) {
         app.titresim(100);
         return;
       }
+      app.tablarGuncelle();
       app.modalAc('modal-tx');
     });
   };
@@ -71,6 +72,7 @@ export function islemKartiKur(app) {
         tab.classList.add('bg-brand', 'text-white');
         tab.classList.remove('text-gray-400');
         document.getElementById('tx-receiver-group').classList.toggle('hidden', app.islemTuru !== 'transfer');
+        document.getElementById('tx-payer-group').classList.toggle('hidden', app.islemTuru === 'gelir');
       });
     });
 
@@ -80,17 +82,43 @@ export function islemKartiKur(app) {
 
       const tutar = parseAmount(amtInput.value);
       if (!tutar || tutar <= 0) {
-        app.toast(t('islem.tutarHata') || 'Geçerli bir tutar girin', 'hata');
+        app.toast(t('islem.tutarHata'), 'hata');
         app.titresim(100);
+        return;
+      }
+
+      const bireysel = app.sirketTip === 'bireysel';
+      const ortakModu = (app.ortaklar || []).length > 0;
+
+      // Gelir işlemi: payer yok, sadece tutar + açıklama + tarih
+      if (app.islemTuru === 'gelir') {
+        const data = {
+          tur: 'gelir',
+          odeyen_id: app.uyeler[0]?.id,
+          tutar,
+          aciklama: document.getElementById('tx-desc').value,
+          tarih: document.getElementById('tx-date').value,
+          kasa_mi: false
+        };
+        try {
+          const sonuc = await API.addIslem(data);
+          app.titresim();
+          app.modalKapat('modal-tx');
+          document.getElementById('form-tx').reset();
+          app.varsayilanTarih();
+          app.selectGuncelle();
+          if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
+          else { app.toast(t('islem.gelirEklendi'), 'basari'); }
+          await app.yenile();
+        } catch (err) { app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata'); app.titresim(100); }
         return;
       }
 
       const payerVal = document.getElementById('tx-payer').value;
       const kasaMi = payerVal === '__kasa__';
-      const ortakModu = (app.ortaklar || []).length > 0;
       const data = {
         tur: app.islemTuru,
-        odeyen_id: kasaMi ? app.uyeler[0]?.id : (ortakModu ? app.uyeler[0]?.id : payerVal),
+        odeyen_id: kasaMi ? app.uyeler[0]?.id : (ortakModu ? app.uyeler[0]?.id : (bireysel ? app.uyeler[0]?.id : payerVal)),
         tutar,
         aciklama: document.getElementById('tx-desc').value,
         tarih: document.getElementById('tx-date').value,
@@ -124,11 +152,27 @@ export function islemKartiKur(app) {
     });
   };
 
+  app.tablarGuncelle = function () {
+    const bireysel = app.sirketTip === 'bireysel';
+    const gelirTab = document.querySelector('.tx-tab[data-type="gelir"]');
+    const transferTab = document.querySelector('.tx-tab[data-type="transfer"]');
+    if (gelirTab) gelirTab.classList.toggle('hidden', !bireysel);
+    if (transferTab) transferTab.classList.toggle('hidden', bireysel);
+    // Bireysel modda varsayılan tab 'harcama', gelir tab göster
+    // Eğer mevcut islemTuru ortaklık modunda geçersizse sıfırla
+    if (bireysel && app.islemTuru === 'transfer') {
+      app.islemTuru = 'harcama';
+      document.querySelector('.tx-tab[data-type="harcama"]')?.click();
+    }
+  };
+
   app.selectGuncelle = function () {
     const kullanici = API.getKullanici();
     const kullaniciId = kullanici?.id;
     const ortaklar = app.ortaklar || [];
-    const kasaOption = app.sirketIsim ? `<option value="__kasa__">🏢 ${app.esc(app.sirketIsim)}</option>` : '';
+    const kasaOption = !app.sirketTip || app.sirketTip === 'ortaklik'
+      ? (app.sirketIsim ? `<option value="__kasa__">🏢 ${app.esc(app.sirketIsim)}</option>` : '')
+      : '';
 
     const payerSel = document.getElementById('tx-payer');
     const receiverSel = document.getElementById('tx-receiver');
@@ -152,6 +196,8 @@ export function islemKartiKur(app) {
       const baska = Array.from(receiverSel.options).find(o => o.value !== payerSel.value);
       if (baska) receiverSel.value = baska.value;
     }
+
+    app.tablarGuncelle();
   };
 
   app.islemListesiGoster = async function () {
@@ -185,6 +231,8 @@ export function islemKartiKur(app) {
           typePill = `<span class="tx-pill tx-pill-kasa">🏢 ${app.esc(app.sirketIsim)}</span>`;
         } else if (transferMi) {
           typePill = `<span class="tx-pill tx-pill-transfer">${t('tur.transfer')}</span>`;
+        } else if (i.tur === 'gelir') {
+          typePill = `<span class="tx-pill tx-pill-gelir">${t('tur.gelir')}</span>`;
         } else {
           typePill = `<span class="tx-pill tx-pill-harcama">${t('tur.harcama')}</span>`;
         }
@@ -193,9 +241,12 @@ export function islemKartiKur(app) {
           ? `<span class="tx-aciklama">${app.esc(i.aciklama)}</span>`
           : '';
 
+        const gelirMi = i.tur === 'gelir';
         const avatarLeft = kasaMi
           ? `<div class="amort-avatar" style="background:#6366f1"><i data-lucide="building-2" class="w-4 h-4"></i></div>`
-          : `<div class="amort-avatar" style="background:${odeyenRenk}">${bas(odeyenIsim)}</div>`;
+          : gelirMi
+            ? `<div class="amort-avatar" style="background:#10b981"><i data-lucide="trending-up" class="w-4 h-4"></i></div>`
+            : `<div class="amort-avatar" style="background:${odeyenRenk}">${bas(odeyenIsim)}</div>`;
 
         const transferArrow = transferMi ? `
           <div class="tx-transfer-row">
@@ -203,7 +254,7 @@ export function islemKartiKur(app) {
             <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-brand/60 shrink-0"></i>
             <div class="amort-avatar amort-avatar-sm" style="background:${alanRenk}">${alanKasaMi ? '🏢' : bas(alanIsim)}</div>
             <span class="tx-transfer-names">${app.esc(odeyenIsim)} → ${app.esc(alanIsim)}</span>
-          </div>` : `<div class="tx-odeyen">${app.esc(odeyenIsim)}</div>`;
+          </div>` : (gelirMi ? '' : `<div class="tx-odeyen">${app.esc(odeyenIsim)}</div>`);
 
         return `
           <div class="tx-item">
@@ -218,7 +269,7 @@ export function islemKartiKur(app) {
                   ${!izleyici ? `<button class="islem-sil" data-id="${i.id}" title="${t('islem.sil') || 'Sil'}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>` : ''}
                 </div>
               </div>
-              <span class="tx-tutar ${transferMi ? 'tx-tutar-transfer' : ''}">${app.formatPara(i.tutar)} <span class="tx-tl">₺</span></span>
+              <span class="tx-tutar ${transferMi ? 'tx-tutar-transfer' : gelirMi ? 'tx-tutar-gelir' : ''}">${gelirMi ? '+' : ''}${app.formatPara(i.tutar)} <span class="tx-tl">₺</span></span>
             </div>
           </div>`;
       }).join('');

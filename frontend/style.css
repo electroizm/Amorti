@@ -185,6 +185,7 @@ body { font-family: 'Inter', sans-serif; }
   letter-spacing: -0.02em;
 }
 .tx-tutar-transfer { color: #6366f1; }
+.tx-tutar-gelir { color: #10b981; }
 .tx-tl { font-weight: 600; font-size: 0.75rem; color: #94a3b8; }
 .islem-sil {
   padding: 3px; border-radius: 6px; color: #cbd5e1;
@@ -199,7 +200,8 @@ body { font-family: 'Inter', sans-serif; }
   font-size: 0.6875rem; font-weight: 600;
   padding: 2px 8px; border-radius: 100px;
 }
-.tx-pill-harcama { background: #f0fdf4; color: #16a34a; }
+.tx-pill-harcama { background: #fff1f2; color: #e11d48; }
+.tx-pill-gelir   { background: #f0fdf4; color: #16a34a; }
 .tx-pill-transfer { background: #eff6ff; color: #3b82f6; }
 .tx-pill-kasa { background: #eef2ff; color: #6366f1; }
 

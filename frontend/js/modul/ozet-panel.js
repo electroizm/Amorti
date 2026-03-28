@@ -8,6 +8,7 @@ function bas(isim) {
 export function ozetPanelKur(app) {
   app.ortakKartlariGoster = function (ozet) {
     const container = document.getElementById('partner-cards');
+    if (ozet.sirketTip === 'bireysel') { container.innerHTML = ''; return; }
     const list = ozet.ortaklar?.length > 0 ? ozet.ortaklar : ozet.uyeler;
     if (!list?.length) { container.innerHTML = ''; return; }
 
@@ -41,7 +42,7 @@ export function ozetPanelKur(app) {
   app.borcBolumuGoster = function (ozet) {
     const section = document.getElementById('debt-section');
     const container = document.getElementById('debt-transfers');
-    if (!ozet.onerilen_transferler.length) { section.classList.add('hidden'); return; }
+    if (ozet.sirketTip === 'bireysel' || !ozet.onerilen_transferler.length) { section.classList.add('hidden'); return; }
     section.classList.remove('hidden');
 
     const ortaklar = ozet.ortaklar || [];

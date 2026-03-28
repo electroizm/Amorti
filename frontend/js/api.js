@@ -85,7 +85,7 @@ export const API = {
   },
 
   getSirketler() { return this.request('/sirketler'); },
-  sirketOlustur(isim) { return this.request('/sirketler', { method: 'POST', body: { isim } }); },
+  sirketOlustur(isim, tip) { return this.request('/sirketler', { method: 'POST', body: { isim, tip } }); },
   sirketGuncelle(id, isim) { return this.request(`/sirketler/${id}`, { method: 'PATCH', body: { isim } }); },
   sirketSil(id) { return this.request(`/sirketler/${id}`, { method: 'DELETE' }); },
   sirketGizle(id) { return this.request(`/sirketler/${id}/gizle`, { method: 'PATCH' }); },

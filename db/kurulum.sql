@@ -60,7 +60,7 @@ $$;
 CREATE TABLE IF NOT EXISTS sirketler (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   isim TEXT NOT NULL,
-  tip TEXT NOT NULL DEFAULT 'sirket',
+  tip TEXT NOT NULL DEFAULT 'ortaklik' CHECK (tip IN ('bireysel', 'ortaklik')),
   sahip_id UUID NOT NULL REFERENCES auth.users(id),
   olusturma_tarihi TIMESTAMPTZ DEFAULT NOW()
 );
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS davetler (
 CREATE TABLE IF NOT EXISTS islemler (
   id BIGSERIAL PRIMARY KEY,
   sirket_id UUID NOT NULL REFERENCES sirketler(id) ON DELETE CASCADE,
-  tur TEXT NOT NULL CHECK (tur IN ('harcama', 'transfer')),
+  tur TEXT NOT NULL CHECK (tur IN ('harcama', 'transfer', 'gelir')),
   odeyen_id UUID NOT NULL REFERENCES uyeler(id),
   alan_id UUID REFERENCES uyeler(id),
   odeyen_ortak_id UUID REFERENCES ortaklar(id),

@@ -9,8 +9,9 @@ export function sirketEkranKur(app) {
       e.preventDefault();
       const isim = document.getElementById('sirket-isim').value.trim();
       if (!isim) return;
+      const tip = document.querySelector('input[name="sirket-tip"]:checked')?.value || 'ortaklik';
       try {
-        const sirket = await API.sirketOlustur(isim);
+        const sirket = await API.sirketOlustur(isim, tip);
         app.toast(t('sirket.olusturuldu', { isim }), 'basari');
         document.getElementById('sirket-isim').value = '';
         API.setSirketId(sirket.id);

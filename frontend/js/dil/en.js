@@ -23,11 +23,11 @@ export default {
     dogrulamaDetay: 'Click the link sent to your email to verify your account. (Valid for 27 minutes)'
   },
   sirket: {
-    baslik: 'Select a company or create new',
-    yeniPlaceholder: 'New company name',
+    baslik: 'Select a workspace or create new',
+    yeniPlaceholder: 'Workspace name',
     olusturBtn: 'Create',
     cikisBtn: 'Log Out',
-    henuzYok: 'No companies yet.',
+    henuzYok: 'No workspaces yet.',
     olusturuldu: '{isim} created',
     bekleyenDavetler: 'Pending Invitations',
     davetKabulBtn: 'Accept',
@@ -36,7 +36,12 @@ export default {
     davetReddedildi: 'Invitation declined',
     gizleOnay: 'Hide your personal workspace?',
     gizlendi: 'Personal workspace hidden',
-    gosterildi: 'Personal workspace restored'
+    gosterildi: 'Personal workspace restored',
+    tipBaslik: 'Workspace Type',
+    bireyselIsim: 'Personal',
+    bireyselAciklama: 'Home, personal budget',
+    ortaklikIsim: 'Partnership',
+    ortaklikAciklama: 'Business, shared expenses'
   },
   nav: { anaSayfa: 'Home', islemler: 'Transactions', uyeler: 'Members', ayarlar: 'Settings' },
   header: {
@@ -81,6 +86,7 @@ export default {
     baslik: 'Transactions',
     yeniBaslik: 'New Transaction',
     harcamaTab: 'Expense',
+    gelirTab: 'Income',
     transferTab: 'Transfer',
     tutarLabel: 'Amount (₺)',
     tutarPlaceholder: '0.00',
@@ -96,14 +102,22 @@ export default {
     kasaEklendi: 'Fund expense added',
     transferKaydedildi: 'Transfer saved',
     harcamaEklendi: 'Expense added',
+    gelirEklendi: 'Income added',
     ayniKisiHata: 'Payer and recipient cannot be the same!',
     kasaKasaHata: 'Cannot transfer from fund to fund!',
     henuzUyeYok: 'No members yet!',
+    tutarHata: 'Enter a valid amount',
     silOnay: 'Are you sure you want to delete this transaction?',
     silindi: 'Transaction deleted',
     fabTitle: 'New Transaction'
   },
-  tur: { kasa: 'Fund', transfer: 'Transfer', harcama: 'Expense' },
+  tur: { kasa: 'Fund', transfer: 'Transfer', harcama: 'Expense', gelir: 'Income' },
+  bireysel: {
+    netBakiye: 'Net Balance',
+    gelir: 'Income',
+    gider: 'Expenses',
+    bakiye: 'Balance'
+  },
   uye: {
     baslik: 'Members',
     davetBtn: '+ Invite',

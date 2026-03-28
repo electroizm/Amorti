@@ -68,15 +68,18 @@ router.get('/', async (req, res) => {
 
 // POST /api/sirketler — yeni sirket olustur
 router.post('/', async (req, res) => {
-  const { isim } = req.body;
+  const { isim, tip } = req.body;
   if (!isim || !isim.trim()) {
     return res.status(400).json({ hata: 'Şirket ismi zorunludur' });
   }
 
+  const gecerliTipler = ['bireysel', 'ortaklik'];
+  const sirketTip = gecerliTipler.includes(tip) ? tip : 'ortaklik';
+
   try {
     const { data: sirket, error: sirketErr } = await req.supabase
       .from('sirketler')
-      .insert({ isim: isim.trim(), sahip_id: req.kullanici.id })
+      .insert({ isim: isim.trim(), tip: sirketTip, sahip_id: req.kullanici.id })
       .select()
       .single();
 
