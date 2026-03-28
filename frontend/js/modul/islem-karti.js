@@ -42,9 +42,9 @@ export function islemKartiKur(app) {
   };
 
   app.bindIslemModal = function () {
-    document.getElementById('modal-tx-close').addEventListener('click', () => app.modalKapat('modal-tx'));
+    document.getElementById('modal-tx-close').addEventListener('click', () => { app.formTxTemizle(); app.modalKapat('modal-tx'); });
     document.getElementById('modal-tx').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) app.modalKapat('modal-tx');
+      if (e.target === e.currentTarget) { app.formTxTemizle(); app.modalKapat('modal-tx'); }
     });
 
     // ─── Tutar otomatik biçimleme ───
@@ -112,7 +112,7 @@ export function islemKartiKur(app) {
           if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
           else { app.toast(t('islem.gelirEklendi'), 'basari'); }
           await app.yenile();
-          if (app.mevcutSayfa === 'transactions') app.islemListesiGoster();
+          app.islemListesiGoster();
         } catch (err) {
           app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
           app.titresim(100);
@@ -141,8 +141,11 @@ export function islemKartiKur(app) {
         data.alan_id = alanKasaMi ? app.uyeler[0]?.id : (ortakModu ? app.uyeler[0]?.id : receiverVal);
         data.alan_kasa_mi = alanKasaMi;
         if (ortakModu && !alanKasaMi) data.alan_ortak_id = receiverVal;
-        if (!kasaMi && !alanKasaMi && data.odeyen_id === data.alan_id) {
-          app.toast(t('islem.ayniKisiHata'), 'hata'); app.titresim(100); submitBtn.disabled = false; return;
+        if (!kasaMi && !alanKasaMi) {
+          const ayniKisi = ortakModu
+            ? data.odeyen_ortak_id === data.alan_ortak_id
+            : data.odeyen_id === data.alan_id;
+          if (ayniKisi) { app.toast(t('islem.ayniKisiHata'), 'hata'); app.titresim(100); submitBtn.disabled = false; return; }
         }
       }
 
@@ -154,7 +157,7 @@ export function islemKartiKur(app) {
         if (sonuc.kuyrukta) { app.toast(t('cevrimdisi.kuyrugaEklendi'), 'bilgi'); }
         else { app.toast(kasaMi ? t('islem.kasaEklendi') : app.islemTuru === 'transfer' ? t('islem.transferKaydedildi') : t('islem.harcamaEklendi'), 'basari'); }
         await app.yenile();
-        if (app.mevcutSayfa === 'transactions') app.islemListesiGoster();
+        app.islemListesiGoster();
       } catch (err) {
         app.toast(t('hata.hataOneki', { mesaj: err.message }), 'hata');
         app.titresim(100);
