@@ -235,7 +235,7 @@ const App = {
 
       // Kullanıcı bilgisi
       const kullanici = API.getKullanici();
-      document.getElementById('ayar-kullanici').textContent = kullanici ? `${kullanici.isim} (${kullanici.eposta})` : '';
+      document.getElementById('ayar-kullanici').textContent = kullanici ? `${kullanici.isim || kullanici.eposta?.split('@')[0] || ''} (${kullanici.eposta})` : '';
       document.getElementById('ayar-rol').textContent = t('ayarlar.rol', { rol: this.rolGoster(this.rol) });
 
       // Boş durum

@@ -22,8 +22,9 @@ export const API = {
     sessionStorage.removeItem('amort-kullanici');
     sessionStorage.removeItem('amort-sirket');
   },
-  getKullanici() { return JSON.parse(this._getDepo().getItem('amort-kullanici') || 'null'); },
-  setKullanici(k) { this._getDepo().setItem('amort-kullanici', JSON.stringify(k)); },
+  // Kullanici verisi (avatar, isim) her zaman localStorage'da — session tipinden bağımsız
+  getKullanici() { return JSON.parse(localStorage.getItem('amort-kullanici') || 'null'); },
+  setKullanici(k) { localStorage.setItem('amort-kullanici', JSON.stringify(k)); },
   // Sirket ID her zaman localStorage'da — auth modu ne olursa olsun
   getSirketId() { return localStorage.getItem('amort-sirket') || null; },
   setSirketId(id) {
@@ -104,7 +105,10 @@ export const API = {
 
   getSirketler() { return this.request('/sirketler'); },
   sirketOlustur(isim) { return this.request('/sirketler', { method: 'POST', body: { isim } }); },
-  sirketGuncelle(id, isim) { return this.request(`/sirketler/${id}`, { method: 'PATCH', body: { isim } }); },
+  sirketGuncelle(id, veri) {
+    const body = typeof veri === 'string' ? { isim: veri } : veri;
+    return this.request(`/sirketler/${id}`, { method: 'PATCH', body });
+  },
   async uploadKasaLogo(id, file) {
     const formData = new FormData();
     formData.append('logo', file);

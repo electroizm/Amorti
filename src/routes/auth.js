@@ -122,7 +122,8 @@ router.get('/ben', async (req, res) => {
     res.json({
       id: user.id,
       eposta: user.email,
-      isim: user.user_metadata?.isim
+      isim: user.user_metadata?.isim || null,
+      avatar_url: user.user_metadata?.avatar_url || null
     });
   } catch (err) {
     res.status(500).json({ hata: turkceHata(err.message) });

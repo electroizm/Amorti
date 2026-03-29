@@ -132,43 +132,55 @@ export function profilEkranKur(app) {
 
   // ─── Kasa düzenle panel HTML ───
   app._kasaDuzenlePanelHTML = function (kasa, uyeler, ortaklar, davetler) {
+    const ortaklikMi = kasa.tip === 'ortaklik';
     const toplamPay = ortaklar.reduce((s, o) => s + (o.pay != null ? parseFloat(o.pay) : 0), 0);
     const payRenk = toplamPay > 100 ? 'text-red-500' : toplamPay === 100 ? 'text-green-600' : 'text-gray-400';
 
     return `
       <div class="bg-brand/5 border border-brand/15 rounded-xl p-4 space-y-5 mt-1">
 
-        <!-- Kasa İsmi -->
-        <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kasa İsmi</p>
+        <!-- ① Kasa Bilgileri -->
+        <div class="space-y-3">
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Kasa Bilgileri</p>
+
+          <!-- İsim -->
           <div class="flex gap-2">
-            <input id="kd-isim" type="text" class="input-field flex-1 text-sm" value="${app.esc(kasa.isim || '')}">
+            <input id="kd-isim" type="text" class="input-field flex-1 text-sm" value="${app.esc(kasa.isim || '')}" placeholder="Kasa adı">
             <button id="kd-isim-kaydet" class="px-3 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition whitespace-nowrap">Güncelle</button>
           </div>
-        </div>
 
-        <!-- Kasa Görseli -->
-        <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kasa Görseli</p>
+          <!-- Logo -->
           <div id="kd-logo-wrap" class="flex items-center gap-3 cursor-pointer group w-fit">
-            <div id="kd-logo-cerceve" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center text-white text-xl font-bold ring-2 ring-white shadow-sm relative"
+            <div id="kd-logo-cerceve" class="w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center text-white text-lg font-bold ring-2 ring-white shadow-sm relative"
               style="background:#6366f1">
               ${kasa.logo_url
                 ? `<img src="${kasa.logo_url}?t=${Date.now()}" class="w-full h-full object-cover" alt="">`
                 : `<span>${basHarf(kasa.isim)}</span>`}
               <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
-                <i data-lucide="camera" class="w-5 h-5 text-white"></i>
+                <i data-lucide="camera" class="w-4 h-4 text-white"></i>
               </div>
             </div>
-            <p class="text-xs text-gray-400">Tıkla, görsel yükle</p>
+            <p class="text-xs text-gray-400">Görsel yükle</p>
           </div>
           <input type="file" id="kd-logo-input" accept="image/*" class="hidden">
+
+          <!-- Ortaklık Kasası toggle -->
+          <label class="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm cursor-pointer select-none">
+            <div>
+              <p class="text-sm font-semibold text-gray-800">Ortaklık Kasası</p>
+              <p class="text-xs text-gray-400">Pay yüzdesiyle ortak takibi yapılır</p>
+            </div>
+            <div class="relative inline-flex items-center">
+              <input type="checkbox" id="kd-ortaklik-toggle" class="sr-only peer" ${ortaklikMi ? 'checked' : ''}>
+              <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+            </div>
+          </label>
         </div>
 
-        <!-- Üyeler -->
+        <!-- ② Üyeler -->
         <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Üyeler (${uyeler.length})</p>
-          <div id="kd-uyeler-listesi" class="space-y-2 mb-3">
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Üyeler (${uyeler.length})</p>
+          <div class="space-y-2 mb-3">
             ${uyeler.map(u => `
               <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100">
                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -186,9 +198,7 @@ export function profilEkranKur(app) {
               </div>
             `).join('')}
           </div>
-
           ${davetler.length > 0 ? `
-            <p class="text-xs text-gray-400 mb-1">Bekleyen davetler (${davetler.length})</p>
             <div class="space-y-1 mb-3">
               ${davetler.map(d => `
                 <div class="flex items-center gap-2 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">
@@ -199,10 +209,8 @@ export function profilEkranKur(app) {
               `).join('')}
             </div>
           ` : ''}
-
-          <p class="text-xs text-gray-400 mb-1">Yeni üye davet et</p>
           <div class="flex gap-2 flex-wrap">
-            <input id="kd-davet-eposta" type="email" class="input-field flex-1 min-w-0 text-sm" placeholder="E-posta adresi">
+            <input id="kd-davet-eposta" type="email" class="input-field flex-1 min-w-0 text-sm" placeholder="Davet et: e-posta">
             <select id="kd-davet-rol" class="input-field text-sm flex-shrink-0" style="width:110px">
               <option value="uye">Üye</option>
               <option value="yonetici">Yönetici</option>
@@ -212,41 +220,36 @@ export function profilEkranKur(app) {
           </div>
         </div>
 
-        <!-- Ortaklar -->
-        <div>
+        <!-- ③ Ortaklar — SADECE ortaklık kasasında göster -->
+        <div id="kd-ortaklar-bolum" class="${ortaklikMi ? '' : 'hidden'}">
           <div class="flex items-center justify-between mb-2">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ortaklar</p>
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ortaklar</p>
             <p class="text-xs font-semibold ${payRenk}">Toplam: %${Math.round(toplamPay * 10) / 10}</p>
           </div>
-          <div id="kd-ortaklar-listesi" class="space-y-2 mb-3">
-            ${ortaklar.length === 0
-              ? '<p class="text-xs text-gray-400 text-center py-2">Henüz ortak yok</p>'
-              : ortaklar.map(o => `
-                <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100">
-                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style="background:${o.renk || '#94a3b8'}">${basHarf(o.isim)}</div>
-                  <input class="kd-ortak-isim flex-1 min-w-0 text-sm bg-transparent outline-none text-gray-800 font-medium border-b border-transparent focus:border-brand transition"
-                    value="${app.esc(o.isim)}" data-ortak-id="${o.id}">
-                  <div class="flex items-center gap-0.5 flex-shrink-0">
-                    <span class="text-xs text-gray-400">%</span>
-                    <input class="kd-ortak-pay w-14 text-sm text-right border border-gray-200 rounded-lg px-1.5 py-1 bg-white focus:border-brand outline-none transition"
-                      type="number" min="0" max="100" step="1"
-                      value="${o.pay != null ? o.pay : ''}" placeholder="—"
-                      data-ortak-id="${o.id}">
-                  </div>
-                  <button class="kd-ortak-kaydet px-2 py-1 bg-brand/10 text-brand rounded-lg text-xs font-bold hover:bg-brand/20 transition flex-shrink-0"
-                    data-ortak-id="${o.id}" title="Kaydet">✓</button>
-                  <button class="kd-ortak-sil p-1 text-gray-300 hover:text-red-500 transition flex-shrink-0"
-                    data-ortak-id="${o.id}">
-                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  </button>
+          ${ortaklar.length < 2 ? `<p class="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-2">Ortaklık kasası için en az 2 ortak gerekli.</p>` : ''}
+          <div class="space-y-2 mb-3">
+            ${ortaklar.map(o => `
+              <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  style="background:${o.renk || '#94a3b8'}">${basHarf(o.isim)}</div>
+                <input class="kd-ortak-isim flex-1 min-w-0 text-sm bg-transparent outline-none text-gray-800 font-medium border-b border-transparent focus:border-brand transition"
+                  value="${app.esc(o.isim)}" data-ortak-id="${o.id}">
+                <div class="flex items-center gap-0.5 flex-shrink-0">
+                  <span class="text-xs text-gray-400">%</span>
+                  <input class="kd-ortak-pay w-14 text-sm text-right border border-gray-200 rounded-lg px-1.5 py-1 bg-white focus:border-brand outline-none transition"
+                    type="number" min="0" max="100" step="1"
+                    value="${o.pay != null ? o.pay : ''}" placeholder="—" data-ortak-id="${o.id}">
                 </div>
-              `).join('')}
+                <button class="kd-ortak-kaydet px-2 py-1 bg-brand/10 text-brand rounded-lg text-xs font-bold hover:bg-brand/20 transition flex-shrink-0"
+                  data-ortak-id="${o.id}">✓</button>
+                <button class="kd-ortak-sil p-1 text-gray-300 hover:text-red-500 transition flex-shrink-0" data-ortak-id="${o.id}">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            `).join('')}
           </div>
-
-          <p class="text-xs text-gray-400 mb-1">Yeni ortak ekle</p>
           <div class="flex gap-2">
-            <input id="kd-ortak-isim-yeni" type="text" class="input-field flex-1 text-sm" placeholder="İsim">
+            <input id="kd-ortak-isim-yeni" type="text" class="input-field flex-1 text-sm" placeholder="Ortak ismi">
             <div class="flex items-center gap-0.5 flex-shrink-0">
               <span class="text-xs text-gray-400">%</span>
               <input id="kd-ortak-pay-yeni" type="number" class="input-field w-16 text-sm" min="0" max="100" step="1" placeholder="Pay">
@@ -351,6 +354,25 @@ export function profilEkranKur(app) {
         app.toast(`${eposta} adresine davet gönderildi`, 'basari');
         await app._kasaDuzenleYukle(kasaId);
       } catch (err) { app.toast(err.message, 'hata'); } finally { btn.disabled = false; }
+    });
+
+    // Ortaklık kasası toggle
+    panel.querySelector('#kd-ortaklik-toggle').addEventListener('change', async (e) => {
+      const yeniTip = e.target.checked ? 'ortaklik' : 'bireysel';
+      const ortaklarBolum = panel.querySelector('#kd-ortaklar-bolum');
+      try {
+        await API.sirketGuncelle(kasaId, { tip: yeniTip });
+        const kasa = (app.tumSirketler || []).find(s => s.id === kasaId);
+        if (kasa) kasa.tip = yeniTip;
+        if (ortaklarBolum) {
+          if (yeniTip === 'ortaklik') ortaklarBolum.classList.remove('hidden');
+          else ortaklarBolum.classList.add('hidden');
+        }
+        app.toast(yeniTip === 'ortaklik' ? 'Ortaklık kasasına çevrildi' : 'Bireysel kasaya çevrildi', 'basari');
+      } catch (err) {
+        app.toast(err.message, 'hata');
+        e.target.checked = !e.target.checked; // geri al
+      }
     });
 
     // Ortak kaydet (satır içi)

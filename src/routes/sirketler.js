@@ -165,9 +165,13 @@ router.post('/:id/logo', upload.single('logo'), async (req, res) => {
 
 // PATCH /api/sirketler/:id
 router.patch('/:id', async (req, res) => {
-  const { isim } = req.body;
-  if (!isim || !isim.trim()) {
-    return res.status(400).json({ hata: 'Şirket ismi zorunludur' });
+  const { isim, tip } = req.body;
+  const guncellemeler = {};
+  if (isim?.trim()) guncellemeler.isim = isim.trim();
+  if (tip && ['ortaklik', 'bireysel'].includes(tip)) guncellemeler.tip = tip;
+
+  if (Object.keys(guncellemeler).length === 0) {
+    return res.status(400).json({ hata: 'Güncellenecek alan belirtilmedi' });
   }
 
   try {
@@ -183,7 +187,7 @@ router.patch('/:id', async (req, res) => {
 
     const { data, error } = await req.supabase
       .from('sirketler')
-      .update({ isim: isim.trim() })
+      .update(guncellemeler)
       .eq('id', req.params.id)
       .select()
       .single();
