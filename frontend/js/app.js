@@ -189,9 +189,21 @@ const App = {
 
   // ─── Veri Yenileme ───
   async yenile() {
+    // getSirketler bağımsız — ozet hatası listeyi engellemez
     try {
-      const [ozet, sirketler] = await Promise.all([API.getOzet(), API.getSirketler()]);
+      const sirketler = await API.getSirketler();
       this.tumSirketler = sirketler;
+      if (this.mevcutSayfa === 'profil' && this.profilKasalariGoster) {
+        // Açık kasa düzenle panelini kaydet — profilKasalariGoster re-render eder
+        const acikPanel = document.querySelector('[id^="kd-panel-"]:not(.hidden)');
+        const acikKasaId = acikPanel?.id?.replace('kd-panel-', '');
+        this.profilKasalariGoster();
+        if (acikKasaId) this.kasaDuzenleToggle(acikKasaId).catch(() => {});
+      }
+    } catch (e) { console.warn('Sirketler yuklenemedi:', e.message); }
+
+    try {
+      const ozet = await API.getOzet();
       this.uyeler = ozet.uyeler;
       this.ortaklar = ozet.ortaklar || [];
       this.rol = ozet.rol;

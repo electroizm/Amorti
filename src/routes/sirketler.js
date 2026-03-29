@@ -21,6 +21,17 @@ router.get('/', async (req, res) => {
       .eq('kullanici_id', req.kullanici.id)
       .eq('silinmis', false);
 
+    // logo_url kolonu henüz eklenmemişse (migration çalıştırılmamış) fallback
+    if (uyeErr && uyeErr.message && uyeErr.message.includes('logo_url')) {
+      const fallback = await req.supabase
+        .from('uyeler')
+        .select('sirket_id, rol, gizli, sirketler(id, isim, tip, sahip_id, olusturma_tarihi)')
+        .eq('kullanici_id', req.kullanici.id)
+        .eq('silinmis', false);
+      uyeler = fallback.data;
+      uyeErr = fallback.error;
+    }
+
     if (uyeErr) throw uyeErr;
 
     // gizli filtresi (varsayılan: gizlileri gösterme)

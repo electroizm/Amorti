@@ -1,11 +1,15 @@
 import { API } from '../api.js';
 import { ikonlariGuncelle } from '../ikonlar.js';
+import { gorselKirpKur, gorselKirpAc } from './gorsel-kirp.js';
 
 function basHarf(str) {
   return (str || '?').charAt(0).toUpperCase();
 }
 
 export function profilEkranKur(app) {
+  // ─── Crop modalını kur (tek seferlik) ───
+  gorselKirpKur();
+
   // ─── Avatar render yardımcısı ───
   app.avatarIcerik = function (kullanici, buyukluk = 'normal') {
     const k = kullanici || API.getKullanici();
@@ -49,7 +53,8 @@ export function profilEkranKur(app) {
 
     const aktifId = API.getSirketId();
     liste.innerHTML = sirketler.map(s => {
-      const sahip = s.sahip_id === kullaniciId;
+      // Sahip kontrolü: sahip_id eşleşirse kesin sahip, yoksa yönetici de düzenleyebilir
+      const sahip = s.sahip_id === kullaniciId || (s.sahip_id == null && s.rol === 'yonetici') || s.rol === 'yonetici';
       const aktif = s.id === aktifId;
       return `
         <div class="space-y-1">
@@ -280,26 +285,28 @@ export function profilEkranKur(app) {
     panel.querySelector('#kd-logo-wrap').addEventListener('click', () => {
       panel.querySelector('#kd-logo-input').click();
     });
-    panel.querySelector('#kd-logo-input').addEventListener('change', async (e) => {
+    panel.querySelector('#kd-logo-input').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       e.target.value = '';
-      try {
-        app.toast('Yükleniyor...', 'bilgi');
-        const sonuc = await API.uploadKasaLogo(kasaId, file);
-        const kasa = (app.tumSirketler || []).find(s => s.id === kasaId);
-        if (kasa) kasa.logo_url = sonuc.logo_url;
-        const cerceve = panel.querySelector('#kd-logo-cerceve');
-        if (cerceve) {
-          cerceve.innerHTML = `<img src="${sonuc.logo_url}?t=${Date.now()}" class="w-full h-full object-cover" alt="">
-            <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
-              <i data-lucide="camera" class="w-5 h-5 text-white"></i>
-            </div>`;
-          ikonlariGuncelle();
-        }
-        app.profilKasalariGoster();
-        app.toast('Görsel güncellendi', 'basari');
-      } catch (err) { app.toast(err.message, 'hata'); }
+      gorselKirpAc(file, false, async (kirpilmis) => {
+        try {
+          app.toast('Yükleniyor...', 'bilgi');
+          const sonuc = await API.uploadKasaLogo(kasaId, kirpilmis);
+          const kasa = (app.tumSirketler || []).find(s => s.id === kasaId);
+          if (kasa) kasa.logo_url = sonuc.logo_url;
+          const cerceve = panel.querySelector('#kd-logo-cerceve');
+          if (cerceve) {
+            cerceve.innerHTML = `<img src="${sonuc.logo_url}?t=${Date.now()}" class="w-full h-full object-cover" alt="">
+              <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition pointer-events-none">
+                <i data-lucide="camera" class="w-5 h-5 text-white"></i>
+              </div>`;
+            ikonlariGuncelle();
+          }
+          app.profilKasalariGoster();
+          app.toast('Görsel güncellendi', 'basari');
+        } catch (err) { app.toast(err.message, 'hata'); }
+      });
     });
 
     // Üye rol değiştir
@@ -373,8 +380,9 @@ export function profilEkranKur(app) {
         try {
           await API.ortakSil(ortakId);
           app.toast('Ortak çıkarıldı', 'bilgi');
+          // Panel açık kalsın: önce arka planda yenile, sonra paneli yenile
+          app.yenile().catch(() => {});
           await app._kasaDuzenleYukle(kasaId);
-          await app.yenile();
         } catch (err) { app.toast(err.message, 'hata'); }
       });
     });
@@ -392,8 +400,9 @@ export function profilEkranKur(app) {
         panel.querySelector('#kd-ortak-isim-yeni').value = '';
         panel.querySelector('#kd-ortak-pay-yeni').value = '';
         app.toast(`"${isim}" ortak olarak eklendi`, 'basari');
+        // Panel açık kalsın: önce arka planda yenile, sonra paneli yenile
+        app.yenile().catch(() => {});
         await app._kasaDuzenleYukle(kasaId);
-        await app.yenile();
       } catch (err) { app.toast(err.message, 'hata'); } finally { btn.disabled = false; }
     });
   };
@@ -449,21 +458,23 @@ export function profilEkranKur(app) {
     document.getElementById('profil-foto-input').click();
   });
 
-  // ─── Dosya seçildi → yükle ───
-  document.getElementById('profil-foto-input').addEventListener('change', async (e) => {
+  // ─── Dosya seçildi → crop → yükle ───
+  document.getElementById('profil-foto-input').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = '';
-    try {
-      app.toast('Yükleniyor...', 'bilgi');
-      const sonuc = await API.uploadAvatar(file);
-      const k = API.getKullanici();
-      API.setKullanici({ ...k, avatar_url: sonuc.avatar_url });
-      app.headerAvatarGuncelle();
-      app.toast('Fotoğraf güncellendi', 'basari');
-    } catch (err) {
-      app.toast(err.message, 'hata');
-    }
+    gorselKirpAc(file, true, async (kirpilmis) => {
+      try {
+        app.toast('Yükleniyor...', 'bilgi');
+        const sonuc = await API.uploadAvatar(kirpilmis);
+        const k = API.getKullanici();
+        API.setKullanici({ ...k, avatar_url: sonuc.avatar_url });
+        app.headerAvatarGuncelle();
+        app.toast('Fotoğraf güncellendi', 'basari');
+      } catch (err) {
+        app.toast(err.message, 'hata');
+      }
+    });
   });
 
   // ─── İsim güncelle ───
